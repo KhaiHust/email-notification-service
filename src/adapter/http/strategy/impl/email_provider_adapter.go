@@ -1,4 +1,4 @@
-package impl
+package strategyAdapterImpl
 
 import (
 	"context"
@@ -11,6 +11,14 @@ import (
 
 type EmailProviderAdapter struct {
 	providers map[string]strategy.IEmailProviderStrategy
+}
+
+func (e EmailProviderAdapter) GetOAuthInfo(ctx context.Context, provider string, code string) (*response.OAuthInfoResponseDto, error) {
+	emailProviderStrategy := e.getStrategy(provider)
+	if emailProviderStrategy == nil {
+		return nil, common.ErrEmailProviderNotFound
+	}
+	return emailProviderStrategy.GetOAuthInfo(ctx, code)
 }
 
 func (e EmailProviderAdapter) GetOAuthUrl(ctx context.Context, provider string) (*response.OAuthUrlResponseDto, error) {

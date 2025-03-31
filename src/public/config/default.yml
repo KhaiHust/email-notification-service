@@ -1,2 +1,3 @@
 app:
   name: Email Notification Service Public
+  path: /email-notification-public

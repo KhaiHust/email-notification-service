@@ -5,23 +5,26 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/entity"
 )
 
-func ToWorkspaceModel(entity *entity.WorkspaceEntity) *model.WorkspaceModel {
+func ToWorkspaceModel(workspaceEntity *entity.WorkspaceEntity) *model.WorkspaceModel {
 	return &model.WorkspaceModel{
 		BaseModel: model.BaseModel{
-			ID: entity.ID,
+			ID: workspaceEntity.ID,
 		},
-		Name:        entity.Name,
-		Description: entity.Description,
+		Name:        workspaceEntity.Name,
+		Description: workspaceEntity.Description,
+		Code:        workspaceEntity.Code,
 	}
 }
 func ToWorkspaceEntity(workspaceModel *model.WorkspaceModel) *entity.WorkspaceEntity {
 	return &entity.WorkspaceEntity{
 		BaseEntity: entity.BaseEntity{
 			ID:        workspaceModel.ID,
-			CreatedAt: workspaceModel.CreateAt.Unix(),
-			UpdatedAt: workspaceModel.UpdateAt.Unix(),
+			CreatedAt: workspaceModel.CreatedAt.Unix(),
+			UpdatedAt: workspaceModel.UpdatedAt.Unix(),
 		},
-		Name:        workspaceModel.Name,
-		Description: workspaceModel.Description,
+		Name:                workspaceModel.Name,
+		Description:         workspaceModel.Description,
+		Code:                workspaceModel.Code,
+		WorkspaceUserEntity: ToListWorkspaceUserEntity(workspaceModel.WorkspaceUserModel),
 	}
 }

@@ -34,6 +34,7 @@ CREATE TABLE "workspaces" (
                               "id" SERIAL PRIMARY KEY,
                               "name" varchar(255),
                               "description" text,
+                            "code" varchar(255) UNIQUE,
                               created_at TIMESTAMPTZ DEFAULT now(),
                               updated_at TIMESTAMPTZ DEFAULT now()
 );

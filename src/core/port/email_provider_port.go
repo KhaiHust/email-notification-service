@@ -7,4 +7,5 @@ import (
 
 type IEmailProviderPort interface {
 	GetOAuthUrl(ctx context.Context, provider string) (*response.OAuthUrlResponseDto, error)
+	GetOAuthInfo(ctx context.Context, provider string, code string) (*response.OAuthInfoResponseDto, error)
 }
