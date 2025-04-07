@@ -1,4 +1,4 @@
-package postgres
+package model
 
 type WorkspaceUserModel struct {
 	BaseModel
