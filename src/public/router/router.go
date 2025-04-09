@@ -10,16 +10,22 @@ import (
 
 type RegisterRoutersIn struct {
 	fx.In
-	App                     *golib.App
-	Engine                  *gin.Engine
-	Actuator                *actuator.Endpoint
+	App      *golib.App
+	Engine   *gin.Engine
+	Actuator *actuator.Endpoint
+	*controller.BaseController
 	EmailProviderController *controller.EmailProviderController
+	UserController          *controller.UserController
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
 	group := p.Engine.Group(p.App.Path())
 	group.GET("/actuator/health", gin.WrapF(p.Actuator.Health))
 	group.GET("/actuator/info", gin.WrapF(p.Actuator.Info))
+	v1Auth := group.Group("/v1/auth")
+	{
+		v1Auth.POST("/signup", p.UserController.SignUp)
+	}
 	v1Integration := group.Group("/v1/integrations")
 	{
 		v1Integration.GET("/:emailProvider/oauth", p.EmailProviderController.GetOAuthUrl)

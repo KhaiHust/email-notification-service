@@ -35,8 +35,8 @@ func (u UserRepositoryAdapter) GetUserByEmail(ctx context.Context, email string)
 
 }
 
-func NewUserRepositoryAdapter(base base) port.IUserRepositoryPort {
+func NewUserRepositoryAdapter(db *gorm.DB) port.IUserRepositoryPort {
 	return &UserRepositoryAdapter{
-		base: base,
+		base: base{db: db},
 	}
 }

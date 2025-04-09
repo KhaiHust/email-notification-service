@@ -23,6 +23,9 @@ func (customValidate *CustomValidate) Struct(current interface{}) error {
 	if errValidate != nil {
 		for _, err := range errValidate.(validator.ValidationErrors) {
 			t := reflect.TypeOf(current)
+			if t.Kind() == reflect.Ptr {
+				t = t.Elem()
+			}
 			for i := 0; i < t.NumField(); i++ {
 				if string(t.Field(i).Name) == err.Field() {
 					errMsg := t.Field(i).Tag.Get(TagValidateMessage)
@@ -35,4 +38,10 @@ func (customValidate *CustomValidate) Struct(current interface{}) error {
 		}
 	}
 	return nil
+}
+func NewCustomValidate() *CustomValidate {
+	validate := validator.New()
+	customValidate := &CustomValidate{}
+	customValidate.init(validate)
+	return customValidate
 }
