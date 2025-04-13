@@ -7,6 +7,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	"github.com/KhaiHust/email-notification-service/core/helper"
+	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/public/controller"
 	"github.com/KhaiHust/email-notification-service/public/router"
@@ -40,7 +41,7 @@ func All() fx.Option {
 
 		// Provide all application properties
 		golib.ProvideProps(properties.NewGmailProviderProperties),
-
+		golib.ProvideProps(coreProperties.NewAuthProperties),
 		// Provide port's implements
 		fx.Provide(client.NewGmailProviderAdapter),
 		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
@@ -60,6 +61,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewCreateUserUseCase),
 		fx.Provide(usecase.NewGetUserUseCase),
 		fx.Provide(usecase.NewHashPasswordUseCase),
+		fx.Provide(usecase.NewLoginUsecase),
 
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),

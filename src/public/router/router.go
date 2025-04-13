@@ -25,6 +25,7 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	v1Auth := group.Group("/v1/auth")
 	{
 		v1Auth.POST("/signup", p.UserController.SignUp)
+		v1Auth.POST("/login", p.UserController.Login)
 	}
 	v1Integration := group.Group("/v1/integrations")
 	{

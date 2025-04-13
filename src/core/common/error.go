@@ -27,6 +27,7 @@ const (
 	ErrOAuthCodeNotFoundMessage       = "OAuth code not found"
 	ErrBadRequestMessage              = "Bad request"
 	ErrEmailIsExistMessage            = "Email is existed"
+	ErrEmailOrPasswordInvalidMessage  = "Email or password is invalid"
 )
 const (
 	ErrEmailProviderNotFoundCode   = 404001
@@ -37,6 +38,7 @@ const (
 	ErrRecordNotFoundCode          = 404002
 	ErrForbiddenCode               = 403001
 	ErrEmailIsExistedCode          = 400003
+	ErrEmailOrPasswordInvalidCode  = 400004
 )
 
 var (
@@ -78,6 +80,11 @@ var (
 	ErrEmailIsExisted = Errs{
 		Message:        ErrEmailIsExistMessage,
 		Code:           ErrEmailIsExistedCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrEmailOrPasswordInvalid = Errs{
+		Message:        ErrEmailOrPasswordInvalidMessage,
+		Code:           ErrEmailOrPasswordInvalidCode,
 		HttpStatusCode: http.StatusBadRequest,
 	}
 )
