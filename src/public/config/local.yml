@@ -11,7 +11,9 @@ app:
   redis:
     host: localhost
     port: 6379
-
+  security:
+    http:
+      jwt.publicKey: ${JWT_PUBLIC_KEY}
   services:
     provider:
       gmail:
@@ -22,4 +24,9 @@ app:
         ResponseType: code
         RedirectUri: ${GMAIL_REDIRECT_URI}
         AccessType: offline
+    auth:
+        jwt:
+          PrivateKey: ${JWT_PRIVATE_KEY}
+          ExpiredAccessToken: 3600
+          ExpiredRefreshToken: 604800
 

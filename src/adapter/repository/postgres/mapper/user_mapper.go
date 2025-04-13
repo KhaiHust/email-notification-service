@@ -9,6 +9,7 @@ func ToUserModel(userEntity *entity.UserEntity) *model.UserModel {
 	return &model.UserModel{
 		FullName: userEntity.FullName,
 		Email:    userEntity.Email,
+		Password: userEntity.Password,
 	}
 }
 func ToUserEntity(userModel *model.UserModel) *entity.UserEntity {
@@ -20,5 +21,6 @@ func ToUserEntity(userModel *model.UserModel) *entity.UserEntity {
 		},
 		FullName: userModel.FullName,
 		Email:    userModel.Email,
+		Password: userModel.Password,
 	}
 }

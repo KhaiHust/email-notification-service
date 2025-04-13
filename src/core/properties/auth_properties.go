@@ -9,7 +9,7 @@ type AuthProperties struct {
 }
 
 func (a AuthProperties) Prefix() string {
-	return "app.services.auth"
+	return "app.services.auth.jwt"
 }
 
 func NewAuthProperties(loader config.Loader) (*AuthProperties, error) {

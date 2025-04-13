@@ -34,6 +34,8 @@ func All() fx.Option {
 
 		golib.HttpClientOpt(),
 		golibsec.SecuredHttpClientOpt(),
+		golibsec.HttpSecurityOpt(),
+		golibsec.JwtAuthFilterOpt(),
 
 		// Provide datasource auto config
 		golibdata.RedisOpt(),
