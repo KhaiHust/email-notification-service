@@ -1,0 +1,53 @@
+package thirdparty
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/KhaiHust/email-notification-service/core/port"
+	"github.com/golibs-starter/golib/log"
+	"github.com/redis/go-redis/v9"
+	"time"
+)
+
+type RedisService struct {
+	redisClient *redis.Client
+}
+
+func (r RedisService) SetToRedis(ctx context.Context, key string, value interface{}, expired int64) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		log.Error(ctx, fmt.Sprint("Error when marshal data to json: ", err))
+		return err
+	}
+	result, err := r.redisClient.Set(ctx, key, data, time.Duration(expired)*time.Second).Result()
+	if err != nil {
+		log.Error(ctx, fmt.Sprint("Error when set data to redis: ", err))
+		return err
+	}
+	log.Info(ctx, fmt.Sprintf("Set data to redis with key: %s, result: %s", key, result))
+	return nil
+}
+
+func (r RedisService) GetFromRedis(ctx context.Context, key string) ([]byte, error) {
+	val, err := r.redisClient.Get(ctx, key).Result()
+	switch {
+	case errors.Is(err, redis.Nil):
+		log.Info(ctx, fmt.Sprintf("Key %s does not exist", key))
+		return nil, nil
+	case err != nil:
+		log.Error(ctx, fmt.Sprint("Error when get data from redis: ", err))
+		return nil, err
+	case val == "":
+		log.Warn(ctx, fmt.Sprintf("Key %s is empty", key))
+		return nil, nil
+	}
+	return []byte(val), nil
+}
+
+func NewRedisService(redisClient *redis.Client) port.IRedisPort {
+	return &RedisService{
+		redisClient: redisClient,
+	}
+}

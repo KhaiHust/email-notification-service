@@ -1,3 +1,14 @@
 app:
   name: Email Notification Service Public
   path: /email-notification-public
+  security.jwt.type: JWT_TOKEN_MOBILE
+  security:
+      http:
+        publicUrls:
+          - /actuator/health
+          - /actuator/info
+          - /swagger/*
+          - /v1/auth/login
+          - /v1/auth/signup
+        protectedUrls:
+          - { urlPattern: "/v1/workspaces/*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }

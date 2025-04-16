@@ -11,7 +11,7 @@ import (
 )
 
 type EmailProviderController struct {
-	BaseController
+	*BaseController
 	emailProviderService service.IEmailProviderService
 }
 
@@ -59,8 +59,9 @@ func (e EmailProviderController) CreateEmailProvider(c *gin.Context) {
 	}
 	apihelper.SuccessfulHandle(c, result)
 }
-func NewEmailProviderController(emailProviderService service.IEmailProviderService) *EmailProviderController {
+func NewEmailProviderController(base *BaseController, emailProviderService service.IEmailProviderService) *EmailProviderController {
 	return &EmailProviderController{
+		BaseController:       base,
 		emailProviderService: emailProviderService,
 	}
 }
