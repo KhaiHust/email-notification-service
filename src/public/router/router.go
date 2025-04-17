@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/KhaiHust/email-notification-service/public/controller"
+	"github.com/KhaiHust/email-notification-service/public/middleware"
 	"github.com/gin-gonic/gin"
 	"github.com/golibs-starter/golib"
 	"github.com/golibs-starter/golib/web/actuator"
@@ -10,9 +11,10 @@ import (
 
 type RegisterRoutersIn struct {
 	fx.In
-	App      *golib.App
-	Engine   *gin.Engine
-	Actuator *actuator.Endpoint
+	App                       *golib.App
+	Engine                    *gin.Engine
+	Actuator                  *actuator.Endpoint
+	WorkspaceAccessMiddleware *middleware.WorkspaceAccessMiddleware
 	*controller.BaseController
 	EmailProviderController *controller.EmailProviderController
 	UserController          *controller.UserController
@@ -31,10 +33,12 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	v1Integration := group.Group("/v1/integrations")
 	{
 		v1Integration.GET("/:emailProvider/oauth", p.EmailProviderController.GetOAuthUrl)
-		v1Integration.POST("/:emailProvider/oauth", p.EmailProviderController.CreateEmailProvider)
 	}
 	V1Workspace := group.Group("/v1/workspaces")
 	{
 		V1Workspace.POST("", p.WorkspaceController.CreateWorkspace)
+		V1Workspace.POST("/:workspaceCode/providers/:emailProvider/oauth",
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailProviderController.CreateEmailProvider)
 	}
 }

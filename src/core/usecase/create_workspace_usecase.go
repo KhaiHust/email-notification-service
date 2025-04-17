@@ -60,9 +60,14 @@ func (c CreateWorkspaceUseCase) CreateNewWorkspace(ctx context.Context, userID i
 
 }
 
-func NewCreateWorkspaceUseCase(workspaceRepo port.IWorkspaceRepositoryPort, databaseTransactionUseCase IDatabaseTransactionUseCase) ICreateWorkspaceUseCase {
+func NewCreateWorkspaceUseCase(
+	workspaceRepo port.IWorkspaceRepositoryPort,
+	workspaceUserRepoPort port.IWorkspaceUserRepositoryPort,
+	databaseTransactionUseCase IDatabaseTransactionUseCase,
+) ICreateWorkspaceUseCase {
 	return &CreateWorkspaceUseCase{
 		workspaceRepo:              workspaceRepo,
+		workspaceUserRepoPort:      workspaceUserRepoPort,
 		databaseTransactionUseCase: databaseTransactionUseCase,
 	}
 }

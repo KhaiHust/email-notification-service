@@ -28,3 +28,10 @@ func ToWorkspaceEntity(workspaceModel *model.WorkspaceModel) *entity.WorkspaceEn
 		WorkspaceUserEntity: ToListWorkspaceUserEntity(workspaceModel.WorkspaceUserModel),
 	}
 }
+func ToListWorkspaceEntity(workspaceModels []*model.WorkspaceModel) []*entity.WorkspaceEntity {
+	workspaces := make([]*entity.WorkspaceEntity, len(workspaceModels))
+	for i, workspaceModel := range workspaceModels {
+		workspaces[i] = ToWorkspaceEntity(workspaceModel)
+	}
+	return workspaces
+}

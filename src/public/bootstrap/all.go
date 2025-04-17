@@ -10,6 +10,7 @@ import (
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/public/controller"
+	"github.com/KhaiHust/email-notification-service/public/middleware"
 	"github.com/KhaiHust/email-notification-service/public/router"
 	"github.com/KhaiHust/email-notification-service/public/service"
 	"github.com/golibs-starter/golib"
@@ -51,6 +52,7 @@ func All() fx.Option {
 		fx.Provide(postgres.NewEmailProviderRepositoryAdapter),
 		fx.Provide(postgres.NewDatabaseTransactionAdapter),
 		fx.Provide(postgres.NewUserRepositoryAdapter),
+		fx.Provide(postgres.NewWorkspaceUserRepositoryAdapter),
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
@@ -64,18 +66,22 @@ func All() fx.Option {
 		fx.Provide(usecase.NewGetUserUseCase),
 		fx.Provide(usecase.NewHashPasswordUseCase),
 		fx.Provide(usecase.NewLoginUsecase),
-
+		fx.Provide(usecase.NewCreateWorkspaceUseCase),
+		fx.Provide(usecase.NewValidateAccessWorkspaceUsecase),
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
 		fx.Provide(service.NewUserService),
+		fx.Provide(service.NewWorkspaceService),
 
 		//Provide controllers
 		fx.Provide(helper.NewCustomValidate),
 		fx.Provide(controller.NewBaseController),
 		fx.Provide(controller.NewEmailProviderController),
 		fx.Provide(controller.NewUserController),
+		fx.Provide(controller.NewWorkspaceController),
 
 		golibgin.GinHttpServerOpt(),
+		fx.Provide(middleware.NewWorkspaceAccessMiddleware),
 		fx.Invoke(router.RegisterGinRouters),
 
 		//Graceful shutdown

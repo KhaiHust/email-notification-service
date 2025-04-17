@@ -10,4 +10,5 @@ type EmailProviderEntity struct {
 	OAuthRefreshToken string
 	OAuthExpiredAt    int64
 	UseTLS            bool
+	Email             string
 }

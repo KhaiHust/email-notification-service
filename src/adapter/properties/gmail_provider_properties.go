@@ -4,15 +4,17 @@ import (
 	"github.com/golibs-starter/golib/config"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+	"strings"
 )
 
 type GmailProviderProperties struct {
 	BaseOAuthURL string
 	ClientID     string
 	RedirectURI  string
-	Scope        string
+	Scopes       string
 	ResponseType string
 	AccessType   string
+	ClientSecret string
 }
 
 func (g GmailProviderProperties) Prefix() string {
@@ -31,9 +33,10 @@ type GoogleOAuthConfig struct {
 
 func NewGoogleOAuthConfig(props *GmailProviderProperties) *oauth2.Config {
 	return &oauth2.Config{
-		ClientID:    props.ClientID,
-		RedirectURL: props.RedirectURI,
-		Scopes:      []string{props.Scope},
-		Endpoint:    google.Endpoint,
+		ClientID:     props.ClientID,
+		RedirectURL:  props.RedirectURI,
+		ClientSecret: props.ClientSecret,
+		Scopes:       strings.Split(props.Scopes, " "),
+		Endpoint:     google.Endpoint,
 	}
 }

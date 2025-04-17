@@ -15,6 +15,27 @@ type RedisService struct {
 	redisClient *redis.Client
 }
 
+func (r RedisService) GetHSetFromRedis(ctx context.Context, key string) (map[string]string, error) {
+	data, err := r.redisClient.HGetAll(ctx, key).Result()
+	if err != nil {
+		log.Error(ctx, fmt.Sprint("Error when get data from redis: ", err))
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return data, nil
+}
+
+func (r RedisService) SetHSetToRedis(ctx context.Context, key string, mapFieldValue map[string]interface{}, expired int64) error {
+	err := r.redisClient.HSet(ctx, key, mapFieldValue, time.Duration(expired)*time.Second).Err()
+	if err != nil {
+		log.Error(ctx, fmt.Sprint("Error when set data to redis: ", err))
+		return err
+	}
+	return nil
+}
+
 func (r RedisService) SetToRedis(ctx context.Context, key string, value interface{}, expired int64) error {
 	data, err := json.Marshal(value)
 	if err != nil {

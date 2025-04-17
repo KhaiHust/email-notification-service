@@ -2,6 +2,7 @@ package controller
 
 import (
 	"github.com/KhaiHust/email-notification-service/core/common"
+	"github.com/KhaiHust/email-notification-service/core/helper"
 	"github.com/KhaiHust/email-notification-service/public/apihelper"
 	"github.com/KhaiHust/email-notification-service/public/resource/request"
 	"github.com/KhaiHust/email-notification-service/public/service"
@@ -40,4 +41,10 @@ func (w *WorkspaceController) CreateWorkspace(c *gin.Context) {
 	}
 	apihelper.SuccessfulHandle(c, workspace)
 
+}
+func NewWorkspaceController(workspaceService service.IWorkspaceService, validator *helper.CustomValidate) *WorkspaceController {
+	return &WorkspaceController{
+		BaseController:   *NewBaseController(validator),
+		workspaceService: workspaceService,
+	}
 }

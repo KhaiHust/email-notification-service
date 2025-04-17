@@ -20,7 +20,7 @@ app:
         BaseOAuthUrl: https://accounts.google.com/o/oauth2/auth
         ClientId: ${GMAIL_CLIENT_ID}
         ClientSecret: ${GMAIL_CLIENT_SECRET}
-        Scope: https://mail.google.com/
+        Scopes: "https://www.googleapis.com/auth/userinfo.email https://mail.google.com/"
         ResponseType: code
         RedirectUri: ${GMAIL_REDIRECT_URI}
         AccessType: offline
