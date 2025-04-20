@@ -53,6 +53,7 @@ func All() fx.Option {
 		fx.Provide(postgres.NewDatabaseTransactionAdapter),
 		fx.Provide(postgres.NewUserRepositoryAdapter),
 		fx.Provide(postgres.NewWorkspaceUserRepositoryAdapter),
+		fx.Provide(postgres.NewEmailTemplateRepositoryAdapter),
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
@@ -68,10 +69,12 @@ func All() fx.Option {
 		fx.Provide(usecase.NewLoginUsecase),
 		fx.Provide(usecase.NewCreateWorkspaceUseCase),
 		fx.Provide(usecase.NewValidateAccessWorkspaceUsecase),
+		fx.Provide(usecase.NewCreateTemplateUseCase),
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
 		fx.Provide(service.NewUserService),
 		fx.Provide(service.NewWorkspaceService),
+		fx.Provide(service.NewEmailTemplateService),
 
 		//Provide controllers
 		fx.Provide(helper.NewCustomValidate),
@@ -79,6 +82,7 @@ func All() fx.Option {
 		fx.Provide(controller.NewEmailProviderController),
 		fx.Provide(controller.NewUserController),
 		fx.Provide(controller.NewWorkspaceController),
+		fx.Provide(controller.NewEmailTemplateController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewWorkspaceAccessMiddleware),

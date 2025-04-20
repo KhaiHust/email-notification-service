@@ -19,6 +19,7 @@ type RegisterRoutersIn struct {
 	EmailProviderController *controller.EmailProviderController
 	UserController          *controller.UserController
 	WorkspaceController     *controller.WorkspaceController
+	EmailTemplateController *controller.EmailTemplateController
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
@@ -34,11 +35,14 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	{
 		v1Integration.GET("/:emailProvider/oauth", p.EmailProviderController.GetOAuthUrl)
 	}
-	V1Workspace := group.Group("/v1/workspaces")
+	v1Workspace := group.Group("/v1/workspaces")
 	{
-		V1Workspace.POST("", p.WorkspaceController.CreateWorkspace)
-		V1Workspace.POST("/:workspaceCode/providers/:emailProvider/oauth",
+		v1Workspace.POST("", p.WorkspaceController.CreateWorkspace)
+		v1Workspace.POST("/:workspaceCode/providers/:emailProvider/oauth",
 			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailProviderController.CreateEmailProvider)
+		v1Workspace.POST("/:workspaceCode/templates",
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailTemplateController.CreateTemplate)
 	}
 }
