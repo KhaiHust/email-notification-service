@@ -31,6 +31,12 @@ func (e EmailProviderController) GetOAuthUrl(c *gin.Context) {
 	apihelper.SuccessfulHandle(c, result)
 }
 func (e EmailProviderController) CreateEmailProvider(c *gin.Context) {
+	workspaceCode := c.Param(constant.ParamWorkspaceCode)
+	if workspaceCode == "" {
+		log.Error(c, "workspaceCode is empty")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
 	provider := c.Param(constant.ParamEmailProvider)
 	if provider == "" {
 		log.Error(c, "provider is empty")
@@ -48,16 +54,20 @@ func (e EmailProviderController) CreateEmailProvider(c *gin.Context) {
 		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
 		return
 	}
+	userID, err := e.GetUserIDFromContext(c)
+	if err != nil {
+		log.Error(c, "Failed to get user ID from context: %v", err)
+		apihelper.AbortErrorHandle(c, common.ErrForbidden)
+		return
+	}
 
-	userId := int64(1)
-	workspaceCode := c.Param(constant.ParamWorkspaceCode)
-	result, err := e.emailProviderService.CreateEmailProvider(c, provider, userId, workspaceCode, req.Code)
+	_, err = e.emailProviderService.CreateEmailProvider(c, provider, userID, workspaceCode, req.Code)
 	if err != nil {
 		log.Error(c, "CreateEmailProvider error: %v", err)
 		apihelper.AbortErrorHandle(c, err)
 		return
 	}
-	apihelper.SuccessfulHandle(c, result)
+	apihelper.SuccessfulHandle(c, nil)
 }
 func NewEmailProviderController(base *BaseController, emailProviderService service.IEmailProviderService) *EmailProviderController {
 	return &EmailProviderController{

@@ -1,16 +1,45 @@
 package mapper
 
 import (
-	"context"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
 	"github.com/KhaiHust/email-notification-service/core/entity"
-	"github.com/KhaiHust/email-notification-service/core/utils"
+	"time"
 )
 
-func ToEmailProviderModel(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity) (*model.EmailProviderModel, error) {
-	var emailProviderModel model.EmailProviderModel
-	if err := utils.CopyStruct(&emailProviderModel, emailProviderEntity); err != nil {
-		return nil, err
+func ToEmailProviderModel(emailProviderEntity *entity.EmailProviderEntity) *model.EmailProviderModel {
+	if emailProviderEntity == nil {
+		return nil
 	}
-	return &emailProviderModel, nil
+	return &model.EmailProviderModel{
+		WorkspaceId:       emailProviderEntity.WorkspaceId,
+		Provider:          emailProviderEntity.Provider,
+		SmtpHost:          emailProviderEntity.SmtpHost,
+		SmtpPort:          emailProviderEntity.SmtpPort,
+		OAuthToken:        emailProviderEntity.OAuthToken,
+		OAuthRefreshToken: emailProviderEntity.OAuthRefreshToken,
+		OAuthExpiredAt:    time.Unix(emailProviderEntity.OAuthExpiredAt, 0),
+		UseTLS:            emailProviderEntity.UseTLS,
+		Email:             emailProviderEntity.Email,
+	}
+}
+func ToEmailProviderEntity(emailProviderModel *model.EmailProviderModel) *entity.EmailProviderEntity {
+	if emailProviderModel == nil {
+		return nil
+	}
+	return &entity.EmailProviderEntity{
+		BaseEntity: entity.BaseEntity{
+			ID:        emailProviderModel.ID,
+			CreatedAt: emailProviderModel.CreatedAt.Unix(),
+			UpdatedAt: emailProviderModel.UpdatedAt.Unix(),
+		},
+		WorkspaceId:       emailProviderModel.WorkspaceId,
+		Provider:          emailProviderModel.Provider,
+		SmtpHost:          emailProviderModel.SmtpHost,
+		SmtpPort:          emailProviderModel.SmtpPort,
+		OAuthToken:        emailProviderModel.OAuthToken,
+		OAuthRefreshToken: emailProviderModel.OAuthRefreshToken,
+		OAuthExpiredAt:    emailProviderModel.OAuthExpiredAt.Unix(),
+		UseTLS:            emailProviderModel.UseTLS,
+		Email:             emailProviderModel.Email,
+	}
 }

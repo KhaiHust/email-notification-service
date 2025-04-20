@@ -44,6 +44,7 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 		OAuthRefreshToken: oauthResponse.RefreshToken,
 		OAuthExpiredAt:    oauthResponse.ExpiredAt,
 		UseTLS:            oauthResponse.UseTLS,
+		Email:             oauthResponse.Email,
 	}
 	tx := c.databaseTransactionUseCase.StartTx()
 	defer func() {
@@ -68,10 +69,16 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 	return emailProvider, nil
 }
 
-func NewCreateEmailProviderUseCase(emailProviderRepositoryPort port.IEmailProviderRepositoryPort, getWorkspaceUseCase IGetWorkspaceUseCase, databaseTransactionUseCase IDatabaseTransactionUseCase) ICreateEmailProviderUseCase {
+func NewCreateEmailProviderUseCase(
+	emailProviderRepositoryPort port.IEmailProviderRepositoryPort,
+	getWorkspaceUseCase IGetWorkspaceUseCase,
+	databaseTransactionUseCase IDatabaseTransactionUseCase,
+	emailProviderPort port.IEmailProviderPort,
+) ICreateEmailProviderUseCase {
 	return &CreateEmailProviderUseCase{
 		emailProviderRepositoryPort: emailProviderRepositoryPort,
 		getWorkspaceUseCase:         getWorkspaceUseCase,
 		databaseTransactionUseCase:  databaseTransactionUseCase,
+		emailProviderPort:           emailProviderPort,
 	}
 }

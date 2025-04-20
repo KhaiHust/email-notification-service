@@ -42,7 +42,7 @@ func (g GmailProviderAdapter) GetOAuthUrl() (*response.OAuthUrlResponseDto, erro
 	params.Add("client_id", g.props.ClientID)
 	params.Add("redirect_uri", g.props.RedirectURI)
 	params.Add("response_type", g.props.ResponseType)
-	params.Add("scope", g.props.Scope)
+	params.Add("scope", g.props.Scopes)
 	params.Add("access_type", g.props.AccessType)
 	oauthUrl := g.props.BaseOAuthURL + "?" + params.Encode()
 	return &response.OAuthUrlResponseDto{Url: oauthUrl}, nil
@@ -63,6 +63,10 @@ func (g *GmailProviderAdapter) getGmailUserInfo(ctx context.Context, accessToken
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		log.Error(ctx, "Error when get user info, status code: %d", resp.StatusCode)
+		return nil, err
+	}
 	var userInfo dto.GoogleGetInfoResponse
 	if err = json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		log.Error(ctx, "Error when decode user info", err)

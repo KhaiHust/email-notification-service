@@ -1,5 +1,5 @@
 package dto
 
 type GoogleGetInfoResponse struct {
-	Email string `json:"emailAddress"`
+	Email string `json:"email"`
 }
