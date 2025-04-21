@@ -1,0 +1,13 @@
+app:
+  port: 8081
+  logging.development: true
+
+  kafka:
+    bootstrapServers: localhost:9092
+    clientId: golib-sample
+    consumer:
+      handlerMappings:
+        EmailSendingRequestHandler:
+          topic: c1.email.email-sending-request
+          groupId: c1.email.email-sending-request.EmailSendingRequestHandler.local
+          enable: true

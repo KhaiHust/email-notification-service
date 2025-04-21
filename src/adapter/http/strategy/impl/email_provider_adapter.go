@@ -5,12 +5,22 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/http/strategy"
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/constant"
+	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/response"
 	"github.com/KhaiHust/email-notification-service/core/port"
 )
 
 type EmailProviderAdapter struct {
 	providers map[string]strategy.IEmailProviderStrategy
+}
+
+func (e EmailProviderAdapter) Send(ctx context.Context, provider *entity.EmailProviderEntity, data *request.EmailDataDto) error {
+	emailProviderStrategy := e.getStrategy(provider.Provider)
+	if emailProviderStrategy == nil {
+		return common.ErrEmailProviderNotFound
+	}
+	return emailProviderStrategy.SendEmail(ctx, provider, data)
 }
 
 func (e EmailProviderAdapter) GetOAuthInfo(ctx context.Context, provider string, code string) (*response.OAuthInfoResponseDto, error) {
