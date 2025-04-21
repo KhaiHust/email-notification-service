@@ -8,4 +8,5 @@ import (
 
 type IEmailTemplateRepositoryPort interface {
 	SaveNewTemplate(ctx context.Context, tx *gorm.DB, template *entity.EmailTemplateEntity) (*entity.EmailTemplateEntity, error)
+	GetTemplateByID(ctx context.Context, ID int64) (*entity.EmailTemplateEntity, error)
 }
