@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/KhaiHust/email-notification-service/core/constant"
@@ -22,6 +23,9 @@ func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) 
 		return
 	}
 	ctx := evt.Context()
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	if evt.AbstractEvent == nil || evt.AbstractEvent.ApplicationEvent == nil ||
 		evt.AbstractEvent.Event != constant.EmailRequestSendingEvent || evt.PayloadData == nil {
 		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Invalid event: %v", evt))
@@ -30,7 +34,7 @@ func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) 
 	//Todo: process the event
 	payload := evt.PayloadData
 	log.Info(ctx, payload)
-	if err := em.eventHandlerUsecase.SendEmailRequestHandler(ctx, payload.TemplateId, mapper.ToEmailSendingDto(payload)); err != nil {
+	if err := em.eventHandlerUsecase.SendEmailRequestHandler(ctx, payload.IntegrationID, mapper.ToEmailSendingDto(payload)); err != nil {
 		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Error handling event: %v", err))
 		return
 	}
@@ -41,6 +45,10 @@ func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) 
 func (em EmailSendingRequestHandler) Close() {
 }
 
-func NewEmailSendingRequestHandler() core.ConsumerHandler {
-	return &EmailSendingRequestHandler{}
+func NewEmailSendingRequestHandler(
+	eventHandlerUsecase usecase.IEventHandlerUsecase,
+) core.ConsumerHandler {
+	return &EmailSendingRequestHandler{
+		eventHandlerUsecase: eventHandlerUsecase,
+	}
 }

@@ -66,6 +66,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewCreateTemplateUseCase),
 		fx.Provide(usecase.NewEmailSendingUsecase),
 		fx.Provide(usecase.NewGetEmailTemplateUseCase),
+		fx.Provide(usecase.NewEventHandlerUsecase),
 
 		//provider handler
 		golibmsg.ProvideConsumer(handler.NewEmailSendingRequestHandler),

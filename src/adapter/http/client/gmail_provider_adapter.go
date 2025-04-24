@@ -82,6 +82,7 @@ func (g GmailProviderAdapter) GetOAuthUrl() (*response.OAuthUrlResponseDto, erro
 	params.Add("response_type", g.props.ResponseType)
 	params.Add("scope", g.props.Scopes)
 	params.Add("access_type", g.props.AccessType)
+	params.Add("prompt", "consent")
 	oauthUrl := g.props.BaseOAuthURL + "?" + params.Encode()
 	return &response.OAuthUrlResponseDto{Url: oauthUrl}, nil
 }

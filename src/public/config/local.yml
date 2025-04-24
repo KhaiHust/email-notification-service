@@ -23,7 +23,7 @@ app:
         Scopes: "https://www.googleapis.com/auth/userinfo.email https://mail.google.com/"
         ResponseType: code
         RedirectUri: ${GMAIL_REDIRECT_URI}
-        AccessType: offline
+        AccessType: "offline"
     auth:
         jwt:
           PrivateKey: ${JWT_PRIVATE_KEY}
