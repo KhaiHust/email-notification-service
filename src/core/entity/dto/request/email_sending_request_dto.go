@@ -1,8 +1,8 @@
 package request
 
 type EmailSendingRequestDto struct {
-	TemplateID string
-	Data       []EmailSendingData
+	TemplateId int64
+	Data       []*EmailSendingData
 }
 type EmailSendingData struct {
 	To      string

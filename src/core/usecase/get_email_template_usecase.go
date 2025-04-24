@@ -17,7 +17,7 @@ func (e GetEmailTemplateUseCase) GetTemplateByID(ctx context.Context, ID int64) 
 	return e.emailTemplateRepositoryPort.GetTemplateByID(ctx, ID)
 }
 
-func NewEmailTemplateUseCase(
+func NewGetEmailTemplateUseCase(
 	emailTemplateRepositoryPort port.IEmailTemplateRepositoryPort,
 ) IGetEmailTemplateUseCase {
 	return &GetEmailTemplateUseCase{

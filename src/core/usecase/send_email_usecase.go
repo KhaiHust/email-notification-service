@@ -3,14 +3,13 @@ package usecase
 import (
 	"context"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
-	"github.com/KhaiHust/email-notification-service/core/event/message"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"github.com/KhaiHust/email-notification-service/core/utils"
 	"github.com/golibs-starter/golib/log"
 )
 
 type IEmailSendingUsecase interface {
-	SendBatches(ctx context.Context, providerID int64, req *message.EmailRequestSendingMessage) error
+	SendBatches(ctx context.Context, providerID int64, req *request.EmailSendingRequestDto) error
 }
 type EmailSendingUsecase struct {
 	getEmailProviderUseCase IGetEmailProviderUseCase
@@ -18,7 +17,7 @@ type EmailSendingUsecase struct {
 	emailProviderPort       port.IEmailProviderPort
 }
 
-func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, req *message.EmailRequestSendingMessage) error {
+func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, req *request.EmailSendingRequestDto) error {
 	emailProvider, err := e.getEmailProviderUseCase.GetEmailProviderByID(ctx, providerID)
 	if err != nil {
 		log.Error(ctx, "Error when get email provider by id", err)
@@ -31,7 +30,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 		return err
 	}
 	dataSendings := make([]*request.EmailDataDto, 0)
-	for _, data := range req.SendData {
+	for _, data := range req.Data {
 		dataSend := &request.EmailDataDto{
 			Subject: utils.FillTemplate(template.Subject, data.Subject),
 			Body:    utils.FillTemplate(template.Body, data.Body),
@@ -51,6 +50,14 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 	return nil
 }
 
-func NewEmailSendingUseCase() IEmailSendingUsecase {
-	return &EmailSendingUsecase{}
+func NewEmailSendingUsecase(
+	getEmailProviderUseCase IGetEmailProviderUseCase,
+	getEmailTemplateUseCase IGetEmailTemplateUseCase,
+	emailProviderPort port.IEmailProviderPort,
+) IEmailSendingUsecase {
+	return &EmailSendingUsecase{
+		getEmailProviderUseCase: getEmailProviderUseCase,
+		getEmailTemplateUseCase: getEmailTemplateUseCase,
+		emailProviderPort:       emailProviderPort,
+	}
 }

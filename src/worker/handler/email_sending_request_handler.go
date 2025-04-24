@@ -6,6 +6,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/event"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
+	"github.com/KhaiHust/email-notification-service/worker/resource/mapper"
 	"github.com/golibs-starter/golib-message-bus/kafka/core"
 	"github.com/golibs-starter/golib/log"
 )
@@ -29,6 +30,11 @@ func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) 
 	//Todo: process the event
 	payload := evt.PayloadData
 	log.Info(ctx, payload)
+	if err := em.eventHandlerUsecase.SendEmailRequestHandler(ctx, payload.TemplateId, mapper.ToEmailSendingDto(payload)); err != nil {
+		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Error handling event: %v", err))
+		return
+	}
+	log.Info(ctx, "Successfully processed email sending request")
 
 }
 

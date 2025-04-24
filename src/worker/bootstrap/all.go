@@ -8,9 +8,11 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
+	"github.com/KhaiHust/email-notification-service/worker/handler"
 	"github.com/golibs-starter/golib"
 	golibdata "github.com/golibs-starter/golib-data"
 	golibmsg "github.com/golibs-starter/golib-message-bus"
+	golibsec "github.com/golibs-starter/golib-security"
 	"go.uber.org/fx"
 )
 
@@ -23,6 +25,9 @@ func All() fx.Option {
 		golib.BuildInfoOpt(Version, CommitHash, BuildTime),
 		golib.ActuatorEndpointOpt(),
 		golib.HttpRequestLogOpt(),
+
+		golib.HttpClientOpt(),
+		golibsec.SecuredHttpClientOpt(),
 
 		golibmsg.KafkaCommonOpt(),
 		golibmsg.KafkaConsumerOpt(),
@@ -59,5 +64,16 @@ func All() fx.Option {
 		fx.Provide(usecase.NewCreateWorkspaceUseCase),
 		fx.Provide(usecase.NewValidateAccessWorkspaceUsecase),
 		fx.Provide(usecase.NewCreateTemplateUseCase),
+		fx.Provide(usecase.NewEmailSendingUsecase),
+		fx.Provide(usecase.NewGetEmailTemplateUseCase),
+
+		//provider handler
+		golibmsg.ProvideConsumer(handler.NewEmailSendingRequestHandler),
+
+		// Graceful shutdown.
+		// OnStop hooks will run in reverse order.
+		//golibgin.OnStopHttpServerOpt(),
+		//golibmsg.OnStopProducerOpt(),
+		golibmsg.OnStopConsumerOpt(),
 	)
 }
