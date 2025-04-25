@@ -11,6 +11,7 @@ func ToEmailProviderModel(emailProviderEntity *entity.EmailProviderEntity) *mode
 		return nil
 	}
 	return &model.EmailProviderModel{
+		BaseModel:         ToBaseModelMapper(&emailProviderEntity.BaseEntity),
 		WorkspaceId:       emailProviderEntity.WorkspaceId,
 		Provider:          emailProviderEntity.Provider,
 		SmtpHost:          emailProviderEntity.SmtpHost,

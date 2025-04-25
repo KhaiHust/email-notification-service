@@ -15,6 +15,14 @@ type EmailProviderAdapter struct {
 	providers map[string]strategy.IEmailProviderStrategy
 }
 
+func (e EmailProviderAdapter) GetOAuthByRefreshToken(ctx context.Context, provider *entity.EmailProviderEntity) (*response.OAuthInfoResponseDto, error) {
+	emailProviderStrategy := e.getStrategy(provider.Provider)
+	if emailProviderStrategy == nil {
+		return nil, common.ErrEmailProviderNotFound
+	}
+	return emailProviderStrategy.GetOAuthByRefreshToken(ctx, provider)
+}
+
 func (e EmailProviderAdapter) Send(ctx context.Context, provider *entity.EmailProviderEntity, data *request.EmailDataDto) error {
 	emailProviderStrategy := e.getStrategy(provider.Provider)
 	if emailProviderStrategy == nil {
@@ -28,7 +36,7 @@ func (e EmailProviderAdapter) GetOAuthInfo(ctx context.Context, provider string,
 	if emailProviderStrategy == nil {
 		return nil, common.ErrEmailProviderNotFound
 	}
-	return emailProviderStrategy.GetOAuthInfo(ctx, code)
+	return emailProviderStrategy.GetOAuthInfoByCode(ctx, code)
 }
 
 func (e EmailProviderAdapter) GetOAuthUrl(ctx context.Context, provider string) (*response.OAuthUrlResponseDto, error) {

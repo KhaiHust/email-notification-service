@@ -32,7 +32,7 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 
 	oauthResponse, err := c.emailProviderPort.GetOAuthInfo(ctx, provider, code)
 	if err != nil {
-		log.Error(ctx, "GetOAuthInfo error: %v", err)
+		log.Error(ctx, "GetOAuthInfoByCode error: %v", err)
 		return nil, err
 	}
 	providerEntity := entity.EmailProviderEntity{

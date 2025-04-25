@@ -1,11 +1,11 @@
 package handler
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/event"
+	"github.com/KhaiHust/email-notification-service/core/middleware"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/worker/resource/mapper"
 	"github.com/golibs-starter/golib-message-bus/kafka/core"
@@ -24,16 +24,15 @@ func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) 
 	}
 	ctx := evt.Context()
 	if ctx == nil {
-		ctx = context.Background()
+		ctx = middleware.InitContextWorker()
 	}
 	if evt.AbstractEvent == nil || evt.AbstractEvent.ApplicationEvent == nil ||
 		evt.AbstractEvent.Event != constant.EmailRequestSendingEvent || evt.PayloadData == nil {
 		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Invalid event: %v", evt))
 		return
 	}
-	//Todo: process the event
+
 	payload := evt.PayloadData
-	log.Info(ctx, payload)
 	if err := em.eventHandlerUsecase.SendEmailRequestHandler(ctx, payload.IntegrationID, mapper.ToEmailSendingDto(payload)); err != nil {
 		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Error handling event: %v", err))
 		return

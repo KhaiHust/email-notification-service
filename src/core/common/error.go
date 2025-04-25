@@ -28,6 +28,7 @@ const (
 	ErrBadRequestMessage              = "Bad request"
 	ErrEmailIsExistMessage            = "Email is existed"
 	ErrEmailOrPasswordInvalidMessage  = "Email or password is invalid"
+	ErrUnauthorizedMessage            = "Unauthorized"
 )
 const (
 	ErrEmailProviderNotFoundCode   = 404001
@@ -39,6 +40,7 @@ const (
 	ErrForbiddenCode               = 403001
 	ErrEmailIsExistedCode          = 400003
 	ErrEmailOrPasswordInvalidCode  = 400004
+	ErrUnauthorizedCode            = 401000
 )
 
 var (
@@ -87,16 +89,23 @@ var (
 		Code:           ErrEmailOrPasswordInvalidCode,
 		HttpStatusCode: http.StatusBadRequest,
 	}
+	ErrUnauthorized = Errs{
+		Message:        ErrUnauthorizedMessage,
+		Code:           ErrUnauthorizedCode,
+		HttpStatusCode: http.StatusUnauthorized,
+	}
 )
 var (
 	mapErrs = map[int]Errs{
-		ErrEmailProviderNotFoundCode: ErrEmailProviderNotFound,
-		ErrInternalServerCode:        ErrInternalServer,
-		ErrRecordNotFoundCode:        ErrRecordNotFound,
-		ErrForbiddenCode:             ErrForbidden,
-		ErrOAuthCodeNotFoundCode:     ErrOAuthCodeNotFound,
-		ErrBadRequestCode:            ErrBadRequest,
-		ErrEmailIsExistedCode:        ErrEmailIsExisted,
+		ErrEmailProviderNotFoundCode:  ErrEmailProviderNotFound,
+		ErrInternalServerCode:         ErrInternalServer,
+		ErrRecordNotFoundCode:         ErrRecordNotFound,
+		ErrForbiddenCode:              ErrForbidden,
+		ErrOAuthCodeNotFoundCode:      ErrOAuthCodeNotFound,
+		ErrBadRequestCode:             ErrBadRequest,
+		ErrEmailIsExistedCode:         ErrEmailIsExisted,
+		ErrEmailOrPasswordInvalidCode: ErrEmailOrPasswordInvalid,
+		ErrUnauthorizedCode:           ErrUnauthorized,
 	}
 )
 

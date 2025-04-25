@@ -9,6 +9,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/http/client/dto"
 	"github.com/KhaiHust/email-notification-service/adapter/http/strategy"
 	"github.com/KhaiHust/email-notification-service/adapter/properties"
+	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/response"
@@ -17,12 +18,41 @@ import (
 	"golang.org/x/oauth2"
 	"net/url"
 	"strings"
+	"time"
 )
 
 type GmailProviderAdapter struct {
 	httpClient        client.ContextualHttpClient
 	props             *properties.GmailProviderProperties
 	googleOAuthConfig *oauth2.Config
+}
+
+func (g GmailProviderAdapter) GetOAuthByRefreshToken(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity) (*response.OAuthInfoResponseDto, error) {
+	token := &oauth2.Token{
+		RefreshToken: emailProviderEntity.OAuthRefreshToken,
+	}
+
+	newToken, err := g.googleOAuthConfig.TokenSource(ctx, token).Token()
+	if err != nil {
+		log.Error(ctx, "Error when refresh token", err)
+		return nil, err
+	}
+
+	email, err := g.getGmailUserInfo(ctx, newToken)
+	if err != nil {
+		log.Error(ctx, "Error when get user info", err)
+		return nil, err
+	}
+	refreshToken := newToken.RefreshToken
+	if newToken.RefreshToken != "" {
+		refreshToken = emailProviderEntity.OAuthRefreshToken
+	}
+	return &response.OAuthInfoResponseDto{
+		AccessToken:  newToken.AccessToken,
+		RefreshToken: refreshToken,
+		Email:        *email,
+		ExpiredAt:    newToken.Expiry.Unix(),
+	}, nil
 }
 
 func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity, emailData *request.EmailDataDto) error {
@@ -53,11 +83,14 @@ func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity
 
 	if resp.StatusCode != 200 {
 		log.Error(ctx, "Error sending email, status code: %d", resp.StatusCode)
+		if (resp.StatusCode == 401 || resp.StatusCode == 403) && emailProviderEntity.OAuthExpiredAt < time.Now().Unix() {
+			return common.ErrUnauthorized
+		}
 		return fmt.Errorf("failed to send email: status code %d", resp.StatusCode)
 	}
 	return nil
 }
-func (g GmailProviderAdapter) GetOAuthInfo(ctx context.Context, code string) (*response.OAuthInfoResponseDto, error) {
+func (g GmailProviderAdapter) GetOAuthInfoByCode(ctx context.Context, code string) (*response.OAuthInfoResponseDto, error) {
 	token, err := g.googleOAuthConfig.Exchange(ctx, code)
 	if err != nil {
 		log.Error(ctx, "Error when exchange code to access token", err)
@@ -104,6 +137,9 @@ func (g *GmailProviderAdapter) getGmailUserInfo(ctx context.Context, accessToken
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		log.Error(ctx, "Error when get user info, status code: %d", resp.StatusCode)
+		if resp.StatusCode == 401 || resp.StatusCode == 403 {
+			return nil, common.ErrUnauthorized
+		}
 		return nil, err
 	}
 	var userInfo dto.GoogleGetInfoResponse
