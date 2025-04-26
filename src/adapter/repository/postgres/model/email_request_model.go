@@ -1,13 +1,19 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 type EmailRequestModel struct {
 	BaseModel
-	TemplateId int64           `gorm:"column:template_id"`
-	Recipient  string          `gorm:"column:recipient"`
-	Data       json.RawMessage `gorm:"column:data"`
-	Status     string          `gorm:"column:status"`
+	TemplateId   int64           `gorm:"column:template_id"`
+	Recipient    string          `gorm:"column:recipient"`
+	Data         json.RawMessage `gorm:"column:data"`
+	Status       string          `gorm:"column:status"`
+	ErrorMessage string          `gorm:"column:error_message"`
+	RetryCount   int64           `gorm:"column:retry_count"`
+	SentAt       *time.Time      `gorm:"column:sent_at"`
 }
 
 func (EmailRequestModel) TableName() string {

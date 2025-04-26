@@ -24,3 +24,13 @@ func ExtractVariablesBySection(subject, body string) map[string][]string {
 		"body":    getUniqueMatches(body),
 	}
 }
+func FillTemplate(template string, variables map[string]string) string {
+	re := regexp.MustCompile(`\{\{(\w+)\}\}`)
+	return re.ReplaceAllStringFunc(template, func(match string) string {
+		varName := match[2 : len(match)-2]
+		if value, ok := variables[varName]; ok {
+			return value
+		}
+		return match
+	})
+}

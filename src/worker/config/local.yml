@@ -1,4 +1,5 @@
 app:
+  port: 8081
   logging:
     development: true
   datasource:
@@ -11,9 +12,7 @@ app:
   redis:
     host: localhost
     port: 6379
-  security:
-    http:
-      jwt.publicKey: ${JWT_PUBLIC_KEY}
+
   services:
     provider:
       gmail:
@@ -23,10 +22,14 @@ app:
         Scopes: "https://www.googleapis.com/auth/userinfo.email https://mail.google.com/"
         ResponseType: code
         RedirectUri: ${GMAIL_REDIRECT_URI}
-        AccessType: "offline"
-    auth:
-        jwt:
-          PrivateKey: ${JWT_PRIVATE_KEY}
-          ExpiredAccessToken: 3600
-          ExpiredRefreshToken: 604800
+        AccessType: offline
 
+  kafka:
+    bootstrapServers: localhost:9092
+    clientId: email-notification-worker
+    consumer:
+      handlerMappings:
+        EmailSendingRequestHandler:
+          topic: c1.email.email-sending-request
+          groupId: c1.email.email-sending-request.EmailSendingRequestHandler.local
+          enable: true

@@ -1,16 +1,24 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/KhaiHust/email-notification-service/adapter/http/client/dto"
 	"github.com/KhaiHust/email-notification-service/adapter/http/strategy"
 	"github.com/KhaiHust/email-notification-service/adapter/properties"
+	"github.com/KhaiHust/email-notification-service/core/common"
+	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/response"
 	"github.com/golibs-starter/golib/log"
 	"github.com/golibs-starter/golib/web/client"
 	"golang.org/x/oauth2"
 	"net/url"
+	"strings"
+	"time"
 )
 
 type GmailProviderAdapter struct {
@@ -19,7 +27,70 @@ type GmailProviderAdapter struct {
 	googleOAuthConfig *oauth2.Config
 }
 
-func (g GmailProviderAdapter) GetOAuthInfo(ctx context.Context, code string) (*response.OAuthInfoResponseDto, error) {
+func (g GmailProviderAdapter) GetOAuthByRefreshToken(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity) (*response.OAuthInfoResponseDto, error) {
+	token := &oauth2.Token{
+		RefreshToken: emailProviderEntity.OAuthRefreshToken,
+	}
+
+	newToken, err := g.googleOAuthConfig.TokenSource(ctx, token).Token()
+	if err != nil {
+		log.Error(ctx, "Error when refresh token", err)
+		return nil, err
+	}
+
+	email, err := g.getGmailUserInfo(ctx, newToken)
+	if err != nil {
+		log.Error(ctx, "Error when get user info", err)
+		return nil, err
+	}
+	refreshToken := newToken.RefreshToken
+	if newToken.RefreshToken != "" {
+		refreshToken = emailProviderEntity.OAuthRefreshToken
+	}
+	return &response.OAuthInfoResponseDto{
+		AccessToken:  newToken.AccessToken,
+		RefreshToken: refreshToken,
+		Email:        *email,
+		ExpiredAt:    newToken.Expiry.Unix(),
+	}, nil
+}
+
+func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity, emailData *request.EmailDataDto) error {
+	message := g.buildMessage(emailProviderEntity.Email, emailData)
+	token := &oauth2.Token{
+		AccessToken:  emailProviderEntity.OAuthToken,
+		TokenType:    "Bearer",
+		RefreshToken: emailProviderEntity.OAuthRefreshToken,
+	}
+
+	ggClient := g.googleOAuthConfig.Client(ctx, token)
+	rawMessage := base64.URLEncoding.EncodeToString([]byte(message))
+
+	url := "https://gmail.googleapis.com/gmail/v1/users/me/messages/send"
+	payload := map[string]string{"raw": rawMessage}
+	jsonData, err := json.Marshal(payload)
+	if err != nil {
+		log.Error(ctx, "Error marshaling email payload", err)
+		return err
+	}
+
+	resp, err := ggClient.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		log.Error(ctx, "Error sending email", err)
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		log.Error(ctx, "Error sending email, status code: %d", resp.StatusCode)
+		if (resp.StatusCode == 401 || resp.StatusCode == 403) && emailProviderEntity.OAuthExpiredAt < time.Now().Unix() {
+			return common.ErrUnauthorized
+		}
+		return fmt.Errorf("failed to send email: status code %d", resp.StatusCode)
+	}
+	return nil
+}
+func (g GmailProviderAdapter) GetOAuthInfoByCode(ctx context.Context, code string) (*response.OAuthInfoResponseDto, error) {
 	token, err := g.googleOAuthConfig.Exchange(ctx, code)
 	if err != nil {
 		log.Error(ctx, "Error when exchange code to access token", err)
@@ -44,6 +115,7 @@ func (g GmailProviderAdapter) GetOAuthUrl() (*response.OAuthUrlResponseDto, erro
 	params.Add("response_type", g.props.ResponseType)
 	params.Add("scope", g.props.Scopes)
 	params.Add("access_type", g.props.AccessType)
+	params.Add("prompt", "consent")
 	oauthUrl := g.props.BaseOAuthURL + "?" + params.Encode()
 	return &response.OAuthUrlResponseDto{Url: oauthUrl}, nil
 }
@@ -65,6 +137,9 @@ func (g *GmailProviderAdapter) getGmailUserInfo(ctx context.Context, accessToken
 	defer resp.Body.Close()
 	if resp.StatusCode != 200 {
 		log.Error(ctx, "Error when get user info, status code: %d", resp.StatusCode)
+		if resp.StatusCode == 401 || resp.StatusCode == 403 {
+			return nil, common.ErrUnauthorized
+		}
 		return nil, err
 	}
 	var userInfo dto.GoogleGetInfoResponse
@@ -73,4 +148,12 @@ func (g *GmailProviderAdapter) getGmailUserInfo(ctx context.Context, accessToken
 		return nil, err
 	}
 	return &userInfo.Email, nil
+}
+func (g *GmailProviderAdapter) buildMessage(from string, data *request.EmailDataDto) string {
+	return "From: " + from + "\r\n" +
+		"To: " + strings.Join(data.Tos, ", ") + "\r\n" +
+		"Subject: " + data.Subject + "\r\n" +
+		"MIME-Version: 1.0\r\n" +
+		"Content-Type: text/html; charset=UTF-8\r\n\r\n" +
+		data.Body
 }
