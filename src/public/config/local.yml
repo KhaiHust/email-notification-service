@@ -14,6 +14,21 @@ app:
   security:
     http:
       jwt.publicKey: ${JWT_PUBLIC_KEY}
+  kafka:
+    bootstrapServers: localhost:9092
+    clientId: email-notification-public
+    admin:
+      topics:
+        - name: c1.email.email-sending-request
+          partitions: 1
+          replicaFactor: 1
+          retention: 72h
+    producer:
+      eventMappings:
+        EmailRequestSendingEvent:
+          topicName: c1.email.email-sending-request
+          transactional: false
+          disable: false
   services:
     provider:
       gmail:

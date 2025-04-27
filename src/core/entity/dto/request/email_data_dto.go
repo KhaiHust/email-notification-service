@@ -1,7 +1,8 @@
 package request
 
 type EmailDataDto struct {
-	Tos     []string
-	Subject string
-	Body    string
+	EmailRequestID int64
+	Tos            []string
+	Subject        string
+	Body           string
 }

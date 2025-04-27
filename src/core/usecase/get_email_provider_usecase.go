@@ -10,10 +10,15 @@ import (
 type IGetEmailProviderUseCase interface {
 	GetOAuthUrl(ctx context.Context, provider string) (*response.OAuthUrlResponseDto, error)
 	GetEmailProviderByID(ctx context.Context, ID int64) (*entity.EmailProviderEntity, error)
+	GetEmailProviderByWorkspaceID(ctx context.Context, workspaceID int64) (*entity.EmailProviderEntity, error)
 }
 type GetEmailProviderUseCase struct {
 	emailProviderPort           port.IEmailProviderPort
 	emailProviderRepositoryPort port.IEmailProviderRepositoryPort
+}
+
+func (g GetEmailProviderUseCase) GetEmailProviderByWorkspaceID(ctx context.Context, workspaceID int64) (*entity.EmailProviderEntity, error) {
+	return g.emailProviderRepositoryPort.GetEmailProviderByWorkspaceID(ctx, workspaceID)
 }
 
 func (g GetEmailProviderUseCase) GetEmailProviderByID(ctx context.Context, ID int64) (*entity.EmailProviderEntity, error) {

@@ -20,6 +20,7 @@ type RegisterRoutersIn struct {
 	UserController          *controller.UserController
 	WorkspaceController     *controller.WorkspaceController
 	EmailTemplateController *controller.EmailTemplateController
+	EmailSendingController  *controller.EmailSendingController
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
@@ -44,5 +45,7 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 		v1Workspace.POST("/:workspaceCode/templates",
 			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailTemplateController.CreateTemplate)
+		v1Workspace.POST("/:workspaceCode/send", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailSendingController.SendEmailRequest)
 	}
 }

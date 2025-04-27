@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/event"
@@ -9,23 +8,22 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/worker/resource/mapper"
 	"github.com/golibs-starter/golib-message-bus/kafka/core"
+	"github.com/golibs-starter/golib-message-bus/kafka/relayer"
 	"github.com/golibs-starter/golib/log"
 )
 
 type EmailSendingRequestHandler struct {
 	eventHandlerUsecase usecase.IEventHandlerUsecase
+	eventConverter      relayer.EventConverter
 }
 
 func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) {
 	var evt event.EventRequestSendingEmail
-	if err := json.Unmarshal(message.Value, &evt); err != nil {
+	if err := em.eventConverter.Restore(message, &evt); err != nil {
 		log.Error(evt.Context(), fmt.Sprintf("[EmailSendingRequestHandler] Error unmarshalling message: %v", err))
 		return
 	}
-	ctx := evt.Context()
-	if ctx == nil {
-		ctx = middleware.InitContextWorker()
-	}
+	ctx := middleware.InitContextWorker(evt.Context())
 	if evt.AbstractEvent == nil || evt.AbstractEvent.ApplicationEvent == nil ||
 		evt.AbstractEvent.Event != constant.EmailRequestSendingEvent || evt.PayloadData == nil {
 		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Invalid event: %v", evt))
@@ -46,8 +44,10 @@ func (em EmailSendingRequestHandler) Close() {
 
 func NewEmailSendingRequestHandler(
 	eventHandlerUsecase usecase.IEventHandlerUsecase,
+	eventConverter relayer.EventConverter,
 ) core.ConsumerHandler {
 	return &EmailSendingRequestHandler{
+		eventConverter:      eventConverter,
 		eventHandlerUsecase: eventHandlerUsecase,
 	}
 }

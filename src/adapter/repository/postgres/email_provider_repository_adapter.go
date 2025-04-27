@@ -15,6 +15,14 @@ type EmailProviderRepositoryAdapter struct {
 	base
 }
 
+func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceID(ctx context.Context, workspaceID int64) (*entity.EmailProviderEntity, error) {
+	var emailProviderModels *model.EmailProviderModel
+	if err := e.db.WithContext(ctx).Where("workspace_id = ?", workspaceID).First(&emailProviderModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToEmailProviderEntity(emailProviderModels), nil
+}
+
 func (e EmailProviderRepositoryAdapter) UpdateEmailProvider(ctx context.Context, tx *gorm.DB, emailProvider *entity.EmailProviderEntity) (*entity.EmailProviderEntity, error) {
 	emailProviderModel := mapper.ToEmailProviderModel(emailProvider)
 	if err := tx.WithContext(ctx).Model(&model.EmailProviderModel{}).

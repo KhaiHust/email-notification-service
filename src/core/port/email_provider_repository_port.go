@@ -10,4 +10,5 @@ type IEmailProviderRepositoryPort interface {
 	SaveEmailProvider(ctx context.Context, tx *gorm.DB, emailProvider *entity.EmailProviderEntity) (*entity.EmailProviderEntity, error)
 	GetEmailProviderByID(ctx context.Context, ID int64) (*entity.EmailProviderEntity, error)
 	UpdateEmailProvider(ctx context.Context, tx *gorm.DB, emailProvider *entity.EmailProviderEntity) (*entity.EmailProviderEntity, error)
+	GetEmailProviderByWorkspaceID(ctx context.Context, workspaceID int64) (*entity.EmailProviderEntity, error)
 }

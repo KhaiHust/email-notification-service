@@ -7,8 +7,8 @@ import (
 
 func ToEmailSendingDto(msg *message.EmailRequestSendingMessage) *request.EmailSendingRequestDto {
 	return &request.EmailSendingRequestDto{
-		TemplateId: msg.TemplateId,
-		Data:       ToListSendingDataDto(msg.SendData),
+		TemplateID: msg.TemplateId,
+		Datas:      ToListSendingDataDto(msg.SendData),
 	}
 }
 func ToListSendingDataDto(data []*message.EmailSendData) []*request.EmailSendingData {
@@ -20,8 +20,9 @@ func ToListSendingDataDto(data []*message.EmailSendData) []*request.EmailSending
 }
 func ToSendingDataDto(data *message.EmailSendData) *request.EmailSendingData {
 	return &request.EmailSendingData{
-		To:      data.To,
-		Subject: data.Subject,
-		Body:    data.Body,
+		EmailRequestID: data.EmailRequestID,
+		To:             data.To,
+		Subject:        data.Subject,
+		Body:           data.Body,
 	}
 }
