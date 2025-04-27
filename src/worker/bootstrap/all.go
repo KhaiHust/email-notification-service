@@ -4,6 +4,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/http/client"
 	strategyAdapterImpl "github.com/KhaiHust/email-notification-service/adapter/http/strategy/impl"
 	"github.com/KhaiHust/email-notification-service/adapter/properties"
+	"github.com/KhaiHust/email-notification-service/adapter/publisher"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
@@ -30,6 +31,8 @@ func All() fx.Option {
 		golibsec.SecuredHttpClientOpt(),
 
 		golibmsg.KafkaCommonOpt(),
+		golibmsg.KafkaAdminOpt(),
+		golibmsg.KafkaProducerOpt(),
 		golibmsg.KafkaConsumerOpt(),
 
 		// Provide datasource auto config
@@ -49,6 +52,9 @@ func All() fx.Option {
 		fx.Provide(postgres.NewUserRepositoryAdapter),
 		fx.Provide(postgres.NewWorkspaceUserRepositoryAdapter),
 		fx.Provide(postgres.NewEmailTemplateRepositoryAdapter),
+		fx.Provide(postgres.NewEmailRequestRepositoryAdapter),
+
+		fx.Provide(publisher.NewEventPublisherAdapter),
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
@@ -69,9 +75,13 @@ func All() fx.Option {
 		fx.Provide(usecase.NewGetEmailTemplateUseCase),
 		fx.Provide(usecase.NewUpdateEmailProviderUseCase),
 		fx.Provide(usecase.NewEventHandlerUsecase),
+		fx.Provide(usecase.NewCreateEmailRequestUsecase),
+		fx.Provide(usecase.NewUpdateEmailRequestUsecase),
+		fx.Provide(usecase.NewGetEmailRequestUsecase),
 
 		//provider handler
 		golibmsg.ProvideConsumer(handler.NewEmailSendingRequestHandler),
+		golibmsg.ProvideConsumer(handler.NewEmailRequestSyncHandler),
 
 		// Graceful shutdown.
 		// OnStop hooks will run in reverse order.

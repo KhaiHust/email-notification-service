@@ -4,6 +4,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/http/client"
 	strategyAdapterImpl "github.com/KhaiHust/email-notification-service/adapter/http/strategy/impl"
 	"github.com/KhaiHust/email-notification-service/adapter/properties"
+	"github.com/KhaiHust/email-notification-service/adapter/publisher"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	"github.com/KhaiHust/email-notification-service/core/helper"
@@ -16,6 +17,7 @@ import (
 	"github.com/golibs-starter/golib"
 	golibdata "github.com/golibs-starter/golib-data"
 	golibgin "github.com/golibs-starter/golib-gin"
+	golibmsg "github.com/golibs-starter/golib-message-bus"
 	golibsec "github.com/golibs-starter/golib-security"
 	"go.uber.org/fx"
 )
@@ -41,10 +43,14 @@ func All() fx.Option {
 		// Provide datasource auto config
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
+		golibmsg.KafkaCommonOpt(),
+		golibmsg.KafkaAdminOpt(),
+		golibmsg.KafkaProducerOpt(),
 
 		// Provide all application properties
 		golib.ProvideProps(properties.NewGmailProviderProperties),
 		golib.ProvideProps(coreProperties.NewAuthProperties),
+		golib.ProvideProps(coreProperties.NewBatchProperties),
 		// Provide port's implements
 		fx.Provide(client.NewGmailProviderAdapter),
 		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
@@ -54,6 +60,9 @@ func All() fx.Option {
 		fx.Provide(postgres.NewUserRepositoryAdapter),
 		fx.Provide(postgres.NewWorkspaceUserRepositoryAdapter),
 		fx.Provide(postgres.NewEmailTemplateRepositoryAdapter),
+		fx.Provide(postgres.NewEmailRequestRepositoryAdapter),
+
+		fx.Provide(publisher.NewEventPublisherAdapter),
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
@@ -70,11 +79,17 @@ func All() fx.Option {
 		fx.Provide(usecase.NewCreateWorkspaceUseCase),
 		fx.Provide(usecase.NewValidateAccessWorkspaceUsecase),
 		fx.Provide(usecase.NewCreateTemplateUseCase),
+		fx.Provide(usecase.NewCreateEmailRequestUsecase),
+		fx.Provide(usecase.NewEmailSendingUsecase),
+		fx.Provide(usecase.NewUpdateEmailRequestUsecase),
+		fx.Provide(usecase.NewUpdateEmailProviderUseCase),
+		fx.Provide(usecase.NewGetEmailTemplateUseCase),
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
 		fx.Provide(service.NewUserService),
 		fx.Provide(service.NewWorkspaceService),
 		fx.Provide(service.NewEmailTemplateService),
+		fx.Provide(service.NewEmailSendingService),
 
 		//Provide controllers
 		fx.Provide(helper.NewCustomValidate),
@@ -83,6 +98,7 @@ func All() fx.Option {
 		fx.Provide(controller.NewUserController),
 		fx.Provide(controller.NewWorkspaceController),
 		fx.Provide(controller.NewEmailTemplateController),
+		fx.Provide(controller.NewEmailSendingController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewWorkspaceAccessMiddleware),

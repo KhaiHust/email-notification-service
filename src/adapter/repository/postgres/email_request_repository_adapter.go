@@ -13,6 +13,22 @@ type EmailRequestRepositoryAdapter struct {
 	base
 }
 
+func (e EmailRequestRepositoryAdapter) GetEmailRequestByID(ctx context.Context, emailRequestID int64) (*entity.EmailRequestEntity, error) {
+	emailRequestModel := &model.EmailRequestModel{}
+	if err := e.db.WithContext(ctx).Model(&model.EmailRequestModel{}).Where("id = ?", emailRequestID).First(emailRequestModel).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToEmailRequestEntity(emailRequestModel), nil
+}
+
+func (e EmailRequestRepositoryAdapter) UpdateEmailRequestByID(ctx context.Context, tx *gorm.DB, emailRequest *entity.EmailRequestEntity) (*entity.EmailRequestEntity, error) {
+	emailRequestModel := mapper.ToEmailRequestModel(emailRequest)
+	if err := tx.WithContext(ctx).Model(&model.EmailRequestModel{}).Where("id = ?", emailRequestModel.ID).Updates(emailRequestModel).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToEmailRequestEntity(emailRequestModel), nil
+}
+
 func (e EmailRequestRepositoryAdapter) UpdateStatusByBatches(ctx context.Context, tx *gorm.DB, emailRequests []*entity.EmailRequestEntity) ([]*entity.EmailRequestEntity, error) {
 	//TODO implement me
 	panic("implement me")

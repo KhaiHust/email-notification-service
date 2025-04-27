@@ -27,9 +27,25 @@ app:
   kafka:
     bootstrapServers: localhost:9092
     clientId: email-notification-worker
+    admin:
+      topics:
+        - name: c1.email.email-request-sync
+          partitions: 1
+          replicaFactor: 1
+          retention: 72h
+    producer:
+      eventMappings:
+        EmailRequestSyncEvent:
+          topicName: c1.email.email-request-sync
+          transactional: false
+          disable: false
     consumer:
       handlerMappings:
         EmailSendingRequestHandler:
           topic: c1.email.email-sending-request
           groupId: c1.email.email-sending-request.EmailSendingRequestHandler.local
+          enable: true
+        EmailRequestSyncHandler:
+          topic: c1.email.email-request-sync
+          groupId: c1.email.email-request-sync.EmailRequestSyncHandler.local
           enable: true

@@ -15,3 +15,4 @@ app:
           - { urlPattern: "/v1/workspaces/*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/providers/.*/oauth", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/templates", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/send", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
