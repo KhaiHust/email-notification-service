@@ -8,6 +8,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	"github.com/KhaiHust/email-notification-service/core/helper"
+	"github.com/KhaiHust/email-notification-service/core/middleware/web"
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/public/controller"
@@ -31,7 +32,7 @@ func All() fx.Option {
 		golib.BuildInfoOpt(Version, CommitHash, BuildTime),
 		golib.ActuatorEndpointOpt(),
 		golib.HttpRequestLogOpt(),
-
+		web.CORSOpt(),
 		// Http security auto config and authentication filters
 		//golibsec.HttpSecurityOpt(),
 
