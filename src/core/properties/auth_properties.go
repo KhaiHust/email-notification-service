@@ -6,6 +6,7 @@ type AuthProperties struct {
 	ExpiredAccessToken  int64
 	ExpiredRefreshToken int64
 	PrivateKey          string
+	PublicKey           string
 }
 
 func (a AuthProperties) Prefix() string {

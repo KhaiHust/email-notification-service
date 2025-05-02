@@ -4,4 +4,5 @@ const (
 	ParamEmailProvider = "emailProvider"
 	ParamWorkspaceCode = "workspaceCode"
 	ParamOAuthCode     = "code"
+	ParamWorkspaceId   = "workspaceId"
 )

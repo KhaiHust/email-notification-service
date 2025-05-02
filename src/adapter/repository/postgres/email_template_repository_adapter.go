@@ -5,14 +5,42 @@ import (
 	"errors"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/mapper"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
+	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/specification"
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"gorm.io/gorm"
 )
 
 type EmailTemplateRepositoryAdapter struct {
 	base
+}
+
+func (e EmailTemplateRepositoryAdapter) CountAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) (int64, error) {
+	emailTemplateSpecification := specification.ToEmailTemplateSpecification(filter)
+	query, args, err := specification.NewEmailTemplateSpecificationQueryWithCount(emailTemplateSpecification)
+	if err != nil {
+		return 0, err
+	}
+	var count int64
+	if err := e.db.WithContext(ctx).Raw(query, args...).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (e EmailTemplateRepositoryAdapter) GetAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, error) {
+	emailTemplateSpecification := specification.ToEmailTemplateSpecification(filter)
+	query, args, err := specification.NewEmailTemplateSpecificationQuery(emailTemplateSpecification)
+	if err != nil {
+		return nil, err
+	}
+	var emailTemplateModels []*model.EmailTemplateModel
+	if err := e.db.WithContext(ctx).Raw(query, args...).Scan(&emailTemplateModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToEmailTemplateEntities(emailTemplateModels), nil
 }
 
 func (e EmailTemplateRepositoryAdapter) GetTemplateByID(ctx context.Context, ID int64) (*entity.EmailTemplateEntity, error) {

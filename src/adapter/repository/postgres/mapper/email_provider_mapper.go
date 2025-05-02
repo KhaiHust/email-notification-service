@@ -21,6 +21,8 @@ func ToEmailProviderModel(emailProviderEntity *entity.EmailProviderEntity) *mode
 		OAuthExpiredAt:    time.Unix(emailProviderEntity.OAuthExpiredAt, 0),
 		UseTLS:            emailProviderEntity.UseTLS,
 		Email:             emailProviderEntity.Email,
+		FromName:          emailProviderEntity.FromName,
+		Environment:       emailProviderEntity.Environment,
 	}
 }
 func ToEmailProviderEntity(emailProviderModel *model.EmailProviderModel) *entity.EmailProviderEntity {
@@ -42,5 +44,7 @@ func ToEmailProviderEntity(emailProviderModel *model.EmailProviderModel) *entity
 		OAuthExpiredAt:    emailProviderModel.OAuthExpiredAt.Unix(),
 		UseTLS:            emailProviderModel.UseTLS,
 		Email:             emailProviderModel.Email,
+		FromName:          emailProviderModel.FromName,
+		Environment:       emailProviderModel.Environment,
 	}
 }

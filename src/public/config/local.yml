@@ -42,6 +42,7 @@ app:
     auth:
         jwt:
           PrivateKey: ${JWT_PRIVATE_KEY}
+          PublicKey: ${JWT_PUBLIC_KEY}
           ExpiredAccessToken: 3600
           ExpiredRefreshToken: 604800
 

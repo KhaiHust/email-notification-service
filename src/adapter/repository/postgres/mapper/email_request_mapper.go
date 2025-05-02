@@ -54,3 +54,17 @@ func ToListEmailRequestEntity(emailRequestModels []*model.EmailRequestModel) []*
 	}
 	return emailRequestEntities
 }
+func ToEmailStatusCountEntity(emailStatusCountModel *model.EmailRequestStatusCountModel) *entity.EmailRequestStatusCountEntity {
+	return &entity.EmailRequestStatusCountEntity{
+		EmailTemplateId: emailStatusCountModel.EmailTemplateID,
+		Status:          emailStatusCountModel.Status,
+		Total:           emailStatusCountModel.Total,
+	}
+}
+func ToListEmailStatusCountEntity(emailStatusCountModels []*model.EmailRequestStatusCountModel) []*entity.EmailRequestStatusCountEntity {
+	emailStatusCountEntities := make([]*entity.EmailRequestStatusCountEntity, len(emailStatusCountModels))
+	for i, emailStatusCountModel := range emailStatusCountModels {
+		emailStatusCountEntities[i] = ToEmailStatusCountEntity(emailStatusCountModel)
+	}
+	return emailStatusCountEntities
+}

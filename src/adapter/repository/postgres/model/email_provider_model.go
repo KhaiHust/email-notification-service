@@ -13,6 +13,8 @@ type EmailProviderModel struct {
 	OAuthExpiredAt    time.Time `gorm:"column:oauth_expires_at"`
 	UseTLS            bool      `gorm:"column:use_tls"`
 	Email             string    `gorm:"column:email"`
+	FromName          string    `gorm:"column:from_name"`
+	Environment       string    `gorm:"column:environment"`
 }
 
 func (EmailProviderModel) TableName() string {

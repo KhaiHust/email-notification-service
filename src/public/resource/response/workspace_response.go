@@ -17,3 +17,10 @@ func ToWorkspaceResponse(wEntity *entity.WorkspaceEntity) *WorkspaceResponse {
 		Description: wEntity.Description,
 	}
 }
+func ToListWorkspaceResponse(wEntities []*entity.WorkspaceEntity) []*WorkspaceResponse {
+	workspaces := make([]*WorkspaceResponse, 0)
+	for _, wEntity := range wEntities {
+		workspaces = append(workspaces, ToWorkspaceResponse(wEntity))
+	}
+	return workspaces
+}

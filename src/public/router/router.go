@@ -31,6 +31,7 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	{
 		v1Auth.POST("/signup", p.UserController.SignUp)
 		v1Auth.POST("/login", p.UserController.Login)
+		v1Auth.POST("/refresh-token", p.UserController.GenerateTokenFromRefreshToken)
 	}
 	v1Integration := group.Group("/v1/integrations")
 	{
@@ -39,13 +40,25 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	v1Workspace := group.Group("/v1/workspaces")
 	{
 		v1Workspace.POST("", p.WorkspaceController.CreateWorkspace)
-		v1Workspace.POST("/:workspaceCode/providers/:emailProvider/oauth",
-			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
-			p.EmailProviderController.CreateEmailProvider)
-		v1Workspace.POST("/:workspaceCode/templates",
-			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
-			p.EmailTemplateController.CreateTemplate)
+		v1Workspace.GET("", p.WorkspaceController.GetWorkspaces)
 		v1Workspace.POST("/:workspaceCode/send", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailSendingController.SendEmailRequest)
+	}
+	v1EmailProvider := v1Workspace.Group("/:workspaceCode/providers")
+	{
+		v1EmailProvider.POST("/:emailProvider/oauth",
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailProviderController.CreateEmailProvider)
+		v1EmailProvider.GET("/:emailProvider",
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailProviderController.GetEmailProvider)
+	}
+	v1Template := v1Workspace.Group("/:workspaceCode/templates")
+	{
+		v1Template.POST("",
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailTemplateController.CreateTemplate)
+		v1Template.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailTemplateController.GetAllEmailTemplate)
 	}
 }

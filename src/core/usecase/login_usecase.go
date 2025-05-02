@@ -19,17 +19,73 @@ import (
 
 const (
 	RsaPrivateKey    = "RSA PRIVATE KEY"
+	RsaPublicKey     = "PUBLIC KEY"
 	AccessTokenType  = "AccessToken"
 	RefreshTokenType = "RefreshToken"
 )
 
 type ILoginUsecase interface {
 	Login(ctx context.Context, email, password string) (*response.LoginResponseDto, error)
+	GenerateTokenFromRefreshToken(ctx context.Context, refreshToken string) (*response.LoginResponseDto, error)
 }
 type LoginUsecase struct {
 	getUserUseCase      IGetUserUseCase
 	hashPasswordUseCase IHashPasswordUseCase
 	authProps           *properties.AuthProperties
+}
+
+func (l *LoginUsecase) GenerateTokenFromRefreshToken(ctx context.Context, refreshToken string) (*response.LoginResponseDto, error) {
+	claims := &dto.ClaimTokenDto{}
+	// Parse the refresh token with public key
+	publicKey := l.authProps.PublicKey
+	block, _ := pem.Decode([]byte(publicKey))
+	if block == nil || block.Type != RsaPublicKey {
+		log.Error(ctx, "[LoginUsecase] Invalid public key")
+		return nil, errors.New("invalid public key")
+	}
+	publicKeyParsed, err := x509.ParsePKIXPublicKey(block.Bytes)
+	if err != nil {
+		log.Error(ctx, "[LoginUsecase] Error parsing public key: %v", err)
+		return nil, err
+	}
+	token, err := jwt.ParseWithClaims(refreshToken, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
+			log.Error(ctx, "[LoginUsecase] Unexpected signing method: %v", token.Header["alg"])
+			return nil, common.ErrInvalidToken
+		}
+		return publicKeyParsed, nil
+	})
+	if err != nil || !token.Valid {
+		log.Error(ctx, "[LoginUsecase] Invalid or expired refresh token: %v", err)
+		return nil, common.ErrInvalidToken
+	}
+
+	user, err := l.getUserUseCase.GetUserByEmail(ctx, claims.Email)
+	if err != nil {
+		log.Error(ctx, "[LoginUsecase] Error fetching user: %v", err)
+		return nil, err
+	}
+
+	privateKey, err := l.generatePrivateKey(ctx)
+	if err != nil {
+		log.Error(ctx, "[LoginUsecase] Error generating private key: %v", err)
+		return nil, err
+	}
+
+	newAccessToken, err := l.generateToken(ctx, user, AccessTokenType, privateKey)
+	if err != nil {
+		log.Error(ctx, "[LoginUsecase] Error generating access token: %v", err)
+		return nil, err
+	}
+
+	return &response.LoginResponseDto{
+		AccessToken:  newAccessToken,
+		RefreshToken: refreshToken,
+		UserInfo: response.UserInfoDto{
+			FullName: user.FullName,
+			Email:    user.Email,
+		},
+	}, nil
 }
 
 func (l *LoginUsecase) Login(ctx context.Context, email, password string) (*response.LoginResponseDto, error) {

@@ -33,7 +33,7 @@ func (w *WorkspaceAccessMiddleware) WorkspaceAccessMiddlewareHandle() gin.Handle
 			apihelper.AbortErrorHandle(c, common.ErrForbidden)
 			return
 		}
-		mapRole, err := w.validateAccessWorkspaceUsecase.ValidateAccessWorkspaceByUserIdAndCode(c, userID, workspaceCode)
+		mapRole, workspaceId, err := w.validateAccessWorkspaceUsecase.ValidateAccessWorkspaceByUserIdAndCode(c, userID, workspaceCode)
 		if err != nil {
 			apihelper.AbortErrorHandle(c, common.ErrForbidden)
 			return
@@ -43,5 +43,6 @@ func (w *WorkspaceAccessMiddleware) WorkspaceAccessMiddlewareHandle() gin.Handle
 			return
 		}
 		c.Set(constant.WorkspaceRoleKey, mapRole[workspaceCode])
+		c.Set(constant.WorkspaceIdKey, workspaceId)
 	}
 }

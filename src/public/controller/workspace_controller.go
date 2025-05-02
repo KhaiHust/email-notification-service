@@ -42,6 +42,21 @@ func (w *WorkspaceController) CreateWorkspace(c *gin.Context) {
 	apihelper.SuccessfulHandle(c, workspace)
 
 }
+func (w *WorkspaceController) GetWorkspaces(c *gin.Context) {
+	userID, err := w.GetUserIDFromContext(c)
+	if err != nil {
+		log.Error(c, "Failed to get user ID from context: %v", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	workspaces, err := w.workspaceService.GetWorkspacesByUserId(c, userID)
+	if err != nil {
+		log.Error(c, "Failed to get workspaces: %v", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, workspaces)
+}
 func NewWorkspaceController(workspaceService service.IWorkspaceService, validator *helper.CustomValidate) *WorkspaceController {
 	return &WorkspaceController{
 		BaseController:   *NewBaseController(validator),

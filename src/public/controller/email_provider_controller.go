@@ -61,13 +61,34 @@ func (e EmailProviderController) CreateEmailProvider(c *gin.Context) {
 		return
 	}
 
-	_, err = e.emailProviderService.CreateEmailProvider(c, provider, userID, workspaceCode, req.Code)
+	_, err = e.emailProviderService.CreateEmailProvider(c, provider, userID, workspaceCode, &req)
 	if err != nil {
 		log.Error(c, "CreateEmailProvider error: %v", err)
 		apihelper.AbortErrorHandle(c, err)
 		return
 	}
 	apihelper.SuccessfulHandle(c, nil)
+}
+func (e EmailProviderController) GetEmailProvider(c *gin.Context) {
+	workspaceCode := c.Param(constant.ParamWorkspaceCode)
+	if workspaceCode == "" {
+		log.Error(c, "workspaceCode is empty")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	provider := c.Param(constant.ParamEmailProvider)
+	if provider == "" {
+		log.Error(c, "provider is empty")
+		apihelper.AbortErrorHandle(c, common.ErrEmailProviderParamNotFound)
+		return
+	}
+	result, err := e.emailProviderService.GetEmailProviderByWorkspaceCodeAndProvider(c, workspaceCode, provider)
+	if err != nil {
+		log.Error(c, "GetEmailProvider error: %v", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, result)
 }
 func NewEmailProviderController(base *BaseController, emailProviderService service.IEmailProviderService) *EmailProviderController {
 	return &EmailProviderController{

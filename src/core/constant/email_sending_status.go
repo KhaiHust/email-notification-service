@@ -1,7 +1,8 @@
 package constant
 
 const (
-	EmailSendingStatusPending = "PENDING"
-	EmailSendingStatusFailed  = "FAILED"
-	EmailSendingStatusSuccess = "SUCCESS"
+	EmailSendingStatusPending   = "PENDING"
+	EmailSendingStatusFailed    = "FAILED"
+	EmailSendingStatusSuccess   = "SUCCESS"
+	EmailSendingStatusScheduled = "SCHEDULED"
 )

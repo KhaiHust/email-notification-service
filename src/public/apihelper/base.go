@@ -58,12 +58,23 @@ func SuccessfulHandle(ctx *gin.Context, data interface{}) {
 		},
 	})
 }
+func SuccessfulHandleWithPaging(ctx *gin.Context, data interface{}, pagingMetadata *PagingMetadata) {
+	ctx.JSON(http.StatusOK, Response{
+		Data: data,
+		Meta: ResponseMeta{
+			Code:    http.StatusOK,
+			Message: "OK",
+			Paging:  pagingMetadata,
+		},
+	})
+}
 
 type Response struct {
 	Data interface{} `json:"data,omitempty"`
 	Meta interface{} `json:"meta,omitempty"`
 }
 type ResponseMeta struct {
-	Code    int    `json:"code"`
-	Message string `json:"message,omitempty"`
+	Code    int             `json:"code"`
+	Message string          `json:"message,omitempty"`
+	Paging  *PagingMetadata `json:"paging,omitempty"`
 }

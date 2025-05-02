@@ -2,14 +2,9 @@ package usecase
 
 import (
 	"context"
-	"fmt"
-	"github.com/KhaiHust/email-notification-service/core/common"
-	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"github.com/golibs-starter/golib/log"
-	"github.com/samber/lo"
-	"strconv"
 )
 
 type IGetWorkspaceUseCase interface {
@@ -27,27 +22,28 @@ func (g GetWorkspaceUseCase) GetWorkspaceByUserId(ctx context.Context, userId in
 		log.Error(ctx, "[GetWorkspaceUseCase] Error getting workspaces by userId: %v", err)
 		return nil, err
 	}
+	//Todo: build cache access for validate access workspace
 	//build cache access for validate access workspace
-	go func(workspaces []*entity.WorkspaceEntity) {
-		if len(workspaces) == 0 {
-			return
-		}
-		mapWSRoles := make(map[string]interface{})
-		for _, workspace := range workspaces {
-			workspaceUser, isFind := lo.Find(workspace.WorkspaceUserEntity, func(wu entity.WorkspaceUserEntity) bool {
-				return wu.UserID == userId
-			})
-			if !isFind {
-				continue
-			}
-			mapWSRoles[workspace.Code] = workspaceUser.Role
-		}
-		//save to HSet cache
-		err = g.redisPort.SetHSetToRedis(ctx, fmt.Sprintf(common.WorkspaceUserAccessKey, strconv.FormatInt(userId, 10)), mapWSRoles, constant.DefaultTTL)
-		if err != nil {
-			log.Error(ctx, "[GetWorkspaceUseCase] Error setting workspace access to redis: %v", err)
-		}
-	}(workspaces)
+	//go func(workspaces []*entity.WorkspaceEntity) {
+	//	if len(workspaces) == 0 {
+	//		return
+	//	}
+	//	mapWSRoles := make(map[string]interface{})
+	//	for _, workspace := range workspaces {
+	//		workspaceUser, isFind := lo.Find(workspace.WorkspaceUserEntity, func(wu entity.WorkspaceUserEntity) bool {
+	//			return wu.UserID == userId
+	//		})
+	//		if !isFind {
+	//			continue
+	//		}
+	//		mapWSRoles[workspace.Code] = workspaceUser.Role
+	//	}
+	//	//save to HSet cache
+	//	err = g.redisPort.SetHSetToRedis(ctx, fmt.Sprintf(common.WorkspaceUserAccessKey, strconv.FormatInt(userId, 10)), mapWSRoles, constant.DefaultTTL)
+	//	if err != nil {
+	//		log.Error(ctx, "[GetWorkspaceUseCase] Error setting workspace access to redis: %v", err)
+	//	}
+	//}(workspaces)
 	return workspaces, nil
 }
 

@@ -4,13 +4,28 @@ import (
 	"context"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/mapper"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
+	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/specification"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"gorm.io/gorm"
 )
 
 type EmailRequestRepositoryAdapter struct {
 	base
+}
+
+func (e EmailRequestRepositoryAdapter) CountEmailRequestStatuses(ctx context.Context, filter *request.EmailRequestFilter) ([]*entity.EmailRequestStatusCountEntity, error) {
+	emailRequestSpec := specification.ToEmailRequestSpecification(filter)
+	query, args, err := specification.NewEmailRequestSpecificationForCountStatus(emailRequestSpec)
+	if err != nil {
+		return nil, err
+	}
+	var emailRequestStatusCountModels []*model.EmailRequestStatusCountModel
+	if err := e.db.WithContext(ctx).Raw(query, args...).Scan(&emailRequestStatusCountModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToListEmailStatusCountEntity(emailRequestStatusCountModels), nil
 }
 
 func (e EmailRequestRepositoryAdapter) GetEmailRequestByID(ctx context.Context, emailRequestID int64) (*entity.EmailRequestEntity, error) {

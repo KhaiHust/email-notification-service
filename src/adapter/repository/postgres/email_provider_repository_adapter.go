@@ -15,6 +15,21 @@ type EmailProviderRepositoryAdapter struct {
 	base
 }
 
+func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) (*entity.EmailProviderEntity, error) {
+	//build raw sql
+	sql := "SELECT ep.id, ep.workspace_id, ep.provider, ep.email, ep.from_name, ep.environment FROM email_providers ep " +
+		"JOIN workspaces w ON ep.workspace_id = w.id " +
+		"WHERE w.code = ? AND ep.provider = ?"
+	var emailProviderModel model.EmailProviderModel
+	if err := e.db.WithContext(ctx).Raw(sql, workspaceCode, provider).Scan(&emailProviderModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return mapper.ToEmailProviderEntity(&emailProviderModel), nil
+}
+
 func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceID(ctx context.Context, workspaceID int64) (*entity.EmailProviderEntity, error) {
 	var emailProviderModels *model.EmailProviderModel
 	if err := e.db.WithContext(ctx).Where("workspace_id = ?", workspaceID).First(&emailProviderModels).Error; err != nil {

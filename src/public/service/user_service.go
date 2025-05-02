@@ -11,10 +11,19 @@ import (
 type IUserService interface {
 	SignUp(ctx context.Context, req *request.CreateUserRequest) (*entity.UserEntity, error)
 	Login(ctx context.Context, req *request.LoginRequest) (*response.LoginResponse, error)
+	GenerateTokenFromRefreshToken(ctx context.Context, refreshToken string) (*response.LoginResponse, error)
 }
 type UserService struct {
 	createUserUseCase usecase.ICreateUserUseCase
 	loginUsecase      usecase.ILoginUsecase
+}
+
+func (u UserService) GenerateTokenFromRefreshToken(ctx context.Context, refreshToken string) (*response.LoginResponse, error) {
+	result, err := u.loginUsecase.GenerateTokenFromRefreshToken(ctx, refreshToken)
+	if err != nil {
+		return nil, err
+	}
+	return response.ToLoginResponseResource(result), nil
 }
 
 func (u UserService) Login(ctx context.Context, req *request.LoginRequest) (*response.LoginResponse, error) {

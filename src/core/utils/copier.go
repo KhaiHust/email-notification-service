@@ -21,17 +21,3 @@ func CopyStruct(toValue, fromValue interface{}) error {
 		},
 	})
 }
-func ToTimePointer(t int64) *time.Time {
-	if t == 0 {
-		return nil
-	}
-	tm := time.Unix(t, 0)
-	return &tm
-}
-func ToUnixTimeToPointer(t *time.Time) *int64 {
-	if t == nil {
-		return nil
-	}
-	ux := t.Unix()
-	return &ux
-}

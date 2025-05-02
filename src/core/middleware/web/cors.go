@@ -1,7 +1,6 @@
 package web
 
 import (
-	"github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/golibs-starter/golib"
 	"go.uber.org/fx"
 	"net/http"
@@ -15,8 +14,8 @@ func CORSOpt() fx.Option {
 
 type RegisterCORSIn struct {
 	fx.In
-	App       *golib.App
-	CORSProps *properties.CORSProperties
+	App *golib.App
+	//CORSProps *properties.CORSProperties
 }
 
 func RegisterCORS(in RegisterCORSIn) {

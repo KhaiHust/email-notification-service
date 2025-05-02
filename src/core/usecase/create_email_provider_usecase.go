@@ -5,13 +5,14 @@ import (
 	"errors"
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/exception"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"github.com/golibs-starter/golib/log"
 )
 
 type ICreateEmailProviderUseCase interface {
-	CreateEmailProvider(ctx context.Context, userId int64, workspaceCode, provider, code string) (*entity.EmailProviderEntity, error)
+	CreateEmailProvider(ctx context.Context, userId int64, workspaceCode, provider string, req *request.CreateEmailProviderDto) (*entity.EmailProviderEntity, error)
 }
 type CreateEmailProviderUseCase struct {
 	emailProviderRepositoryPort port.IEmailProviderRepositoryPort
@@ -20,7 +21,7 @@ type CreateEmailProviderUseCase struct {
 	emailProviderPort           port.IEmailProviderPort
 }
 
-func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, userId int64, workspaceCode, provider, code string) (*entity.EmailProviderEntity, error) {
+func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, userId int64, workspaceCode, provider string, req *request.CreateEmailProviderDto) (*entity.EmailProviderEntity, error) {
 	workspace, err := c.getWorkspaceUseCase.GetWorkspaceByCode(ctx, userId, workspaceCode)
 	if err != nil {
 		log.Error(ctx, "GetWorkspaceByCode error: %v", err)
@@ -30,7 +31,7 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 		return nil, err
 	}
 
-	oauthResponse, err := c.emailProviderPort.GetOAuthInfo(ctx, provider, code)
+	oauthResponse, err := c.emailProviderPort.GetOAuthInfo(ctx, provider, req.Code)
 	if err != nil {
 		log.Error(ctx, "GetOAuthInfoByCode error: %v", err)
 		return nil, err
@@ -45,6 +46,8 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 		OAuthExpiredAt:    oauthResponse.ExpiredAt,
 		UseTLS:            oauthResponse.UseTLS,
 		Email:             oauthResponse.Email,
+		FromName:          req.FromName,
+		Environment:       req.Environment,
 	}
 	tx := c.databaseTransactionUseCase.StartTx()
 	defer func() {

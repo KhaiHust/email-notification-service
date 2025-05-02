@@ -55,6 +55,26 @@ func (u *UserController) Login(c *gin.Context) {
 	}
 	apihelper.SuccessfulHandle(c, result)
 }
+func (u *UserController) GenerateTokenFromRefreshToken(c *gin.Context) {
+	var req request.RefreshTokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error(c, "BindJSON error: %v", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	if err := u.validator.Struct(&req); err != nil {
+		log.Error(c, "Validator error: %v", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	result, err := u.userService.GenerateTokenFromRefreshToken(c, req.RefreshToken)
+	if err != nil {
+		log.Error(c, "GenerateTokenFromRefreshToken error: %v", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, result)
+}
 func NewUserController(base *BaseController, userService service.IUserService) *UserController {
 	return &UserController{
 		BaseController: base,

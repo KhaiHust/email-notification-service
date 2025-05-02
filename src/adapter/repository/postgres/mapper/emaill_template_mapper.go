@@ -29,3 +29,10 @@ func ToEmailTemplateEntity(emailTemplateModel *model.EmailTemplateModel) *entity
 		LastUpdatedBy: emailTemplateModel.LastUpdatedBy,
 	}
 }
+func ToEmailTemplateEntities(emailTemplateModels []*model.EmailTemplateModel) []*entity.EmailTemplateEntity {
+	var emailTemplateEntities []*entity.EmailTemplateEntity
+	for _, emailTemplateModel := range emailTemplateModels {
+		emailTemplateEntities = append(emailTemplateEntities, ToEmailTemplateEntity(emailTemplateModel))
+	}
+	return emailTemplateEntities
+}

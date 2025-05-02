@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/constant"
+	"github.com/KhaiHust/email-notification-service/core/utils"
 	"github.com/KhaiHust/email-notification-service/public/apihelper"
 	"github.com/KhaiHust/email-notification-service/public/resource/request"
 	"github.com/KhaiHust/email-notification-service/public/resource/response"
@@ -49,6 +50,27 @@ func (e *EmailTemplateController) CreateTemplate(c *gin.Context) {
 	apihelper.SuccessfulHandle(c, response.ToEmailTemplateResponse(emailTemplate))
 
 }
+func (e *EmailTemplateController) GetAllEmailTemplate(c *gin.Context) {
+	workspaceId := e.GetWorkspaceIDFromContext(c)
+	if workspaceId == 0 {
+		log.Error(c, "Error when get workspace id from context", common.ErrBadRequest)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	queryParams, err := e.buildGetListTemplateQueryParams(c)
+	if err != nil {
+		log.Error(c, "Error when build query params", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	emailTemplates, paging, err := e.emailTemplateService.GetAllEmailTemplateWithMetrics(c, workspaceId, queryParams)
+	if err != nil {
+		log.Error(c, "Error when get all email template", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandleWithPaging(c, response.ToListEmailTemplateResponse(emailTemplates), paging)
+}
 func NewEmailTemplateController(
 	emailTemplateService service.IEmailTemplateService,
 	base *BaseController,
@@ -57,4 +79,65 @@ func NewEmailTemplateController(
 		BaseController:       base,
 		emailTemplateService: emailTemplateService,
 	}
+}
+func (e *EmailTemplateController) buildGetListTemplateQueryParams(ctx *gin.Context) (*request.GetEmailTemplateParams, error) {
+	values := ctx.Request.URL.Query()
+	queryParams := &request.GetEmailTemplateParams{
+		Limit:     utils.ToInt64Pointer(constant.DefaultLimit),
+		Since:     utils.ToInt64Pointer(constant.DefaultSince),
+		SortOrder: constant.DefaultSortOrderAsc,
+	}
+
+	var err error
+
+	// Numeric fields
+	queryParams.Limit, err = utils.GetInt64PointerWithDefault(values, constant.QueryParamLimit, constant.DefaultLimit)
+	if err != nil {
+		return nil, err
+	}
+	queryParams.Since, err = utils.GetInt64PointerWithDefault(values, constant.QueryParamSince, constant.DefaultSince)
+	if err != nil {
+		return nil, err
+	}
+	if queryParams.Until, err = utils.GetQueryInt64Pointer(values, constant.QueryParamUntil); err != nil {
+		return nil, err
+	}
+	if queryParams.CreatedAtFrom, err = utils.GetQueryInt64Pointer(values, constant.QueryParamCreatedAtFrom); err != nil {
+		return nil, err
+	}
+	if queryParams.CreatedAtTo, err = utils.GetQueryInt64Pointer(values, constant.QueryParamCreatedAtTo); err != nil {
+		return nil, err
+	}
+	if queryParams.UpdatedAtFrom, err = utils.GetQueryInt64Pointer(values, constant.QueryParamUpdatedAtFrom); err != nil {
+		return nil, err
+	}
+	if queryParams.UpdatedAtTo, err = utils.GetQueryInt64Pointer(values, constant.QueryParamUpdatedAtTo); err != nil {
+		return nil, err
+	}
+	if queryParams.ErCreatedAtFrom, err = utils.GetQueryInt64Pointer(values, constant.QueryParamErCreatedAtFrom); err != nil {
+		return nil, err
+	}
+	if queryParams.ErCreatedAtTo, err = utils.GetQueryInt64Pointer(values, constant.QueryParamErCreatedAtTo); err != nil {
+		return nil, err
+	}
+	if queryParams.ErSentAtFrom, err = utils.GetQueryInt64Pointer(values, constant.QueryParamErSentAtFrom); err != nil {
+		return nil, err
+	}
+	if queryParams.ErSentAtTo, err = utils.GetQueryInt64Pointer(values, constant.QueryParamErSentAtTo); err != nil {
+		return nil, err
+	}
+
+	// String and array fields
+	queryParams.Name = utils.GetQueryStringPointer(values, constant.QueryParamName)
+	queryParams.ErStatuses = utils.GetQueryStringArray(values, constant.QueryParamErStatuses)
+
+	// SortOrder with validation
+	if sortOrder := values.Get(constant.QueryParamSortOrder); sortOrder != "" {
+		if sortOrder != constant.ASC && sortOrder != constant.DESC {
+			return nil, common.ErrBadRequest
+		}
+		queryParams.SortOrder = sortOrder
+	}
+
+	return queryParams, nil
 }

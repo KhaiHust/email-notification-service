@@ -1,6 +1,9 @@
 package entity
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto"
+)
 
 type EmailTemplateEntity struct {
 	BaseEntity
@@ -11,4 +14,5 @@ type EmailTemplateEntity struct {
 	WorkspaceId   int64
 	CreatedBy     int64
 	LastUpdatedBy int64
+	Metric        *dto.EmailTemplateMetric
 }
