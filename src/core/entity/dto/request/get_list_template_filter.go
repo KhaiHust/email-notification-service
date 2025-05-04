@@ -6,7 +6,7 @@ type GetListEmailTemplateFilter struct {
 	Limit              *int64
 	Since              *int64
 	Until              *int64
-	DirectTo           string
+	SortOrder          string
 	CreatedAtFrom      *int64
 	CreatedAtTo        *int64
 	UpdatedAtFrom      *int64

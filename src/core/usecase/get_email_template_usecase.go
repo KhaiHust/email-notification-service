@@ -23,7 +23,7 @@ type GetEmailTemplateUseCase struct {
 
 func (e GetEmailTemplateUseCase) GetAllTemplatesWithMetrics(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, int64, error) {
 	emailTemplates, err := e.emailTemplateRepositoryPort.GetAllTemplates(ctx, filter)
-	if err != nil {
+	if err != nil || len(emailTemplates) == 0 {
 		return nil, 0, err
 	}
 	countAllTemplates, err := e.emailTemplateRepositoryPort.CountAllTemplates(ctx, filter)

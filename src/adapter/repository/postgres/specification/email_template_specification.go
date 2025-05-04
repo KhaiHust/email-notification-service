@@ -14,7 +14,7 @@ type EmailTemplateSpecification struct {
 	Since         *int64
 	Until         *int64
 	WorkspaceID   *int64
-	DirectTo      string
+	SortOrder     string
 	CreatedAtFrom *time.Time
 	CreatedAtTo   *time.Time
 	UpdatedAtFrom *time.Time
@@ -26,7 +26,7 @@ func NewEmailTemplateSpecificationQuery(sp *EmailTemplateSpecification) (string,
 	if sp != nil {
 		query = addCondition(sp, query)
 		// Handle ID filtering
-		if sp.DirectTo == constant.ASC {
+		if sp.SortOrder == constant.ASC {
 			if sp.Since != nil {
 				query = query.Where(sq.GtOrEq{"id": *sp.Since})
 			}
@@ -34,7 +34,7 @@ func NewEmailTemplateSpecificationQuery(sp *EmailTemplateSpecification) (string,
 				query = query.Where(sq.LtOrEq{"id": *sp.Until})
 			}
 			query = query.OrderBy("id ASC")
-		} else if sp.DirectTo == constant.DESC {
+		} else if sp.SortOrder == constant.DESC {
 			if sp.Since != nil {
 				query = query.Where(sq.LtOrEq{"id": *sp.Since})
 			}
@@ -88,7 +88,7 @@ func ToEmailTemplateSpecification(filter *request.GetListEmailTemplateFilter) *E
 		Limit:         filter.Limit,
 		Since:         filter.Since,
 		Until:         filter.Until,
-		DirectTo:      filter.DirectTo,
+		SortOrder:     filter.SortOrder,
 		WorkspaceID:   filter.WorkspaceID,
 		CreatedAtFrom: utils.FromUnixPointerToTime(filter.CreatedAtFrom),
 		CreatedAtTo:   utils.FromUnixPointerToTime(filter.CreatedAtTo),

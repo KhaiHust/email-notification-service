@@ -84,7 +84,6 @@ func (e *EmailTemplateController) buildGetListTemplateQueryParams(ctx *gin.Conte
 	values := ctx.Request.URL.Query()
 	queryParams := &request.GetEmailTemplateParams{
 		Limit:     utils.ToInt64Pointer(constant.DefaultLimit),
-		Since:     utils.ToInt64Pointer(constant.DefaultSince),
 		SortOrder: constant.DefaultSortOrderAsc,
 	}
 
@@ -95,7 +94,7 @@ func (e *EmailTemplateController) buildGetListTemplateQueryParams(ctx *gin.Conte
 	if err != nil {
 		return nil, err
 	}
-	queryParams.Since, err = utils.GetInt64PointerWithDefault(values, constant.QueryParamSince, constant.DefaultSince)
+	queryParams.Since, err = utils.GetQueryInt64Pointer(values, constant.QueryParamSince)
 	if err != nil {
 		return nil, err
 	}

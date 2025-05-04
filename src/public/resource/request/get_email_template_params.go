@@ -31,6 +31,7 @@ func ToGetEmailTemplateFilter(req *GetEmailTemplateParams) *request.GetListEmail
 		CreatedAtTo:        req.CreatedAtTo,
 		UpdatedAtFrom:      req.UpdatedAtFrom,
 		UpdatedAtTo:        req.UpdatedAtTo,
+		SortOrder:          req.SortOrder,
 		EmailRequestFilter: &request.EmailRequestFilter{Statuses: req.ErStatuses, CreatedAtFrom: req.ErCreatedAtFrom, CreatedAtTo: req.ErCreatedAtTo, SentAtFrom: req.ErSentAtFrom, SentAtTo: req.ErSentAtTo},
 	}
 }
