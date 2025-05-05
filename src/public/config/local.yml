@@ -45,4 +45,6 @@ app:
           PublicKey: ${JWT_PUBLIC_KEY}
           ExpiredAccessToken: 3600
           ExpiredRefreshToken: 604800
+    encrypt:
+      EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
 
