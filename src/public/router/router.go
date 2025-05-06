@@ -21,6 +21,7 @@ type RegisterRoutersIn struct {
 	WorkspaceController     *controller.WorkspaceController
 	EmailTemplateController *controller.EmailTemplateController
 	EmailSendingController  *controller.EmailSendingController
+	ApiKeyController        *controller.ApiKeyController
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
@@ -60,5 +61,12 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 			p.EmailTemplateController.CreateTemplate)
 		v1Template.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailTemplateController.GetAllEmailTemplate)
+	}
+	v1ApiKey := v1Workspace.Group("/:workspaceCode/api-keys")
+	{
+		v1ApiKey.POST("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.ApiKeyController.CreateNewApiKey)
+		v1ApiKey.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.ApiKeyController.GetListApiKey)
 	}
 }

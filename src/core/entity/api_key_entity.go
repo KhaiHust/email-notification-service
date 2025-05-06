@@ -9,4 +9,5 @@ type ApiKeyEntity struct {
 	Environment string
 	ExpiresAt   *int64
 	Revoked     bool
+	KeyEnc      string
 }
