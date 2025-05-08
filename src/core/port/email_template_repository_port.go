@@ -12,4 +12,5 @@ type IEmailTemplateRepositoryPort interface {
 	GetTemplateByID(ctx context.Context, ID int64) (*entity.EmailTemplateEntity, error)
 	GetAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, error)
 	CountAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) (int64, error)
+	GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error)
 }

@@ -17,6 +17,17 @@ type EmailTemplateRepositoryAdapter struct {
 	base
 }
 
+func (e EmailTemplateRepositoryAdapter) GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error) {
+	var emailTemplateModel model.EmailTemplateModel
+	if err := e.db.WithContext(ctx).Where("id = ? AND workspace_id = ?", ID, workspaceID).First(&emailTemplateModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return mapper.ToEmailTemplateEntity(&emailTemplateModel), nil
+}
+
 func (e EmailTemplateRepositoryAdapter) CountAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) (int64, error) {
 	emailTemplateSpecification := specification.ToEmailTemplateSpecification(filter)
 	query, args, err := specification.NewEmailTemplateSpecificationQueryWithCount(emailTemplateSpecification)

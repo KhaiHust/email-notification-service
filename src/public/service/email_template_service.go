@@ -11,11 +11,16 @@ import (
 type IEmailTemplateService interface {
 	CreateTemplate(ctx context.Context, userId int64, workspaceCode string, req *request.CreateEmailTemplateRequest) (*entity.EmailTemplateEntity, error)
 	GetAllEmailTemplateWithMetrics(ctx context.Context, workspaceId int64, filter *request.GetEmailTemplateParams) ([]*entity.EmailTemplateEntity, *apihelper.PagingMetadata, error)
+	GetTemplateDetail(ctx context.Context, workspaceID, templateID int64) (*entity.EmailTemplateEntity, error)
 }
 type EmailTemplateService struct {
 	createTemplateUseCase   usecase.ICreateTemplateUseCase
 	getEmailTemplateUseCase usecase.IGetEmailTemplateUseCase
 	getWorkspaceUseCase     usecase.IGetWorkspaceUseCase
+}
+
+func (e EmailTemplateService) GetTemplateDetail(ctx context.Context, workspaceID, templateID int64) (*entity.EmailTemplateEntity, error) {
+	return e.getEmailTemplateUseCase.GetTemplateByIDAndWorkspaceID(ctx, templateID, workspaceID)
 }
 
 func (e EmailTemplateService) GetAllEmailTemplateWithMetrics(ctx context.Context, workspaceId int64, filter *request.GetEmailTemplateParams) ([]*entity.EmailTemplateEntity, *apihelper.PagingMetadata, error) {

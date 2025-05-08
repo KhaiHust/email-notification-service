@@ -10,6 +10,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/public/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golibs-starter/golib/log"
+	"strconv"
 )
 
 type EmailTemplateController struct {
@@ -70,6 +71,27 @@ func (e *EmailTemplateController) GetAllEmailTemplate(c *gin.Context) {
 		return
 	}
 	apihelper.SuccessfulHandleWithPaging(c, response.ToListEmailTemplateResponse(emailTemplates), paging)
+}
+func (e *EmailTemplateController) GetTemplateDetail(c *gin.Context) {
+	workspaceId := e.GetWorkspaceIDFromContext(c)
+	if workspaceId == 0 {
+		log.Error(c, "Error when get workspace id from context", common.ErrBadRequest)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	templateId, err := strconv.ParseInt(c.Param(constant.ParamTemplateId), 10, 64)
+	if err != nil {
+		log.Error(c, "Error when get template id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	emailTemplate, err := e.emailTemplateService.GetTemplateDetail(c, workspaceId, templateId)
+	if err != nil {
+		log.Error(c, "Error when get email template detail", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, response.ToEmailTemplateResponse(emailTemplate))
 }
 func NewEmailTemplateController(
 	emailTemplateService service.IEmailTemplateService,

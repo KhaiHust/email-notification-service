@@ -8,6 +8,9 @@ type EmailTemplateResponse struct {
 	WorkspaceID int64                        `json:"workspace_id"`
 	CreatedAt   int64                        `json:"created_at"`
 	UpdatedAt   int64                        `json:"updated_at"`
+	Subject     string                       `json:"subject,omitempty"`
+	Body        string                       `json:"body,omitempty"`
+	Variables   interface{}                  `json:"variables,omitempty"`
 	Metric      *EmailTemplateMetricResponse `json:"metric,omitempty"`
 }
 type EmailTemplateMetricResponse struct {
@@ -23,6 +26,9 @@ func ToEmailTemplateResponse(templateEntity *entity.EmailTemplateEntity) *EmailT
 		WorkspaceID: templateEntity.WorkspaceId,
 		CreatedAt:   templateEntity.CreatedAt,
 		UpdatedAt:   templateEntity.UpdatedAt,
+		Subject:     templateEntity.Subject,
+		Body:        templateEntity.Body,
+		Variables:   templateEntity.Variables,
 	}
 	if templateEntity.Metric != nil {
 		template.Metric = &EmailTemplateMetricResponse{
