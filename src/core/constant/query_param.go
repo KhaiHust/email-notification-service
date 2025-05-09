@@ -19,4 +19,5 @@ const (
 	QueryParamErSentAtFrom    = "er_sent_at_from"
 	QueryParamErSentAtTo      = "er_sent_at_to"
 	QueryParamName            = "name"
+	QueryParamEnvironment     = "environment"
 )

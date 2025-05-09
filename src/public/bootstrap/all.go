@@ -52,6 +52,7 @@ func All() fx.Option {
 		golib.ProvideProps(properties.NewGmailProviderProperties),
 		golib.ProvideProps(coreProperties.NewAuthProperties),
 		golib.ProvideProps(coreProperties.NewBatchProperties),
+		golib.ProvideProps(coreProperties.NewEncryptProperties),
 		// Provide port's implements
 		fx.Provide(client.NewGmailProviderAdapter),
 		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
@@ -62,6 +63,7 @@ func All() fx.Option {
 		fx.Provide(postgres.NewWorkspaceUserRepositoryAdapter),
 		fx.Provide(postgres.NewEmailTemplateRepositoryAdapter),
 		fx.Provide(postgres.NewEmailRequestRepositoryAdapter),
+		fx.Provide(postgres.NewApiKeyRepositoryAdapter),
 
 		fx.Provide(publisher.NewEventPublisherAdapter),
 
@@ -78,6 +80,8 @@ func All() fx.Option {
 		fx.Provide(usecase.NewHashPasswordUseCase),
 		fx.Provide(usecase.NewLoginUsecase),
 		fx.Provide(usecase.NewCreateWorkspaceUseCase),
+		fx.Provide(usecase.NewCreateApiKeyUseCase),
+		fx.Provide(usecase.NewEncryptUseCase),
 		fx.Provide(usecase.NewValidateAccessWorkspaceUsecase),
 		fx.Provide(usecase.NewCreateTemplateUseCase),
 		fx.Provide(usecase.NewCreateEmailRequestUsecase),
@@ -86,12 +90,14 @@ func All() fx.Option {
 		fx.Provide(usecase.NewUpdateEmailProviderUseCase),
 		fx.Provide(usecase.NewGetEmailTemplateUseCase),
 		fx.Provide(usecase.NewGetEmailRequestUsecase),
+		fx.Provide(usecase.NewGetApiKeyUseCase),
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
 		fx.Provide(service.NewUserService),
 		fx.Provide(service.NewWorkspaceService),
 		fx.Provide(service.NewEmailTemplateService),
 		fx.Provide(service.NewEmailSendingService),
+		fx.Provide(service.NewApiKeyService),
 
 		//Provide controllers
 		fx.Provide(helper.NewCustomValidate),
@@ -101,6 +107,7 @@ func All() fx.Option {
 		fx.Provide(controller.NewWorkspaceController),
 		fx.Provide(controller.NewEmailTemplateController),
 		fx.Provide(controller.NewEmailSendingController),
+		fx.Provide(controller.NewApiKeyController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewWorkspaceAccessMiddleware),
