@@ -11,10 +11,24 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type EmailTemplateRepositoryAdapter struct {
 	base
+}
+
+func (e EmailTemplateRepositoryAdapter) GetTemplateForUpdateByIDAndWorkspaceID(ctx context.Context, tx *gorm.DB, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error) {
+	var templateModel model.EmailTemplateModel
+	if err := tx.WithContext(ctx).Clauses(
+		clause.Locking{Strength: clause.LockingStrengthUpdate},
+	).Where("id = ? AND workspace_id = ?", ID, workspaceID).First(&templateModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return mapper.ToEmailTemplateEntity(&templateModel), nil
 }
 
 func (e EmailTemplateRepositoryAdapter) GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error) {
@@ -65,7 +79,7 @@ func (e EmailTemplateRepositoryAdapter) GetTemplateByID(ctx context.Context, ID 
 	return mapper.ToEmailTemplateEntity(&emailTemplateModel), nil
 }
 
-func (e EmailTemplateRepositoryAdapter) SaveNewTemplate(ctx context.Context, tx *gorm.DB, template *entity.EmailTemplateEntity) (*entity.EmailTemplateEntity, error) {
+func (e EmailTemplateRepositoryAdapter) SaveTemplate(ctx context.Context, tx *gorm.DB, template *entity.EmailTemplateEntity) (*entity.EmailTemplateEntity, error) {
 	emailTemplateModel := mapper.ToEmailTemplateModel(template)
 	if err := tx.WithContext(ctx).Model(&model.EmailTemplateModel{}).Create(emailTemplateModel).Error; err != nil {
 		return nil, err

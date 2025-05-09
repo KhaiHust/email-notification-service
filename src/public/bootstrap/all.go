@@ -91,6 +91,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewGetEmailTemplateUseCase),
 		fx.Provide(usecase.NewGetEmailRequestUsecase),
 		fx.Provide(usecase.NewGetApiKeyUseCase),
+		fx.Provide(usecase.NewUpdateEmailTemplateUseCase),
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
 		fx.Provide(service.NewUserService),

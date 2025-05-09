@@ -102,6 +102,44 @@ func NewEmailTemplateController(
 		emailTemplateService: emailTemplateService,
 	}
 }
+func (e *EmailTemplateController) UpdateTemplate(c *gin.Context) {
+	workspaceID := e.GetWorkspaceIDFromContext(c)
+	if workspaceID == 0 {
+		log.Error(c, "Error when get workspace id from context", common.ErrBadRequest)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	userID, err := e.GetUserIDFromContext(c)
+	if err != nil {
+		log.Error(c, "Error when get user id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrForbidden)
+		return
+	}
+	templateID, err := strconv.ParseInt(c.Param(constant.ParamTemplateId), 10, 64)
+	if err != nil {
+		log.Error(c, "Error when get template id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	var req request.CreateEmailTemplateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error(c, "Error when bind json", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	if err := e.validator.Struct(&req); err != nil {
+		log.Error(c, "Error when validate request", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	emailTemplate, err := e.emailTemplateService.UpdateEmailTemplate(c, userID, workspaceID, templateID, &req)
+	if err != nil {
+		log.Error(c, "Error when update email template", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, response.ToEmailTemplateResponse(emailTemplate))
+}
 func (e *EmailTemplateController) buildGetListTemplateQueryParams(ctx *gin.Context) (*request.GetEmailTemplateParams, error) {
 	values := ctx.Request.URL.Query()
 	queryParams := &request.GetEmailTemplateParams{

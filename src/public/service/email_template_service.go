@@ -12,11 +12,24 @@ type IEmailTemplateService interface {
 	CreateTemplate(ctx context.Context, userId int64, workspaceCode string, req *request.CreateEmailTemplateRequest) (*entity.EmailTemplateEntity, error)
 	GetAllEmailTemplateWithMetrics(ctx context.Context, workspaceId int64, filter *request.GetEmailTemplateParams) ([]*entity.EmailTemplateEntity, *apihelper.PagingMetadata, error)
 	GetTemplateDetail(ctx context.Context, workspaceID, templateID int64) (*entity.EmailTemplateEntity, error)
+	UpdateEmailTemplate(ctx context.Context, userId int64, workspaceID, templateID int64, req *request.CreateEmailTemplateRequest) (*entity.EmailTemplateEntity, error)
 }
 type EmailTemplateService struct {
-	createTemplateUseCase   usecase.ICreateTemplateUseCase
-	getEmailTemplateUseCase usecase.IGetEmailTemplateUseCase
-	getWorkspaceUseCase     usecase.IGetWorkspaceUseCase
+	createTemplateUseCase      usecase.ICreateTemplateUseCase
+	getEmailTemplateUseCase    usecase.IGetEmailTemplateUseCase
+	getWorkspaceUseCase        usecase.IGetWorkspaceUseCase
+	updateEmailTemplateUseCase usecase.IUpdateEmailTemplateUseCase
+}
+
+func (e EmailTemplateService) UpdateEmailTemplate(ctx context.Context, userId int64, workspaceID, templateID int64, req *request.CreateEmailTemplateRequest) (*entity.EmailTemplateEntity, error) {
+	templateEntity := request.ToEmailTemplateEntity(req)
+	templateEntity.ID = templateID
+	templateEntity.LastUpdatedBy = userId
+	templateEntity, err := e.updateEmailTemplateUseCase.UpdateEmailTemplate(ctx, templateEntity)
+	if err != nil {
+		return nil, err
+	}
+	return templateEntity, nil
 }
 
 func (e EmailTemplateService) GetTemplateDetail(ctx context.Context, workspaceID, templateID int64) (*entity.EmailTemplateEntity, error) {
@@ -56,10 +69,12 @@ func NewEmailTemplateService(
 	createTemplateUseCase usecase.ICreateTemplateUseCase,
 	getEmailTemplateUseCase usecase.IGetEmailTemplateUseCase,
 	getWorkspaceUseCase usecase.IGetWorkspaceUseCase,
+	updateEmailTemplateUseCase usecase.IUpdateEmailTemplateUseCase,
 ) IEmailTemplateService {
 	return &EmailTemplateService{
-		createTemplateUseCase:   createTemplateUseCase,
-		getEmailTemplateUseCase: getEmailTemplateUseCase,
-		getWorkspaceUseCase:     getWorkspaceUseCase,
+		createTemplateUseCase:      createTemplateUseCase,
+		getEmailTemplateUseCase:    getEmailTemplateUseCase,
+		getWorkspaceUseCase:        getWorkspaceUseCase,
+		updateEmailTemplateUseCase: updateEmailTemplateUseCase,
 	}
 }

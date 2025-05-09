@@ -15,6 +15,7 @@ func ToEmailTemplateModel(emailTemplateEntity *entity.EmailTemplateEntity) *mode
 		WorkspaceId:   emailTemplateEntity.WorkspaceId,
 		CreatedBy:     emailTemplateEntity.CreatedBy,
 		LastUpdatedBy: emailTemplateEntity.LastUpdatedBy,
+		Version:       emailTemplateEntity.Version,
 	}
 }
 func ToEmailTemplateEntity(emailTemplateModel *model.EmailTemplateModel) *entity.EmailTemplateEntity {
@@ -27,6 +28,7 @@ func ToEmailTemplateEntity(emailTemplateModel *model.EmailTemplateModel) *entity
 		WorkspaceId:   emailTemplateModel.WorkspaceId,
 		CreatedBy:     emailTemplateModel.CreatedBy,
 		LastUpdatedBy: emailTemplateModel.LastUpdatedBy,
+		Version:       emailTemplateModel.Version,
 	}
 }
 func ToEmailTemplateEntities(emailTemplateModels []*model.EmailTemplateModel) []*entity.EmailTemplateEntity {

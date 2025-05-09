@@ -66,6 +66,9 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 		v1Template.GET(fmt.Sprintf("/:%s", constant.ParamTemplateId),
 			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailTemplateController.GetTemplateDetail)
+		v1Template.PATCH(fmt.Sprintf("/:%s", constant.ParamTemplateId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailTemplateController.UpdateTemplate)
 	}
 	v1ApiKey := v1Workspace.Group("/:workspaceCode/api-keys")
 	{

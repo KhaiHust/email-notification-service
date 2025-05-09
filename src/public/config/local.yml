@@ -48,4 +48,5 @@ app:
           ExpiredRefreshToken: 604800
     encrypt:
       EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
 

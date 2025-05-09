@@ -19,14 +19,17 @@ type CreateEmailRequestUsecase struct {
 func (c CreateEmailRequestUsecase) CreateEmailRequests(ctx context.Context, emailRequestEntities []*entity.EmailRequestEntity) ([]*entity.EmailRequestEntity, error) {
 	var err error
 	tx := c.databaseTransactionUseCase.StartTx()
+	commitTx := false
 	defer func() {
 		if r := recover(); r != nil {
 			err = exception.InternalServerException
 		}
-		if errRollback := c.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
-			log.Error(ctx, "Error when rollback transaction", errRollback)
-		} else {
-			log.Info(ctx, "Rollback transaction successfully")
+		if !commitTx || err != nil {
+			if errRollback := c.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
+				log.Error(ctx, "Error when rollback transaction", errRollback)
+			} else {
+				log.Info(ctx, "Rollback transaction successfully")
+			}
 		}
 	}()
 	emailRequestEntities, err = c.emailRequestRepositoryPort.SaveEmailRequestByBatches(ctx, tx, emailRequestEntities)
@@ -38,6 +41,7 @@ func (c CreateEmailRequestUsecase) CreateEmailRequests(ctx context.Context, emai
 		log.Error(ctx, "Error when commit transaction", err)
 		return nil, err
 	}
+	commitTx = true
 	return emailRequestEntities, nil
 }
 

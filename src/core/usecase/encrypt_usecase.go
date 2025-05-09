@@ -12,11 +12,31 @@ import (
 )
 
 type IEncryptUseCase interface {
+	EncryptVersionTemplate(ctx context.Context, version string) (string, error)
+	DecryptVersionTemplate(ctx context.Context, version string) (string, error)
 	EncryptAES(ctx context.Context, plainText string) (string, error)
 	DecryptAES(ctx context.Context, cipherText string) (string, error)
 }
 type EncryptUseCase struct {
 	props *properties.EncryptProperties
+}
+
+func (e EncryptUseCase) DecryptVersionTemplate(ctx context.Context, version string) (string, error) {
+	data, err := base64.URLEncoding.DecodeString(version)
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
+		return "", err
+	}
+	return e.decrypt(ctx, err, data)
+}
+
+func (e EncryptUseCase) EncryptVersionTemplate(ctx context.Context, version string) (string, error) {
+	block, err := aes.NewCipher([]byte(e.props.EncryptVersionTemplate))
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		return "", err
+	}
+	return e.encrypt(ctx, version, block)
 }
 
 func (e EncryptUseCase) EncryptAES(ctx context.Context, plainText string) (string, error) {
@@ -25,6 +45,10 @@ func (e EncryptUseCase) EncryptAES(ctx context.Context, plainText string) (strin
 		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
 		return "", err
 	}
+	return e.encrypt(ctx, plainText, block)
+}
+
+func (e EncryptUseCase) encrypt(ctx context.Context, plainText string, block cipher.Block) (string, error) {
 	plainTextBytes := []byte(plainText)
 	cipherText := make([]byte, aes.BlockSize+len(plainTextBytes))
 	iv := cipherText[:aes.BlockSize]
@@ -43,6 +67,10 @@ func (e EncryptUseCase) DecryptAES(ctx context.Context, cipherText string) (stri
 		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
 		return "", err
 	}
+	return e.decrypt(ctx, err, data)
+}
+
+func (e EncryptUseCase) decrypt(ctx context.Context, err error, data []byte) (string, error) {
 	block, err := aes.NewCipher([]byte(e.props.EncryptKey))
 	if err != nil {
 		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)

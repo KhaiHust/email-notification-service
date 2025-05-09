@@ -14,5 +14,6 @@ type EmailTemplateEntity struct {
 	WorkspaceId   int64
 	CreatedBy     int64
 	LastUpdatedBy int64
+	Version       string
 	Metric        *dto.EmailTemplateMetric
 }
