@@ -11,6 +11,7 @@ type EmailTemplateModel struct {
 	WorkspaceId   int64           `gorm:"column:workspace_id"`
 	CreatedBy     int64           `gorm:"column:created_by"`
 	LastUpdatedBy int64           `gorm:"column:last_updated_by"`
+	Version       string          `gorm:"column:version"`
 }
 
 func (EmailTemplateModel) TableName() string {

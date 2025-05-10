@@ -15,10 +15,28 @@ type IGetEmailTemplateUseCase interface {
 	GetTemplateByID(ctx context.Context, ID int64) (*entity.EmailTemplateEntity, error)
 	GetAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, error)
 	GetAllTemplatesWithMetrics(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, int64, error)
+	GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error)
 }
 type GetEmailTemplateUseCase struct {
 	emailTemplateRepositoryPort port.IEmailTemplateRepositoryPort
 	getEmailRequestUsecase      IGetEmailRequestUsecase
+	encryptUseCase              IEncryptUseCase
+}
+
+func (e GetEmailTemplateUseCase) GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error) {
+	result, err := e.emailTemplateRepositoryPort.GetTemplateByIDAndWorkspaceID(ctx, ID, workspaceID)
+	if err != nil {
+		log.Error(ctx, "Get email template by ID and workspace ID error: %v", err)
+		return nil, err
+	}
+	version := result.Version
+	version, err = e.encryptUseCase.EncryptVersionTemplate(ctx, version)
+	if err != nil {
+		log.Error(ctx, "Encrypt email template version error: %v", err)
+		return nil, err
+	}
+	result.Version = version
+	return result, nil
 }
 
 func (e GetEmailTemplateUseCase) GetAllTemplatesWithMetrics(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, int64, error) {
@@ -76,9 +94,11 @@ func (e GetEmailTemplateUseCase) GetTemplateByID(ctx context.Context, ID int64) 
 func NewGetEmailTemplateUseCase(
 	emailTemplateRepositoryPort port.IEmailTemplateRepositoryPort,
 	getEmailRequestUsecase IGetEmailRequestUsecase,
+	encryptUseCase IEncryptUseCase,
 ) IGetEmailTemplateUseCase {
 	return &GetEmailTemplateUseCase{
 		emailTemplateRepositoryPort: emailTemplateRepositoryPort,
 		getEmailRequestUsecase:      getEmailRequestUsecase,
+		encryptUseCase:              encryptUseCase,
 	}
 }

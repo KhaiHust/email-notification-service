@@ -10,6 +10,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/public/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golibs-starter/golib/log"
+	"strconv"
 )
 
 type EmailTemplateController struct {
@@ -71,6 +72,27 @@ func (e *EmailTemplateController) GetAllEmailTemplate(c *gin.Context) {
 	}
 	apihelper.SuccessfulHandleWithPaging(c, response.ToListEmailTemplateResponse(emailTemplates), paging)
 }
+func (e *EmailTemplateController) GetTemplateDetail(c *gin.Context) {
+	workspaceId := e.GetWorkspaceIDFromContext(c)
+	if workspaceId == 0 {
+		log.Error(c, "Error when get workspace id from context", common.ErrBadRequest)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	templateId, err := strconv.ParseInt(c.Param(constant.ParamTemplateId), 10, 64)
+	if err != nil {
+		log.Error(c, "Error when get template id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	emailTemplate, err := e.emailTemplateService.GetTemplateDetail(c, workspaceId, templateId)
+	if err != nil {
+		log.Error(c, "Error when get email template detail", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, response.ToEmailTemplateResponse(emailTemplate))
+}
 func NewEmailTemplateController(
 	emailTemplateService service.IEmailTemplateService,
 	base *BaseController,
@@ -79,6 +101,44 @@ func NewEmailTemplateController(
 		BaseController:       base,
 		emailTemplateService: emailTemplateService,
 	}
+}
+func (e *EmailTemplateController) UpdateTemplate(c *gin.Context) {
+	workspaceID := e.GetWorkspaceIDFromContext(c)
+	if workspaceID == 0 {
+		log.Error(c, "Error when get workspace id from context", common.ErrBadRequest)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	userID, err := e.GetUserIDFromContext(c)
+	if err != nil {
+		log.Error(c, "Error when get user id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrForbidden)
+		return
+	}
+	templateID, err := strconv.ParseInt(c.Param(constant.ParamTemplateId), 10, 64)
+	if err != nil {
+		log.Error(c, "Error when get template id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	var req request.CreateEmailTemplateRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error(c, "Error when bind json", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	if err := e.validator.Struct(&req); err != nil {
+		log.Error(c, "Error when validate request", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	emailTemplate, err := e.emailTemplateService.UpdateEmailTemplate(c, userID, workspaceID, templateID, &req)
+	if err != nil {
+		log.Error(c, "Error when update email template", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, response.ToEmailTemplateResponse(emailTemplate))
 }
 func (e *EmailTemplateController) buildGetListTemplateQueryParams(ctx *gin.Context) (*request.GetEmailTemplateParams, error) {
 	values := ctx.Request.URL.Query()

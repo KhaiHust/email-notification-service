@@ -3,7 +3,8 @@ package properties
 import "github.com/golibs-starter/golib/config"
 
 type EncryptProperties struct {
-	EncryptKey string
+	EncryptKey             string
+	EncryptVersionTemplate string
 }
 
 func (e EncryptProperties) Prefix() string {

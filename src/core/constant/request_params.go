@@ -5,4 +5,5 @@ const (
 	ParamWorkspaceCode = "workspaceCode"
 	ParamOAuthCode     = "code"
 	ParamWorkspaceId   = "workspaceId"
+	ParamTemplateId    = "templateId"
 )

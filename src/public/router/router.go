@@ -1,6 +1,8 @@
 package router
 
 import (
+	"fmt"
+	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/public/controller"
 	"github.com/KhaiHust/email-notification-service/public/middleware"
 	"github.com/gin-gonic/gin"
@@ -61,6 +63,12 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 			p.EmailTemplateController.CreateTemplate)
 		v1Template.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailTemplateController.GetAllEmailTemplate)
+		v1Template.GET(fmt.Sprintf("/:%s", constant.ParamTemplateId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailTemplateController.GetTemplateDetail)
+		v1Template.PATCH(fmt.Sprintf("/:%s", constant.ParamTemplateId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailTemplateController.UpdateTemplate)
 	}
 	v1ApiKey := v1Workspace.Group("/:workspaceCode/api-keys")
 	{

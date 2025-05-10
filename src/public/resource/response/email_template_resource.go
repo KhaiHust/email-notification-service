@@ -3,12 +3,18 @@ package response
 import "github.com/KhaiHust/email-notification-service/core/entity"
 
 type EmailTemplateResponse struct {
-	Id          int64                        `json:"id"`
-	Name        string                       `json:"name"`
-	WorkspaceID int64                        `json:"workspace_id"`
-	CreatedAt   int64                        `json:"created_at"`
-	UpdatedAt   int64                        `json:"updated_at"`
-	Metric      *EmailTemplateMetricResponse `json:"metric,omitempty"`
+	Id            int64                        `json:"id"`
+	Name          string                       `json:"name"`
+	WorkspaceID   int64                        `json:"workspace_id"`
+	CreatedAt     int64                        `json:"created_at"`
+	UpdatedAt     int64                        `json:"updated_at"`
+	Subject       string                       `json:"subject,omitempty"`
+	Body          string                       `json:"body,omitempty"`
+	Variables     interface{}                  `json:"variables,omitempty"`
+	CreatedBy     int64                        `json:"created_by,omitempty"`
+	LastUpdatedBy int64                        `json:"last_updated_by,omitempty"`
+	Version       string                       `json:"version,omitempty"`
+	Metric        *EmailTemplateMetricResponse `json:"metric,omitempty"`
 }
 type EmailTemplateMetricResponse struct {
 	TotalSent   int64 `json:"total_sent"`
@@ -23,6 +29,11 @@ func ToEmailTemplateResponse(templateEntity *entity.EmailTemplateEntity) *EmailT
 		WorkspaceID: templateEntity.WorkspaceId,
 		CreatedAt:   templateEntity.CreatedAt,
 		UpdatedAt:   templateEntity.UpdatedAt,
+		Subject:     templateEntity.Subject,
+		Body:        templateEntity.Body,
+		Variables:   templateEntity.Variables,
+		CreatedBy:   templateEntity.CreatedBy,
+		Version:     templateEntity.Version,
 	}
 	if templateEntity.Metric != nil {
 		template.Metric = &EmailTemplateMetricResponse{
