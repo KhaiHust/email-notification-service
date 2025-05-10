@@ -65,7 +65,7 @@ func (u UpdateEmailTemplateUseCase) UpdateEmailTemplate(ctx context.Context, tem
 	newVersion := time.Now().Unix()
 	template.Version = strconv.FormatInt(newVersion, 10)
 	//save template
-	emailTemplate, err = u.emailTemplateRepositoryPort.SaveTemplate(ctx, tx, template)
+	emailTemplate, err = u.emailTemplateRepositoryPort.UpdateTemplate(ctx, tx, template)
 	if err != nil {
 		log.Error(ctx, "[UpdateEmailTemplateUseCase] Error saving template: %v", err)
 		return nil, err

@@ -23,6 +23,7 @@ type EmailTemplateService struct {
 
 func (e EmailTemplateService) UpdateEmailTemplate(ctx context.Context, userId int64, workspaceID, templateID int64, req *request.CreateEmailTemplateRequest) (*entity.EmailTemplateEntity, error) {
 	templateEntity := request.ToEmailTemplateEntity(req)
+	templateEntity.WorkspaceId = workspaceID
 	templateEntity.ID = templateID
 	templateEntity.LastUpdatedBy = userId
 	templateEntity, err := e.updateEmailTemplateUseCase.UpdateEmailTemplate(ctx, templateEntity)

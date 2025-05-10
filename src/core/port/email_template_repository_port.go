@@ -14,4 +14,5 @@ type IEmailTemplateRepositoryPort interface {
 	CountAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) (int64, error)
 	GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error)
 	GetTemplateForUpdateByIDAndWorkspaceID(ctx context.Context, tx *gorm.DB, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error)
+	UpdateTemplate(ctx context.Context, tx *gorm.DB, template *entity.EmailTemplateEntity) (*entity.EmailTemplateEntity, error)
 }
