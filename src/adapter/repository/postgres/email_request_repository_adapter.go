@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"fmt"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/mapper"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/specification"
@@ -31,6 +32,7 @@ func (e EmailRequestRepositoryAdapter) CountEmailRequestStatuses(ctx context.Con
 func (e EmailRequestRepositoryAdapter) GetEmailRequestByID(ctx context.Context, emailRequestID int64) (*entity.EmailRequestEntity, error) {
 	emailRequestModel := &model.EmailRequestModel{}
 	if err := e.db.WithContext(ctx).Model(&model.EmailRequestModel{}).Where("id = ?", emailRequestID).First(emailRequestModel).Error; err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	return mapper.ToEmailRequestEntity(emailRequestModel), nil

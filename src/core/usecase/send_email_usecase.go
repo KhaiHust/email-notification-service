@@ -7,6 +7,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/event"
+	"github.com/KhaiHust/email-notification-service/core/exception"
 	"github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/google/uuid"
 	"sync"
@@ -32,6 +33,7 @@ type EmailSendingUsecase struct {
 	updateEmailProviderUseCase IUpdateEmailProviderUseCase
 	eventPublisher             port.IEventPublisher
 	createEmailRequestUsecase  ICreateEmailRequestUsecase
+	databaseTransactionUseCase IDatabaseTransactionUseCase
 }
 
 func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) error {
@@ -61,7 +63,20 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 			CorrelationID: fmt.Sprintf("%d_%s", idx, data.To),
 		})
 	}
-	emailRequestEntities, err = e.createEmailRequestUsecase.CreateEmailRequests(ctx, emailRequestEntities)
+	tx := e.databaseTransactionUseCase.StartTx()
+	defer func() {
+		if r := recover(); r != nil {
+			err = exception.InternalServerException
+		}
+		if err != nil {
+			if errRollback := e.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
+				log.Error(ctx, "Error when rollback transaction", errRollback)
+			} else {
+				log.Info(ctx, "Rollback transaction successfully")
+			}
+		}
+	}()
+	emailRequestEntities, err = e.createEmailRequestUsecase.CreateEmailRequestsWithTx(ctx, tx, emailRequestEntities)
 	if err != nil {
 		log.Error(ctx, "Error when save email request", err)
 		return err
@@ -70,7 +85,15 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 	//Todo: process sending sync
 	//Todo: process sending async => send message to queue
 	ev := event.NewEventRequestSendingEmail(ctx, emailRequestEntities, req)
-	e.eventPublisher.Publish(ev)
+	err = e.eventPublisher.SyncPublish(ctx, ev)
+	if err != nil {
+		log.Error(ctx, "Error when publish event", err)
+		return err
+	}
+	if err = e.databaseTransactionUseCase.CommitTx(tx); err != nil {
+		log.Error(ctx, "Error when commit transaction", err)
+		return err
+	}
 	return nil
 }
 
@@ -180,6 +203,7 @@ func NewEmailSendingUsecase(
 	updateEmailProviderUseCase IUpdateEmailProviderUseCase,
 	eventPublisher port.IEventPublisher,
 	createEmailRequestUsecase ICreateEmailRequestUsecase,
+	databaseTransactionUseCase IDatabaseTransactionUseCase,
 ) IEmailSendingUsecase {
 	return &EmailSendingUsecase{
 		BatchConfig:                batchConfig,
@@ -189,5 +213,6 @@ func NewEmailSendingUsecase(
 		updateEmailProviderUseCase: updateEmailProviderUseCase,
 		eventPublisher:             eventPublisher,
 		createEmailRequestUsecase:  createEmailRequestUsecase,
+		databaseTransactionUseCase: databaseTransactionUseCase,
 	}
 }
