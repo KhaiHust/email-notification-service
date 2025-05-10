@@ -1,17 +1,46 @@
 package publisher
 
 import (
+	"context"
 	"github.com/KhaiHust/email-notification-service/core/port"
+	"github.com/golibs-starter/golib-message-bus/kafka/core"
+	"github.com/golibs-starter/golib-message-bus/kafka/relayer"
+	"github.com/golibs-starter/golib/log"
 	"github.com/golibs-starter/golib/pubsub"
 )
 
 type EventPublisherAdapter struct {
+	syncProducer   core.SyncProducer
+	asyncProducer  core.AsyncProducer
+	eventConverter relayer.EventConverter
+}
+
+func (e2 EventPublisherAdapter) SyncPublish(ctx context.Context, e pubsub.Event) error {
+	message, err := e2.eventConverter.Convert(e)
+	if err != nil {
+		log.Error(ctx, "Error while converting event to kafka message", err)
+		return err
+	}
+	partition, offset, err := e2.syncProducer.Send(message)
+	if err != nil {
+		log.Error(ctx, "Error while sending kafka message", err)
+		return err
+	}
+	log.Info(ctx, "Kafka message sent to partition [%d] with offset [%d]", partition, offset)
+	return nil
 }
 
 func (e2 EventPublisherAdapter) Publish(e pubsub.Event) {
 	pubsub.Publish(e)
 }
-
-func NewEventPublisherAdapter() port.IEventPublisher {
-	return &EventPublisherAdapter{}
+func NewEventPublisherAdapter(
+	syncProducer core.SyncProducer,
+	asyncProducer core.AsyncProducer,
+	eventConverter relayer.EventConverter,
+) port.IEventPublisher {
+	return &EventPublisherAdapter{
+		syncProducer:   syncProducer,
+		asyncProducer:  asyncProducer,
+		eventConverter: eventConverter,
+	}
 }

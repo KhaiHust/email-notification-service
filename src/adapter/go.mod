@@ -8,6 +8,7 @@ require (
 	github.com/KhaiHust/email-notification-service/core v0.0.0-00010101000000-000000000000
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/golibs-starter/golib v1.0.1
+	github.com/golibs-starter/golib-message-bus v1.0.0
 	github.com/redis/go-redis/v9 v9.0.4
 	golang.org/x/oauth2 v0.7.0
 	gorm.io/gorm v1.25.12
@@ -24,6 +25,7 @@ require (
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.14.1 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jinzhu/copier v0.4.0 // indirect
