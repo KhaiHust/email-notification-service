@@ -17,6 +17,7 @@ func ToEmailRequestModel(emailRequestEntity *entity.EmailRequestEntity) *model.E
 		RetryCount:    emailRequestEntity.RetryCount,
 		RequestID:     emailRequestEntity.RequestID,
 		CorrelationID: emailRequestEntity.CorrelationID,
+		WorkspaceID:   emailRequestEntity.WorkspaceID,
 	}
 	if emailRequestEntity.SentAt != nil {
 		emailRequestModel.SentAt = utils.ToTimePointer(*emailRequestEntity.SentAt)
@@ -34,6 +35,7 @@ func ToEmailRequestEntity(emailRequestModel *model.EmailRequestModel) *entity.Em
 		RetryCount:    emailRequestModel.RetryCount,
 		RequestID:     emailRequestModel.RequestID,
 		CorrelationID: emailRequestModel.CorrelationID,
+		WorkspaceID:   emailRequestModel.WorkspaceID,
 	}
 	if emailRequestModel.SentAt != nil {
 		emailRequestEntity.SentAt = utils.ToUnixTimeToPointer(emailRequestModel.SentAt)

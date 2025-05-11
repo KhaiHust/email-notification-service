@@ -15,4 +15,5 @@ type EmailRequestEntity struct {
 	SentAt        *int64
 	RequestID     string
 	CorrelationID string
+	WorkspaceID   int64
 }

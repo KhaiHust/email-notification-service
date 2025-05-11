@@ -99,6 +99,7 @@ func All() fx.Option {
 		fx.Provide(service.NewEmailTemplateService),
 		fx.Provide(service.NewEmailSendingService),
 		fx.Provide(service.NewApiKeyService),
+		fx.Provide(service.NewEmailRequestService),
 
 		//Provide controllers
 		fx.Provide(helper.NewCustomValidate),
@@ -109,6 +110,7 @@ func All() fx.Option {
 		fx.Provide(controller.NewEmailTemplateController),
 		fx.Provide(controller.NewEmailSendingController),
 		fx.Provide(controller.NewApiKeyController),
+		fx.Provide(controller.NewEmailRequestController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewWorkspaceAccessMiddleware),

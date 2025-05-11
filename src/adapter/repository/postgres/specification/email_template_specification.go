@@ -3,22 +3,13 @@ package specification
 import (
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
-	"github.com/KhaiHust/email-notification-service/core/utils"
 	sq "github.com/Masterminds/squirrel"
-	"time"
 )
 
 type EmailTemplateSpecification struct {
-	Name          *string
-	Limit         *int64
-	Since         *int64
-	Until         *int64
-	WorkspaceID   *int64
-	SortOrder     string
-	CreatedAtFrom *time.Time
-	CreatedAtTo   *time.Time
-	UpdatedAtFrom *time.Time
-	UpdatedAtTo   *time.Time
+	Name        *string
+	WorkspaceID *int64
+	*BaseSpecification
 }
 
 func NewEmailTemplateSpecificationQuery(sp *EmailTemplateSpecification) (string, []interface{}, error) {
@@ -84,15 +75,8 @@ func ToEmailTemplateSpecification(filter *request.GetListEmailTemplateFilter) *E
 		return nil
 	}
 	return &EmailTemplateSpecification{
-		Name:          filter.Name,
-		Limit:         filter.Limit,
-		Since:         filter.Since,
-		Until:         filter.Until,
-		SortOrder:     filter.SortOrder,
-		WorkspaceID:   filter.WorkspaceID,
-		CreatedAtFrom: utils.FromUnixPointerToTime(filter.CreatedAtFrom),
-		CreatedAtTo:   utils.FromUnixPointerToTime(filter.CreatedAtTo),
-		UpdatedAtFrom: utils.FromUnixPointerToTime(filter.UpdatedAtFrom),
-		UpdatedAtTo:   utils.FromUnixPointerToTime(filter.UpdatedAtTo),
+		Name:              filter.Name,
+		BaseSpecification: ToBaseSpecification(filter.BaseFilter),
+		WorkspaceID:       filter.WorkspaceID,
 	}
 }

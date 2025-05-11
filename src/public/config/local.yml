@@ -9,6 +9,7 @@ app:
     database: email_notification_db_test
     username: email_notification_db_user
     password: secret
+    logLevel: INFO
   redis:
     host: localhost
     port: 6379

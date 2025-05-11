@@ -13,4 +13,6 @@ type IEmailRequestRepositoryPort interface {
 	UpdateEmailRequestByID(ctx context.Context, tx *gorm.DB, emailRequest *entity.EmailRequestEntity) (*entity.EmailRequestEntity, error)
 	GetEmailRequestByID(ctx context.Context, emailRequestID int64) (*entity.EmailRequestEntity, error)
 	CountEmailRequestStatuses(ctx context.Context, filter *request.EmailRequestFilter) ([]*entity.EmailRequestStatusCountEntity, error)
+	GetAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) ([]*entity.EmailRequestEntity, error)
+	CountAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) (int64, error)
 }
