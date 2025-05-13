@@ -43,6 +43,7 @@ func All() fx.Option {
 		golib.ProvideProps(properties.NewGmailProviderProperties),
 		golib.ProvideProps(coreProperties.NewAuthProperties),
 		golib.ProvideProps(coreProperties.NewBatchProperties),
+		golib.ProvideProps(coreProperties.NewEncryptProperties),
 		// Provide port's implements
 		fx.Provide(client.NewGmailProviderAdapter),
 		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
@@ -78,6 +79,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewCreateEmailRequestUsecase),
 		fx.Provide(usecase.NewUpdateEmailRequestUsecase),
 		fx.Provide(usecase.NewGetEmailRequestUsecase),
+		fx.Provide(usecase.NewEncryptUseCase),
 
 		//provider handler
 		golibmsg.ProvideConsumer(handler.NewEmailSendingRequestHandler),

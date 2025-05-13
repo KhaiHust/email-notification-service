@@ -13,9 +13,15 @@ type IGetEmailRequestUsecase interface {
 	CountEmailRequestStatuses(ctx context.Context, filter *request.EmailRequestFilter) ([]*entity.EmailRequestStatusCountEntity, error)
 	GetAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) ([]*entity.EmailRequestEntity, int64, error)
 	CountAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) (int64, error)
+	GetEmailRequestByTrackingID(ctx context.Context, trackingID string) (*entity.EmailRequestEntity, error)
 }
 type GetEmailRequestUsecase struct {
 	emailRequestRepositoryPort port.IEmailRequestRepositoryPort
+}
+
+func (g GetEmailRequestUsecase) GetEmailRequestByTrackingID(ctx context.Context, trackingID string) (*entity.EmailRequestEntity, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (g GetEmailRequestUsecase) CountAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) (int64, error) {

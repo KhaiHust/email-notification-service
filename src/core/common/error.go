@@ -32,6 +32,7 @@ const (
 	ErrInvalidTokenMessage                      = "Invalid token"
 	ErrEmailTemplateVersionInvalidFormatMessage = "Email template version invalid format"
 	ErrEmailTemplateVersionNotMatchMessage      = "Email template version not match"
+	ErrInvalidEmailTrackingIDMessage            = "Invalid email tracking id"
 )
 const (
 	ErrEmailProviderNotFoundCode             = 404001
@@ -47,6 +48,7 @@ const (
 	ErrInvalidTokenCode                      = 401001
 	ErrEmailTemplateVersionInvalidFormatCode = 400005
 	ErrEmailTemplateVersionNotMatchCode      = 400006
+	ErrInvalidEmailTrackingIDCode            = 400007
 )
 
 var (
@@ -115,6 +117,11 @@ var (
 		Code:           ErrEmailTemplateVersionNotMatchCode,
 		HttpStatusCode: http.StatusBadRequest,
 	}
+	ErrInvalidEmailTrackingID = Errs{
+		Message:        ErrInvalidEmailTrackingIDMessage,
+		Code:           ErrInvalidEmailTrackingIDCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
 )
 var (
 	mapErrs = map[int]Errs{
@@ -130,6 +137,7 @@ var (
 		ErrInvalidTokenCode:                      ErrInvalidToken,
 		ErrEmailTemplateVersionInvalidFormatCode: ErrEmailTemplateVersionInvalidFormat,
 		ErrEmailTemplateVersionNotMatchCode:      ErrEmailTemplateVersionNotMatch,
+		ErrInvalidEmailTrackingIDCode:            ErrInvalidEmailTrackingID,
 	}
 )
 

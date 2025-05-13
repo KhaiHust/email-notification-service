@@ -17,6 +17,9 @@ type EmailRequestEntity struct {
 	CorrelationID       string
 	WorkspaceID         int64
 	EmailProviderID     int64
+	TrackingID          string
+	OpenedAt            *int64
+	OpenedCount         int64
 	EmailTemplateEntity *EmailTemplateEntity
 	EmailProviderEntity *EmailProviderEntity
 }

@@ -8,16 +8,20 @@ import (
 
 func ToEmailRequestModel(emailRequestEntity *entity.EmailRequestEntity) *model.EmailRequestModel {
 	emailRequestModel := &model.EmailRequestModel{
-		BaseModel:     ToBaseModelMapper(&emailRequestEntity.BaseEntity),
-		TemplateId:    emailRequestEntity.TemplateId,
-		Recipient:     emailRequestEntity.Recipient,
-		Data:          emailRequestEntity.Data,
-		Status:        emailRequestEntity.Status,
-		ErrorMessage:  emailRequestEntity.ErrorMessage,
-		RetryCount:    emailRequestEntity.RetryCount,
-		RequestID:     emailRequestEntity.RequestID,
-		CorrelationID: emailRequestEntity.CorrelationID,
-		WorkspaceID:   emailRequestEntity.WorkspaceID,
+		BaseModel:       ToBaseModelMapper(&emailRequestEntity.BaseEntity),
+		TemplateId:      emailRequestEntity.TemplateId,
+		Recipient:       emailRequestEntity.Recipient,
+		Data:            emailRequestEntity.Data,
+		Status:          emailRequestEntity.Status,
+		ErrorMessage:    emailRequestEntity.ErrorMessage,
+		RetryCount:      emailRequestEntity.RetryCount,
+		RequestID:       emailRequestEntity.RequestID,
+		CorrelationID:   emailRequestEntity.CorrelationID,
+		WorkspaceID:     emailRequestEntity.WorkspaceID,
+		EmailProviderID: emailRequestEntity.EmailProviderID,
+		TrackingID:      emailRequestEntity.TrackingID,
+		OpenedCount:     emailRequestEntity.OpenedCount,
+		OpenedAt:        utils.FromUnixPointerToTime(emailRequestEntity.OpenedAt),
 	}
 	if emailRequestEntity.SentAt != nil {
 		emailRequestModel.SentAt = utils.ToTimePointer(*emailRequestEntity.SentAt)
@@ -39,6 +43,9 @@ func ToEmailRequestEntity(emailRequestModel *model.EmailRequestModel) *entity.Em
 		EmailProviderID:     emailRequestModel.EmailProviderID,
 		EmailTemplateEntity: ToEmailTemplateEntity(emailRequestModel.EmailTemplateModel),
 		EmailProviderEntity: ToEmailProviderEntity(emailRequestModel.EmailProviderModel),
+		TrackingID:          emailRequestModel.TrackingID,
+		OpenedCount:         emailRequestModel.OpenedCount,
+		OpenedAt:            utils.ToUnixTimeToPointer(emailRequestModel.OpenedAt),
 	}
 	if emailRequestModel.SentAt != nil {
 		emailRequestEntity.SentAt = utils.ToUnixTimeToPointer(emailRequestModel.SentAt)
