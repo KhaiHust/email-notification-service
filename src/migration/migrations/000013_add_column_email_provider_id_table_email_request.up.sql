@@ -1,2 +1,2 @@
 ALTER TABLE email_requests
-ADD COLUMN email_provider_id BIGINT NULL;
+ADD COLUMN email_provider_id BIGINT DEFAULT NULL;

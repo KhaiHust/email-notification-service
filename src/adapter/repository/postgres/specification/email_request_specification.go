@@ -33,7 +33,7 @@ func NewEmailRequestSpecificationForCount(sp *EmailRequestSpecification) (string
 
 func NewEmailRequestSpecificationForQuery(sp *EmailRequestSpecification) (string, []interface{}, error) {
 	builder := sq.
-		Select("id", "template_id", "status", "created_at", "updated_at").
+		Select("id", "template_id", "status", "created_at", "updated_at", "email_provider_id", "request_id", "recipient").
 		From("email_requests")
 
 	if sp != nil {

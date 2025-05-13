@@ -17,6 +17,7 @@ func AbortErrorHandle(ctx *gin.Context, err error) {
 				Message: e.Error(),
 			},
 		})
+		ctx.Abort()
 		return
 	}
 	internalErr := common.ErrInternalServer
@@ -27,6 +28,7 @@ func AbortErrorHandle(ctx *gin.Context, err error) {
 			Message: internalErr.Error(),
 		},
 	})
+	ctx.Abort()
 }
 func AbortErrorHandleWithData(ctx *gin.Context, err error, data interface{}) {
 	var e common.Errs

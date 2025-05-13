@@ -26,16 +26,19 @@ func ToEmailRequestModel(emailRequestEntity *entity.EmailRequestEntity) *model.E
 }
 func ToEmailRequestEntity(emailRequestModel *model.EmailRequestModel) *entity.EmailRequestEntity {
 	emailRequestEntity := &entity.EmailRequestEntity{
-		BaseEntity:    ToBaseEntityMapper(&emailRequestModel.BaseModel),
-		TemplateId:    emailRequestModel.TemplateId,
-		Recipient:     emailRequestModel.Recipient,
-		Data:          emailRequestModel.Data,
-		Status:        emailRequestModel.Status,
-		ErrorMessage:  emailRequestModel.ErrorMessage,
-		RetryCount:    emailRequestModel.RetryCount,
-		RequestID:     emailRequestModel.RequestID,
-		CorrelationID: emailRequestModel.CorrelationID,
-		WorkspaceID:   emailRequestModel.WorkspaceID,
+		BaseEntity:          ToBaseEntityMapper(&emailRequestModel.BaseModel),
+		TemplateId:          emailRequestModel.TemplateId,
+		Recipient:           emailRequestModel.Recipient,
+		Data:                emailRequestModel.Data,
+		Status:              emailRequestModel.Status,
+		ErrorMessage:        emailRequestModel.ErrorMessage,
+		RetryCount:          emailRequestModel.RetryCount,
+		RequestID:           emailRequestModel.RequestID,
+		CorrelationID:       emailRequestModel.CorrelationID,
+		WorkspaceID:         emailRequestModel.WorkspaceID,
+		EmailProviderID:     emailRequestModel.EmailProviderID,
+		EmailTemplateEntity: ToEmailTemplateEntity(emailRequestModel.EmailTemplateModel),
+		EmailProviderEntity: ToEmailProviderEntity(emailRequestModel.EmailProviderModel),
 	}
 	if emailRequestModel.SentAt != nil {
 		emailRequestEntity.SentAt = utils.ToUnixTimeToPointer(emailRequestModel.SentAt)

@@ -17,9 +17,9 @@ type EmailRequestModel struct {
 	RequestID          string              `gorm:"column:request_id"`
 	CorrelationID      string              `gorm:"column:correlation_id"`
 	WorkspaceID        int64               `gorm:"column:workspace_id"`
-	ProviderID         int64               `gorm:"column:provider_id"`
+	EmailProviderID    int64               `gorm:"column:email_provider_id"`
 	EmailTemplateModel *EmailTemplateModel `gorm:"foreignKey:template_id;references:id"`
-	EmailProviderModel *EmailProviderModel `gorm:"foreignKey:email_provider_id"`
+	EmailProviderModel *EmailProviderModel `gorm:"foreignKey:email_provider_id;references:id"`
 }
 
 func (EmailRequestModel) TableName() string {

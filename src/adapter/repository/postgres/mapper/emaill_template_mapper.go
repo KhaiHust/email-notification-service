@@ -19,6 +19,9 @@ func ToEmailTemplateModel(emailTemplateEntity *entity.EmailTemplateEntity) *mode
 	}
 }
 func ToEmailTemplateEntity(emailTemplateModel *model.EmailTemplateModel) *entity.EmailTemplateEntity {
+	if emailTemplateModel == nil {
+		return nil
+	}
 	return &entity.EmailTemplateEntity{
 		BaseEntity:    ToBaseEntityMapper(&emailTemplateModel.BaseModel),
 		Name:          emailTemplateModel.Name,

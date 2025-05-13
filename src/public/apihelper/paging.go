@@ -15,6 +15,7 @@ type PagingMetadata struct {
 	Limit        int64       `json:"limit"`
 	TotalItems   int64       `json:"total_items"`
 	PageSize     int         `json:"page_size"`
+	TotalPages   int64       `json:"total_pages"`
 	HasMore      bool        `json:"has_more"`
 	NextPage     *PageCursor `json:"next_page,omitempty"`
 	PreviousPage *PageCursor `json:"previous_page,omitempty"`
@@ -70,6 +71,7 @@ func BuildIDPaginatedResponse[T any](
 		Limit:        *limit,
 		TotalItems:   *totalItems,
 		PageSize:     pageSize,
+		TotalPages:   (*totalItems + *limit - 1) / *limit,
 		HasMore:      hasMore,
 		NextPage:     nextPage,
 		PreviousPage: prevPage,
