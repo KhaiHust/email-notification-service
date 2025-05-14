@@ -20,4 +20,5 @@ const (
 	QueryParamErSentAtTo      = "er_sent_at_to"
 	QueryParamName            = "name"
 	QueryParamEnvironment     = "environment"
+	QueryParamTrackingID      = "tracking_id"
 )

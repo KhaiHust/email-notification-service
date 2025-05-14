@@ -5,4 +5,5 @@ const (
 	EmailSendingStatusFailed    = "FAILED"
 	EmailSendingStatusSent      = "SENT"
 	EmailSendingStatusScheduled = "SCHEDULED"
+	EmailSendingStatusOpened    = "OPENED"
 )

@@ -44,6 +44,7 @@ func All() fx.Option {
 		golib.ProvideProps(coreProperties.NewAuthProperties),
 		golib.ProvideProps(coreProperties.NewBatchProperties),
 		golib.ProvideProps(coreProperties.NewEncryptProperties),
+		golib.ProvideProps(coreProperties.NewTrackingProperties),
 		// Provide port's implements
 		fx.Provide(client.NewGmailProviderAdapter),
 		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),

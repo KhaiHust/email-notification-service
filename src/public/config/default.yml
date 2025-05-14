@@ -12,6 +12,8 @@ app:
           - /v1/auth/signup
           - /v1/auth/refresh-token
           - /v1/integrations/*
+          - /v1/tracking/open*
+          - /v1/tracking/open.png*
         protectedUrls:
           - { urlPattern: "/v1/workspaces/*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }

@@ -18,7 +18,6 @@ import (
 	"golang.org/x/oauth2"
 	"net/url"
 	"strings"
-	"time"
 )
 
 type GmailProviderAdapter struct {
@@ -57,6 +56,7 @@ func (g GmailProviderAdapter) GetOAuthByRefreshToken(ctx context.Context, emailP
 
 func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity, emailData *request.EmailDataDto) error {
 	message := g.buildMessage(emailProviderEntity.Email, emailData)
+	log.Info(ctx, "Message: %s", message)
 	token := &oauth2.Token{
 		AccessToken:  emailProviderEntity.OAuthToken,
 		TokenType:    "Bearer",
@@ -83,7 +83,7 @@ func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity
 
 	if resp.StatusCode != 200 {
 		log.Error(ctx, "Error sending email, status code: %d", resp.StatusCode)
-		if (resp.StatusCode == 401 || resp.StatusCode == 403) && emailProviderEntity.OAuthExpiredAt < time.Now().Unix() {
+		if resp.StatusCode == 401 || resp.StatusCode == 403 {
 			return common.ErrUnauthorized
 		}
 		return fmt.Errorf("failed to send email: status code %d", resp.StatusCode)

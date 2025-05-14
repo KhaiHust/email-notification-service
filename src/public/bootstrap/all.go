@@ -53,6 +53,7 @@ func All() fx.Option {
 		golib.ProvideProps(coreProperties.NewAuthProperties),
 		golib.ProvideProps(coreProperties.NewBatchProperties),
 		golib.ProvideProps(coreProperties.NewEncryptProperties),
+		golib.ProvideProps(coreProperties.NewTrackingProperties),
 		// Provide port's implements
 		fx.Provide(client.NewGmailProviderAdapter),
 		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
@@ -92,6 +93,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewGetEmailRequestUsecase),
 		fx.Provide(usecase.NewGetApiKeyUseCase),
 		fx.Provide(usecase.NewUpdateEmailTemplateUseCase),
+		fx.Provide(usecase.NewEmailTrackingUsecase),
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
 		fx.Provide(service.NewUserService),
@@ -100,6 +102,7 @@ func All() fx.Option {
 		fx.Provide(service.NewEmailSendingService),
 		fx.Provide(service.NewApiKeyService),
 		fx.Provide(service.NewEmailRequestService),
+		fx.Provide(service.NewEmailTrackingService),
 
 		//Provide controllers
 		fx.Provide(helper.NewCustomValidate),
@@ -111,6 +114,7 @@ func All() fx.Option {
 		fx.Provide(controller.NewEmailSendingController),
 		fx.Provide(controller.NewApiKeyController),
 		fx.Provide(controller.NewEmailRequestController),
+		fx.Provide(controller.NewEmailTrackingController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewWorkspaceAccessMiddleware),

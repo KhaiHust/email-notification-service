@@ -54,7 +54,7 @@ func (c CreateApiKeyUseCase) CreateNewApiKey(ctx context.Context, apiKey *entity
 func (c CreateApiKeyUseCase) GenerateApiKey(ctx context.Context, tx *gorm.DB, apiKeyEntity *entity.ApiKeyEntity) (*entity.ApiKeyEntity, error) {
 	prefix := uuid.New().String()[:12]
 	secret := uuid.New().String()
-	raw := fmt.Sprintf("%d_%s_%s.%s", apiKeyEntity.WorkspaceID, prefix, secret)
+	raw := fmt.Sprintf("%d_%s.%s", apiKeyEntity.WorkspaceID, prefix, secret)
 	encrypted, err := c.encryptUseCase.EncryptAES(ctx, raw)
 	if err != nil {
 		log.Error(ctx, "Error encrypting api key: %v", err)

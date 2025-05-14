@@ -34,6 +34,8 @@ type EmailSendingUsecase struct {
 	eventPublisher             port.IEventPublisher
 	createEmailRequestUsecase  ICreateEmailRequestUsecase
 	databaseTransactionUseCase IDatabaseTransactionUseCase
+	trackingProperties         *properties.TrackingProperties
+	encryptUseCase             IEncryptUseCase
 }
 
 func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) error {
@@ -114,12 +116,23 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 	// Prepare data to send
 	dataSendings := make([]*request.EmailDataDto, 0, len(req.Datas))
 	for _, data := range req.Datas {
+		var trackingID string
+		if data.TrackingID != "" {
+			trackingID, err = e.encryptUseCase.EncryptTrackingID(ctx, data.TrackingID)
+			if err != nil {
+				continue
+			}
+		}
 		dataSendings = append(dataSendings, &request.EmailDataDto{
 			EmailRequestID: data.EmailRequestID,
 			Subject:        utils.FillTemplate(template.Subject, data.Subject),
-			Body:           utils.FillTemplate(template.Body, data.Body),
-			Tos:            []string{data.To},
+			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="1" height="1" style="display:block;" /></body></html>`,
+				utils.FillTemplate(template.Body, data.Body),
+				utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
+			),
+			Tos: []string{data.To},
 		})
+
 	}
 
 	// Setup worker pool
@@ -205,6 +218,8 @@ func NewEmailSendingUsecase(
 	eventPublisher port.IEventPublisher,
 	createEmailRequestUsecase ICreateEmailRequestUsecase,
 	databaseTransactionUseCase IDatabaseTransactionUseCase,
+	trackingProperties *properties.TrackingProperties,
+	encryptUseCase IEncryptUseCase,
 ) IEmailSendingUsecase {
 	return &EmailSendingUsecase{
 		BatchConfig:                batchConfig,
@@ -215,5 +230,7 @@ func NewEmailSendingUsecase(
 		eventPublisher:             eventPublisher,
 		createEmailRequestUsecase:  createEmailRequestUsecase,
 		databaseTransactionUseCase: databaseTransactionUseCase,
+		trackingProperties:         trackingProperties,
+		encryptUseCase:             encryptUseCase,
 	}
 }

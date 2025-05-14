@@ -45,6 +45,7 @@ func EmailRequestEntitiesToMessage(emailRequests []*entity.EmailRequestEntity, r
 		}
 		sendDatas = append(sendDatas, &message.EmailSendData{
 			EmailRequestID: eREntity.ID, // 🆕 Important: map DB ID
+			TrackingID:     eREntity.TrackingID,
 			To:             data.To,
 			Subject:        data.Subject,
 			Body:           data.Body,
