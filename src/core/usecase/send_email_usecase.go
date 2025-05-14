@@ -126,7 +126,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 		dataSendings = append(dataSendings, &request.EmailDataDto{
 			EmailRequestID: data.EmailRequestID,
 			Subject:        utils.FillTemplate(template.Subject, data.Subject),
-			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="1" height="1" style="display:block;" /></body></html>`,
+			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="100" height="100"  /></body></html>`,
 				utils.FillTemplate(template.Body, data.Body),
 				utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
 			),

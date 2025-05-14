@@ -2,17 +2,34 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/mapper"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/specification"
+	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type EmailRequestRepositoryAdapter struct {
 	base
+}
+
+func (e EmailRequestRepositoryAdapter) GetEmailRequestForUpdateByIDOrTrackingID(ctx context.Context, tx *gorm.DB, emailRequestID int64, trackingID string) (*entity.EmailRequestEntity, error) {
+	emailRequestModel := &model.EmailRequestModel{}
+	if err := tx.WithContext(ctx).Model(&model.EmailRequestModel{}).Clauses(
+		clause.Locking{Strength: clause.LockingStrengthUpdate},
+	).
+		Where("id = ? OR tracking_id = ?", emailRequestID, trackingID).First(emailRequestModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return mapper.ToEmailRequestEntity(emailRequestModel), nil
 }
 
 func (e EmailRequestRepositoryAdapter) CountAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) (int64, error) {
