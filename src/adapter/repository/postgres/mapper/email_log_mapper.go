@@ -42,3 +42,13 @@ func ToEmailLogEntity(emailLogModel *model.EmailLogsModel) *entity.EmailLogsEnti
 		LoggedAt:        emailLogModel.LoggedAt.Unix(),
 	}
 }
+func ToListEmailLogEntity(emailLogModels []*model.EmailLogsModel) []*entity.EmailLogsEntity {
+	if emailLogModels == nil {
+		return nil
+	}
+	emailLogEntities := make([]*entity.EmailLogsEntity, len(emailLogModels))
+	for i, emailLogModel := range emailLogModels {
+		emailLogEntities[i] = ToEmailLogEntity(emailLogModel)
+	}
+	return emailLogEntities
+}

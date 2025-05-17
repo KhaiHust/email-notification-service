@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/mapper"
+	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"gorm.io/gorm"
@@ -10,6 +11,14 @@ import (
 
 type EmailLogRepositoryAdapter struct {
 	base
+}
+
+func (e EmailLogRepositoryAdapter) GetLogsByEmailRequestIDAndWorkspaceID(ctx context.Context, emailRequestID int64, workspaceID int64) ([]*entity.EmailLogsEntity, error) {
+	var emailLogs []*model.EmailLogsModel
+	if err := e.db.WithContext(ctx).Where("email_request_id = ? AND workspace_id = ?", emailRequestID, workspaceID).Find(&emailLogs).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToListEmailLogEntity(emailLogs), nil
 }
 
 func (e EmailLogRepositoryAdapter) SaveNewEmailLog(ctx context.Context, tx *gorm.DB, emailLog *entity.EmailLogsEntity) (*entity.EmailLogsEntity, error) {

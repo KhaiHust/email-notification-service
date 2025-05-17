@@ -55,6 +55,7 @@ func All() fx.Option {
 		fx.Provide(postgres.NewWorkspaceUserRepositoryAdapter),
 		fx.Provide(postgres.NewEmailTemplateRepositoryAdapter),
 		fx.Provide(postgres.NewEmailRequestRepositoryAdapter),
+		fx.Provide(postgres.NewEmailLogRepositoryAdapter),
 
 		fx.Provide(publisher.NewEventPublisherAdapter),
 

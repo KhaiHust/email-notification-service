@@ -8,4 +8,5 @@ import (
 
 type IEmailLogRepositoryPort interface {
 	SaveNewEmailLog(ctx context.Context, tx *gorm.DB, emailLog *entity.EmailLogsEntity) (*entity.EmailLogsEntity, error)
+	GetLogsByEmailRequestIDAndWorkspaceID(ctx context.Context, emailRequestID int64, workspaceID int64) ([]*entity.EmailLogsEntity, error)
 }

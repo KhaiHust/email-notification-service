@@ -19,13 +19,14 @@ type EventHandlerUsecase struct {
 	updateEmailRequestUsecase  IUpdateEmailRequestUsecase
 	emailRequestRepositoryPort port.IEmailRequestRepositoryPort
 	databaseTransactionUseCase IDatabaseTransactionUseCase
+	emailLogRepositoryPort     port.IEmailLogRepositoryPort
 }
 
 func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailRequest *entity.EmailRequestEntity) error {
 	tx := e.databaseTransactionUseCase.StartTx()
 	commit := false
+	var err error
 	defer func() {
-		var err error
 		if r := recover(); r != nil {
 			err = exception.InternalServerException
 		}
@@ -53,6 +54,12 @@ func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailR
 		log.Error(ctx, "Error when update email request by id", err)
 		return err
 	}
+	//add to log table
+	emailLog := e.toEmailLogEntity(emailRequestEntity)
+	if _, err = e.emailLogRepositoryPort.SaveNewEmailLog(ctx, tx, emailLog); err != nil {
+		log.Error(ctx, "Error when save email log", err)
+		return err
+	}
 	if err = e.databaseTransactionUseCase.CommitTx(tx); err != nil {
 		log.Error(ctx, "Error when commit transaction", err)
 		return err
@@ -64,17 +71,44 @@ func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailR
 func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, providerID int64, req *request.EmailSendingRequestDto) error {
 	return e.emailSendingUsecase.SendBatches(ctx, providerID, req)
 }
+func (e EventHandlerUsecase) toEmailLogEntity(emailRequest *entity.EmailRequestEntity) *entity.EmailLogsEntity {
+	var loggedAt int64
+	if emailRequest.Status == constant.EmailSendingStatusSent {
+		loggedAt = *emailRequest.SentAt
+	}
+	if emailRequest.Status == constant.EmailSendingStatusOpened {
+		loggedAt = *emailRequest.OpenedAt
+	}
+	if emailRequest.Status == constant.EmailSendingStatusFailed {
+		loggedAt = *emailRequest.SentAt
+	}
+	return &entity.EmailLogsEntity{
+		EmailRequestID:  emailRequest.ID,
+		Status:          emailRequest.Status,
+		ErrorMessage:    emailRequest.ErrorMessage,
+		LoggedAt:        loggedAt,
+		RetryCount:      emailRequest.RetryCount,
+		RequestID:       emailRequest.RequestID,
+		WorkspaceID:     emailRequest.WorkspaceID,
+		EmailProviderID: emailRequest.EmailProviderID,
+		TemplateId:      emailRequest.TemplateId,
+		Recipient:       emailRequest.Recipient,
+	}
+
+}
 
 func NewEventHandlerUsecase(
 	emailSendingUsecase IEmailSendingUsecase,
 	updateEmailRequestUsecase IUpdateEmailRequestUsecase,
 	emailRequestRepositoryPort port.IEmailRequestRepositoryPort,
 	databaseTransactionUseCase IDatabaseTransactionUseCase,
+	emailLogRepositoryPort port.IEmailLogRepositoryPort,
 ) IEventHandlerUsecase {
 	return &EventHandlerUsecase{
 		emailSendingUsecase:        emailSendingUsecase,
 		updateEmailRequestUsecase:  updateEmailRequestUsecase,
 		emailRequestRepositoryPort: emailRequestRepositoryPort,
 		databaseTransactionUseCase: databaseTransactionUseCase,
+		emailLogRepositoryPort:     emailLogRepositoryPort,
 	}
 }
