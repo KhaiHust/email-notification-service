@@ -35,6 +35,8 @@ func EmailRequestEntityToMessage(request *entity.EmailRequestEntity) *message.Em
 		Status:         request.Status,
 		ErrorMessage:   request.ErrorMessage,
 		SentAt:         request.SentAt,
+		OpenedAt:       request.OpenedAt,
+		TrackingID:     request.TrackingID,
 	}
 }
 func MessageToEmailRequestEntity(msg *message.EmailRequestSyncMessage) *entity.EmailRequestEntity {
@@ -45,6 +47,8 @@ func MessageToEmailRequestEntity(msg *message.EmailRequestSyncMessage) *entity.E
 		BaseEntity: entity.BaseEntity{
 			ID: msg.EmailRequestID,
 		},
+		TrackingID:   msg.TrackingID,
+		OpenedAt:     msg.OpenedAt,
 		Status:       msg.Status,
 		ErrorMessage: msg.ErrorMessage,
 		SentAt:       msg.SentAt,

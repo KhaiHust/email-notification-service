@@ -5,6 +5,7 @@ import "github.com/golibs-starter/golib/config"
 type EncryptProperties struct {
 	EncryptKey             string
 	EncryptVersionTemplate string
+	EncryptTrackingIDKey   string
 }
 
 func (e EncryptProperties) Prefix() string {

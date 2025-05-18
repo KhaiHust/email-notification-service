@@ -1,9 +1,10 @@
 package constant
 
 const (
-	ParamEmailProvider = "emailProvider"
-	ParamWorkspaceCode = "workspaceCode"
-	ParamOAuthCode     = "code"
-	ParamWorkspaceId   = "workspaceId"
-	ParamTemplateId    = "templateId"
+	ParamEmailProvider  = "emailProvider"
+	ParamWorkspaceCode  = "workspaceCode"
+	ParamOAuthCode      = "code"
+	ParamWorkspaceId    = "workspaceId"
+	ParamTemplateId     = "templateId"
+	ParamEmailRequestId = "emailRequestId"
 )

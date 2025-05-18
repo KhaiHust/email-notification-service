@@ -30,14 +30,17 @@ func (u UpdateEmailProviderUseCase) UpdateOAuthInfoByRefreshToken(ctx context.Co
 
 	//save to database
 	tx := u.databaseTransactionUseCase.StartTx()
+	commit := false
 	defer func() {
 		if r := recover(); r != nil {
 			err = exception.InternalServerException
 		}
-		if errRollback := tx.Rollback(); errRollback != nil {
-			log.Error(ctx, "Rollback error: %v", errRollback)
-		} else {
-			log.Info(ctx, "Rollback successfully")
+		if !commit || err != nil {
+			if errRollback := tx.Rollback(); errRollback != nil {
+				log.Error(ctx, "Rollback error: %v", errRollback)
+			} else {
+				log.Info(ctx, "Rollback successfully")
+			}
 		}
 	}()
 	emailProviderEntity, err = u.emailProviderRepositoryPort.UpdateEmailProvider(ctx, tx, emailProviderEntity)
@@ -49,6 +52,7 @@ func (u UpdateEmailProviderUseCase) UpdateOAuthInfoByRefreshToken(ctx context.Co
 		log.Error(ctx, "Commit error: %v", err)
 		return nil, err
 	}
+	commit = true
 	//todo: update cache
 	return emailProviderEntity, nil
 

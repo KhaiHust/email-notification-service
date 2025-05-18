@@ -9,6 +9,7 @@ app:
     database: email_notification_db_test
     username: email_notification_db_user
     password: secret
+    logLevel: INFO
   redis:
     host: localhost
     port: 6379
@@ -30,6 +31,10 @@ app:
           topicName: c1.email.email-sending-request
           transactional: false
           disable: false
+        EmailRequestSyncEvent:
+          topicName: c1.email.email-request-sync
+          transactional: false
+          disable: false
   services:
     provider:
       gmail:
@@ -49,4 +54,5 @@ app:
     encrypt:
       EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
 

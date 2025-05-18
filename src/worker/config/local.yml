@@ -23,6 +23,12 @@ app:
         ResponseType: code
         RedirectUri: ${GMAIL_REDIRECT_URI}
         AccessType: offline
+    tracking:
+      BaseUrl: https://conventions-trader-gpl-wr.trycloudflare.com/email-notification-public/v1/tracking
+    encrypt:
+      EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
 
   kafka:
     bootstrapServers: localhost:9092

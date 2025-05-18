@@ -73,7 +73,7 @@ func (e GetEmailTemplateUseCase) GetAllTemplatesWithMetrics(ctx context.Context,
 		count, ok := countMap[item.ID]
 		if ok {
 			item.Metric = &dto.EmailTemplateMetric{
-				TotalSent:   count[constant.EmailSendingStatusSuccess],
+				TotalSent:   count[constant.EmailSendingStatusSent],
 				TotalErrors: count[constant.EmailSendingStatusFailed],
 			}
 		}

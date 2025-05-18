@@ -5,9 +5,9 @@ import "github.com/KhaiHust/email-notification-service/core/entity"
 type EmailTemplateResponse struct {
 	Id            int64                        `json:"id"`
 	Name          string                       `json:"name"`
-	WorkspaceID   int64                        `json:"workspace_id"`
-	CreatedAt     int64                        `json:"created_at"`
-	UpdatedAt     int64                        `json:"updated_at"`
+	WorkspaceID   int64                        `json:"workspace_id,omitempty"`
+	CreatedAt     int64                        `json:"created_at,omitempty"`
+	UpdatedAt     int64                        `json:"updated_at,omitempty"`
 	Subject       string                       `json:"subject,omitempty"`
 	Body          string                       `json:"body,omitempty"`
 	Variables     interface{}                  `json:"variables,omitempty"`
@@ -22,7 +22,9 @@ type EmailTemplateMetricResponse struct {
 }
 
 func ToEmailTemplateResponse(templateEntity *entity.EmailTemplateEntity) *EmailTemplateResponse {
-
+	if templateEntity == nil {
+		return nil
+	}
 	template := &EmailTemplateResponse{
 		Id:          templateEntity.ID,
 		Name:        templateEntity.Name,

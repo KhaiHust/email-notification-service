@@ -1,6 +1,10 @@
 package utils
 
-import "regexp"
+import (
+	"fmt"
+	"regexp"
+	"time"
+)
 
 func ExtractVariablesBySection(subject, body string) map[string][]string {
 	re := regexp.MustCompile(`\{\{(\w+)\}\}`)
@@ -33,4 +37,7 @@ func FillTemplate(template string, variables map[string]string) string {
 		}
 		return match
 	})
+}
+func GenerateTrackingURL(baseURL, trackingID string) string {
+	return baseURL + "/open?tracking_id=" + trackingID + fmt.Sprintf("&%s=%d", "no_cache", time.Now().Unix())
 }

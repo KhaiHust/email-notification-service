@@ -21,6 +21,7 @@ func ToListSendingDataDto(data []*message.EmailSendData) []*request.EmailSending
 func ToSendingDataDto(data *message.EmailSendData) *request.EmailSendingData {
 	return &request.EmailSendingData{
 		EmailRequestID: data.EmailRequestID,
+		TrackingID:     data.TrackingID,
 		To:             data.To,
 		Subject:        data.Subject,
 		Body:           data.Body,

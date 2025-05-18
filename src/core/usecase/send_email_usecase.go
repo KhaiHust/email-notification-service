@@ -34,6 +34,8 @@ type EmailSendingUsecase struct {
 	eventPublisher             port.IEventPublisher
 	createEmailRequestUsecase  ICreateEmailRequestUsecase
 	databaseTransactionUseCase IDatabaseTransactionUseCase
+	trackingProperties         *properties.TrackingProperties
+	encryptUseCase             IEncryptUseCase
 }
 
 func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) error {
@@ -51,24 +53,27 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 	req.IntegrationID = emailProvider.ID
 	req.TemplateID = template.ID
 
-	//Todo: save to db
 	emailRequestEntities := make([]*entity.EmailRequestEntity, 0, len(req.Datas))
 	requestID := uuid.New().String()
 	for idx, data := range req.Datas {
 		emailRequestEntities = append(emailRequestEntities, &entity.EmailRequestEntity{
-			RequestID:     requestID,
-			TemplateId:    template.ID,
-			Recipient:     data.To,
-			Status:        constant.EmailSendingStatusPending,
-			CorrelationID: fmt.Sprintf("%d_%s", idx, data.To),
+			RequestID:       requestID,
+			TemplateId:      template.ID,
+			Recipient:       data.To,
+			Status:          constant.EmailSendingStatusQueued,
+			CorrelationID:   fmt.Sprintf("%d_%s", idx, data.To),
+			EmailProviderID: emailProvider.ID,
+			WorkspaceID:     workspaceID,
+			TrackingID:      uuid.NewString(),
 		})
 	}
 	tx := e.databaseTransactionUseCase.StartTx()
+	commit := false
 	defer func() {
 		if r := recover(); r != nil {
 			err = exception.InternalServerException
 		}
-		if err != nil {
+		if !commit || err != nil {
 			if errRollback := e.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
 				log.Error(ctx, "Error when rollback transaction", errRollback)
 			} else {
@@ -81,9 +86,6 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 		log.Error(ctx, "Error when save email request", err)
 		return err
 	}
-
-	//Todo: process sending sync
-	//Todo: process sending async => send message to queue
 	ev := event.NewEventRequestSendingEmail(ctx, emailRequestEntities, req)
 	err = e.eventPublisher.SyncPublish(ctx, ev)
 	if err != nil {
@@ -94,6 +96,7 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 		log.Error(ctx, "Error when commit transaction", err)
 		return err
 	}
+	commit = true
 	return nil
 }
 
@@ -113,12 +116,23 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 	// Prepare data to send
 	dataSendings := make([]*request.EmailDataDto, 0, len(req.Datas))
 	for _, data := range req.Datas {
+		var trackingID string
+		if data.TrackingID != "" {
+			trackingID, err = e.encryptUseCase.EncryptTrackingID(ctx, data.TrackingID)
+			if err != nil {
+				continue
+			}
+		}
 		dataSendings = append(dataSendings, &request.EmailDataDto{
 			EmailRequestID: data.EmailRequestID,
 			Subject:        utils.FillTemplate(template.Subject, data.Subject),
-			Body:           utils.FillTemplate(template.Body, data.Body),
-			Tos:            []string{data.To},
+			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="100" height="100"  /></body></html>`,
+				utils.FillTemplate(template.Body, data.Body),
+				utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
+			),
+			Tos: []string{data.To},
 		})
+
 	}
 
 	// Setup worker pool
@@ -138,10 +152,10 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 			defer wg.Done()
 			for data := range jobs {
 				sendErr := e.emailProviderPort.Send(ctx, emailProvider, data)
-				status := constant.EmailSendingStatusSuccess
+				status := constant.EmailSendingStatusSent
 				var errMessage string
 				timeNow := time.Now()
-				var sentAt *int64 = utils.ToUnixTimeToPointer(&timeNow)
+				sentAt := utils.ToUnixTimeToPointer(&timeNow)
 
 				if errors.Is(sendErr, common.ErrUnauthorized) {
 					log.Warn(ctx, fmt.Sprintf("401 detected for %v. Refreshing token...", data.Tos))
@@ -204,6 +218,8 @@ func NewEmailSendingUsecase(
 	eventPublisher port.IEventPublisher,
 	createEmailRequestUsecase ICreateEmailRequestUsecase,
 	databaseTransactionUseCase IDatabaseTransactionUseCase,
+	trackingProperties *properties.TrackingProperties,
+	encryptUseCase IEncryptUseCase,
 ) IEmailSendingUsecase {
 	return &EmailSendingUsecase{
 		BatchConfig:                batchConfig,
@@ -214,5 +230,7 @@ func NewEmailSendingUsecase(
 		eventPublisher:             eventPublisher,
 		createEmailRequestUsecase:  createEmailRequestUsecase,
 		databaseTransactionUseCase: databaseTransactionUseCase,
+		trackingProperties:         trackingProperties,
+		encryptUseCase:             encryptUseCase,
 	}
 }

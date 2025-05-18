@@ -22,6 +22,7 @@ func (e EmailSendingService) SendEmailRequest(ctx context.Context, workspaceID i
 	}
 	if err := e.emailSendingUsecase.ProcessSendingEmails(ctx, workspaceID, reqDto); err != nil {
 		log.Error(ctx, "Error when process sending emails", err)
+		return err
 	}
 	return nil
 }

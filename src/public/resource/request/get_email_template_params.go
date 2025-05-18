@@ -22,16 +22,25 @@ type GetEmailTemplateParams struct {
 
 func ToGetEmailTemplateFilter(req *GetEmailTemplateParams) *request.GetListEmailTemplateFilter {
 	return &request.GetListEmailTemplateFilter{
-		WorkspaceID:        req.WorkspaceID,
-		Name:               req.Name,
-		Limit:              req.Limit,
-		Since:              req.Since,
-		Until:              req.Until,
-		CreatedAtFrom:      req.CreatedAtFrom,
-		CreatedAtTo:        req.CreatedAtTo,
-		UpdatedAtFrom:      req.UpdatedAtFrom,
-		UpdatedAtTo:        req.UpdatedAtTo,
-		SortOrder:          req.SortOrder,
-		EmailRequestFilter: &request.EmailRequestFilter{Statuses: req.ErStatuses, CreatedAtFrom: req.ErCreatedAtFrom, CreatedAtTo: req.ErCreatedAtTo, SentAtFrom: req.ErSentAtFrom, SentAtTo: req.ErSentAtTo},
+		WorkspaceID: req.WorkspaceID,
+		Name:        req.Name,
+		BaseFilter: &request.BaseFilter{
+			Limit:         req.Limit,
+			Since:         req.Since,
+			Until:         req.Until,
+			CreatedAtFrom: req.CreatedAtFrom,
+			CreatedAtTo:   req.CreatedAtTo,
+			UpdatedAtFrom: req.UpdatedAtFrom,
+			UpdatedAtTo:   req.UpdatedAtTo,
+			SortOrder:     req.SortOrder,
+		},
+		EmailRequestFilter: &request.EmailRequestFilter{
+			Statuses:   req.ErStatuses,
+			SentAtFrom: req.ErSentAtFrom,
+			SentAtTo:   req.ErSentAtTo,
+			BaseFilter: &request.BaseFilter{
+				CreatedAtFrom: req.ErCreatedAtFrom,
+				CreatedAtTo:   req.ErCreatedAtTo,
+			}},
 	}
 }

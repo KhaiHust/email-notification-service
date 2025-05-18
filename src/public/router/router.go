@@ -24,6 +24,9 @@ type RegisterRoutersIn struct {
 	EmailTemplateController *controller.EmailTemplateController
 	EmailSendingController  *controller.EmailSendingController
 	ApiKeyController        *controller.ApiKeyController
+	EmailRequestController  *controller.EmailRequestController
+	EmailTrackingController *controller.EmailTrackingController
+	EmailLogController      *controller.EmailLogController
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
@@ -76,5 +79,18 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 			p.ApiKeyController.CreateNewApiKey)
 		v1ApiKey.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.ApiKeyController.GetListApiKey)
+	}
+	v1EmailRequest := v1Workspace.Group("/:workspaceCode/logs")
+	{
+		v1EmailRequest.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailRequestController.GetListEmailRequest)
+		v1EmailRequest.GET(fmt.Sprintf("/:%s", constant.ParamEmailRequestId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailLogController.GetLogs)
+	}
+	v1Tracking := group.Group("/v1/tracking")
+	{
+		v1Tracking.GET("/open", p.EmailTrackingController.OpenEmailTracking)
+		v1Tracking.GET("/open.png", p.EmailTrackingController.OpenEmailTracking)
 	}
 }
