@@ -18,6 +18,51 @@ type EmailRequestRepositoryAdapter struct {
 	base
 }
 
+func (e EmailRequestRepositoryAdapter) GetTotalSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error) {
+	specs := specification.NewSendVolumeSpecification(filter)
+	query, args, err := specs.ToSendVolumeQueryByProvider()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.SendVolumeByProviderModel
+	if err = e.db.WithContext(ctx).Raw(query, args...).Find(&results).Error; err != nil {
+		return nil, err
+	}
+
+	result := make(map[string]interface{})
+	for _, r := range results {
+		date := r.Date.Format("2006-01-02")
+		if _, ok := result[date]; !ok {
+			result[date] = make(map[int64]int64)
+		}
+		result[date].(map[int64]int64)[r.ProviderID] = r.Total
+	}
+	return result, nil
+}
+
+func (e EmailRequestRepositoryAdapter) GetTotalSendVolumeByDate(ctx context.Context, filter *request.SendVolumeFilter) (map[string]int64, error) {
+	// Build raw query with filter.startDate and filter.endDate
+	// The query counts the number of email requests by date, grouped by date
+	spec := specification.NewSendVolumeSpecification(filter)
+	query, args, err := spec.ToSendVolumeQuery()
+	if err != nil {
+		return nil, err
+	}
+
+	var results []*model.SendVolumeByModel
+	if err := e.db.WithContext(ctx).Raw(query, args...).Scan(&results).Error; err != nil {
+		return nil, err
+	}
+
+	resultMap := make(map[string]int64)
+	for _, r := range results {
+		resultMap[r.Date.Format("2006-01-02")] = r.Total
+	}
+	return resultMap, nil
+
+}
+
 func (e EmailRequestRepositoryAdapter) GetEmailRequestForUpdateByIDOrTrackingID(ctx context.Context, tx *gorm.DB, emailRequestID int64, trackingID string) (*entity.EmailRequestEntity, error) {
 	emailRequestModel := &model.EmailRequestModel{}
 	if err := tx.WithContext(ctx).Model(&model.EmailRequestModel{}).Clauses(

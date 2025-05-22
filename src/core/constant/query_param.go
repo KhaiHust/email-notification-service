@@ -21,4 +21,6 @@ const (
 	QueryParamName            = "name"
 	QueryParamEnvironment     = "environment"
 	QueryParamTrackingID      = "tracking_id"
+	QueryParamStartDate       = "start_date"
+	QueryParamEndDate         = "end_date"
 )

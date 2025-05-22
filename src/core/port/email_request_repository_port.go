@@ -16,4 +16,6 @@ type IEmailRequestRepositoryPort interface {
 	GetAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) ([]*entity.EmailRequestEntity, error)
 	CountAllEmailRequest(ctx context.Context, filter *request.EmailRequestFilter) (int64, error)
 	GetEmailRequestForUpdateByIDOrTrackingID(ctx context.Context, tx *gorm.DB, emailRequestID int64, trackingID string) (*entity.EmailRequestEntity, error)
+	GetTotalSendVolumeByDate(ctx context.Context, filter *request.SendVolumeFilter) (map[string]int64, error)
+	GetTotalSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error)
 }
