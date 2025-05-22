@@ -11,12 +11,21 @@ import (
 
 type IAnalyticUsecase interface {
 	GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (map[string]*dto.SendVolumeDTO, error)
+	GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error)
 }
 type AnalyticUsecase struct {
 	emailRequestRepositoryPort  port.IEmailRequestRepositoryPort
 	emailProviderRepositoryPort port.IEmailProviderRepositoryPort
 }
 
+func (a AnalyticUsecase) GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error) {
+	//TODO implement me
+	panic("implement me")
+}
+func (a AnalyticUsecase) GetOverviewMetric(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.OverviewMetricDTO, error) {
+	//TODO implement me
+	panic("implement me")
+}
 func (a AnalyticUsecase) GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (map[string]*dto.SendVolumeDTO, error) {
 	// Get total send volume by date
 	volumesByDate, err := a.GetSendVolumeByDate(ctx, filter)
