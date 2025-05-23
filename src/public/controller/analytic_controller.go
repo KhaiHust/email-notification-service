@@ -93,18 +93,34 @@ func (a AnalyticController) buildTemplateMetricFilter(c *gin.Context) (*request.
 	if *startDate > *endDate {
 		return nil, fmt.Errorf("start date must be less than end date")
 	}
-	internal := utils.GetQueryStringPointer(values, constant.QueryParamInterval)
-	mapInterval := map[string]bool{
-		constant.IntervalDay:   true,
-		constant.IntervalMonth: true,
-		constant.IntervalWeek:  true,
+	isChart, err := strconv.ParseBool(values.Get(constant.QueryParamIsChart))
+	if err != nil {
+		return nil, fmt.Errorf("isChart param is invalid")
 	}
-	if internal == nil || !mapInterval[*internal] {
-		return nil, fmt.Errorf("invalid interval param")
+	var internal *string
+	if isChart {
+		internal = utils.GetQueryStringPointer(values, constant.QueryParamInterval)
+		mapInterval := map[string]bool{
+			constant.IntervalDay:   true,
+			constant.IntervalMonth: true,
+			constant.IntervalWeek:  true,
+		}
+		if internal == nil || !mapInterval[*internal] {
+			return nil, fmt.Errorf("invalid interval param")
+		}
+		duration, err := strconv.ParseInt(values.Get(constant.QueryParamDuration), 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("duration param is invalid")
+		}
+		if duration <= 0 {
+			return nil, fmt.Errorf("duration param must be greater than 0")
+		}
+		filter.Duration = int(duration)
 	}
 	filter.StartDate = startDate
 	filter.EndDate = endDate
 	filter.Interval = *internal
+	filter.IsChart = isChart
 	return filter, nil
 
 }

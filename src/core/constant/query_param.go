@@ -24,4 +24,6 @@ const (
 	QueryParamStartDate       = "start_date"
 	QueryParamEndDate         = "end_date"
 	QueryParamInterval        = "interval"
+	QueryParamIsChart         = "is_chart"
+	QueryParamDuration        = "duration"
 )

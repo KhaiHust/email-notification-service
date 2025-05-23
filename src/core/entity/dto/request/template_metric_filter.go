@@ -6,4 +6,6 @@ type TemplateMetricFilter struct {
 	StartDate   *int64
 	EndDate     *int64
 	Interval    string
+	Duration    int
+	IsChart     bool
 }
