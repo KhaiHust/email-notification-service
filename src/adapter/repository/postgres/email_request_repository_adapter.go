@@ -8,6 +8,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/specification"
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"gorm.io/gorm"
@@ -16,6 +17,42 @@ import (
 
 type EmailRequestRepositoryAdapter struct {
 	base
+}
+
+func (e EmailRequestRepositoryAdapter) GetTemplateStatsByProvider(ctx context.Context, filter *request.TemplateMetricFilter) ([]*dto.ProviderStat, error) {
+	rawQuery, args, err := specification.BuildProviderStatQuery(filter)
+	if err != nil {
+		return nil, err
+	}
+	var providerStatModels []*model.ProviderStatModel
+	if err := e.db.WithContext(ctx).Raw(rawQuery, args...).Scan(&providerStatModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToProviderStats(providerStatModels), nil
+}
+
+func (e EmailRequestRepositoryAdapter) GetTemplateStats(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateStat, error) {
+	rawQuery, args, err := specification.BuildTemplateStatQuery(filter)
+	if err != nil {
+		return nil, err
+	}
+	var templateStatModel model.TemplateStatModel
+	if err := e.db.WithContext(ctx).Raw(rawQuery, args...).Scan(&templateStatModel).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToTemplateStatDto(&templateStatModel), nil
+}
+
+func (e EmailRequestRepositoryAdapter) GetChartStats(ctx context.Context, filter *request.TemplateMetricFilter) ([]*dto.ChartStatDto, error) {
+	rawQuery, args, err := specification.BuildChartStatsQuery(filter)
+	if err != nil {
+		return nil, err
+	}
+	var chartStatModels []*model.ChartStatModel
+	if err := e.db.WithContext(ctx).Raw(rawQuery, args...).Scan(&chartStatModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToChartStatDtos(chartStatModels), nil
 }
 
 func (e EmailRequestRepositoryAdapter) GetTotalSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error) {

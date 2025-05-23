@@ -3,6 +3,7 @@ package port
 import (
 	"context"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"gorm.io/gorm"
 )
@@ -18,4 +19,7 @@ type IEmailRequestRepositoryPort interface {
 	GetEmailRequestForUpdateByIDOrTrackingID(ctx context.Context, tx *gorm.DB, emailRequestID int64, trackingID string) (*entity.EmailRequestEntity, error)
 	GetTotalSendVolumeByDate(ctx context.Context, filter *request.SendVolumeFilter) (map[string]int64, error)
 	GetTotalSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error)
+	GetChartStats(ctx context.Context, filter *request.TemplateMetricFilter) ([]*dto.ChartStatDto, error)
+	GetTemplateStats(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateStat, error)
+	GetTemplateStatsByProvider(ctx context.Context, filter *request.TemplateMetricFilter) ([]*dto.ProviderStat, error)
 }

@@ -1,8 +1,10 @@
 package specification
 
 import (
+	"fmt"
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
+	"github.com/KhaiHust/email-notification-service/core/utils"
 	sq "github.com/Masterminds/squirrel"
 )
 
@@ -79,4 +81,62 @@ func ToEmailTemplateSpecification(filter *request.GetListEmailTemplateFilter) *E
 		BaseSpecification: ToBaseSpecification(filter.BaseFilter),
 		WorkspaceID:       filter.WorkspaceID,
 	}
+}
+
+var validIntervals = map[string]bool{"day": true, "week": true, "month": true}
+
+func BuildChartStatsQuery(filter *request.TemplateMetricFilter) (string, []interface{}, error) {
+	if !validIntervals[filter.Interval] {
+		return "", nil, fmt.Errorf("invalid interval: %s", filter.Interval)
+	}
+	periodExpr := fmt.Sprintf("DATE_TRUNC('%s', created_at)", filter.Interval)
+
+	builder := sq.
+		Select(
+			periodExpr+" AS period",
+			"COUNT(*) FILTER (WHERE status = 'SENT') AS sent",
+			"COUNT(*) FILTER (WHERE status = 'ERROR') AS error",
+			"COUNT(*) FILTER (WHERE status = 'OPENED') AS open",
+		).
+		From("email_requests").
+		Where(sq.Eq{"workspace_id": filter.WorkspaceID, "template_id": filter.TemplateID}).
+		Where(sq.GtOrEq{"created_at": utils.FromUnixPointerToTime(filter.StartDate)}).
+		Where(sq.LtOrEq{"created_at": utils.FromUnixPointerToTime(filter.EndDate)}).
+		GroupBy("period").
+		OrderBy("period ASC")
+
+	return builder.ToSql()
+}
+func BuildTemplateStatQuery(filter *request.TemplateMetricFilter) (string, []interface{}, error) {
+	builder := sq.
+		Select(
+			"COUNT(*) FILTER (WHERE status = 'SENT') AS sent",
+			"COUNT(*) FILTER (WHERE status = 'ERROR') AS error",
+			"COUNT(*) FILTER (WHERE status = 'OPENED') AS open",
+		).
+		From("email_requests").
+		Where(sq.Eq{"workspace_id": filter.WorkspaceID, "template_id": filter.TemplateID}).
+		Where(sq.GtOrEq{"created_at": utils.FromUnixPointerToTime(filter.StartDate)}).
+		Where(sq.LtOrEq{"created_at": utils.FromUnixPointerToTime(filter.EndDate)})
+
+	return builder.ToSql()
+}
+func BuildProviderStatQuery(filter *request.TemplateMetricFilter) (string, []interface{}, error) {
+	builder := sq.
+		Select(
+			"email_provider_id",
+			"ep.provider AS provider_name",
+			"COUNT(*) FILTER (WHERE er.status = 'SENT') AS sent",
+			"COUNT(*) FILTER (WHERE er.status = 'ERROR') AS error",
+			"COUNT(*) FILTER (WHERE er.status = 'OPENED') AS open",
+		).
+		From("email_requests er").
+		Join("email_providers ep ON er.email_provider_id = ep.id").
+		Where(sq.Eq{"er.workspace_id": filter.WorkspaceID, "er.template_id": filter.TemplateID}).
+		Where(sq.GtOrEq{"er.created_at": utils.FromUnixPointerToTime(filter.StartDate)}).
+		Where(sq.LtOrEq{"er.created_at": utils.FromUnixPointerToTime(filter.EndDate)}).
+		GroupBy("email_provider_id", "ep.provider").
+		OrderBy("provider_name ASC")
+
+	return builder.ToSql()
 }

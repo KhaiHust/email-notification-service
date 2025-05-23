@@ -1,8 +1,9 @@
 package request
 
 type TemplateMetricFilter struct {
-	TemplateID  int64  `json:"template_id"`
-	WorkspaceID int64  `json:"workspace_id"`
-	StartDate   *int64 `json:"start_date"`
-	EndDate     *int64 `json:"end_date"`
+	TemplateID  int64
+	WorkspaceID int64
+	StartDate   *int64
+	EndDate     *int64
+	Interval    string
 }

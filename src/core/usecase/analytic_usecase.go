@@ -19,12 +19,29 @@ type AnalyticUsecase struct {
 }
 
 func (a AnalyticUsecase) GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error) {
-	//TODO implement me
-	panic("implement me")
-}
-func (a AnalyticUsecase) GetOverviewMetric(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.OverviewMetricDTO, error) {
-	//TODO implement me
-	panic("implement me")
+	var response dto.TemplateMetricDTO
+	//get chart
+	chartStats, err := a.emailRequestRepositoryPort.GetChartStats(ctx, filter)
+	if err != nil {
+		log.Error(ctx, "Error when get chart stats", err)
+		return nil, err
+	}
+	response.ChartStats = chartStats
+	//get template stats
+	templateStat, err := a.emailRequestRepositoryPort.GetTemplateStats(ctx, filter)
+	if err != nil {
+		log.Error(ctx, "Error when get template stats", err)
+		return nil, err
+	}
+	response.TemplateStat = templateStat
+	//get provider stats
+	providerStats, err := a.emailRequestRepositoryPort.GetTemplateStatsByProvider(ctx, filter)
+	if err != nil {
+		log.Error(ctx, "Error when get provider stats", err)
+		return nil, err
+	}
+	response.TemplateStat.ProviderStats = providerStats
+	return &response, nil
 }
 func (a AnalyticUsecase) GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (map[string]*dto.SendVolumeDTO, error) {
 	// Get total send volume by date
