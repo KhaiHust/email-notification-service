@@ -27,6 +27,7 @@ type RegisterRoutersIn struct {
 	EmailRequestController  *controller.EmailRequestController
 	EmailTrackingController *controller.EmailTrackingController
 	EmailLogController      *controller.EmailLogController
+	AnalyticController      *controller.AnalyticController
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
@@ -72,6 +73,9 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 		v1Template.PATCH(fmt.Sprintf("/:%s", constant.ParamTemplateId),
 			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailTemplateController.UpdateTemplate)
+		v1Template.GET("/:templateId/metrics",
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.AnalyticController.GetTemplateMetrics)
 	}
 	v1ApiKey := v1Workspace.Group("/:workspaceCode/api-keys")
 	{
@@ -92,5 +96,10 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	{
 		v1Tracking.GET("/open", p.EmailTrackingController.OpenEmailTracking)
 		v1Tracking.GET("/open.png", p.EmailTrackingController.OpenEmailTracking)
+	}
+	v1Analytic := v1Workspace.Group("/:workspaceCode/analytics")
+	{
+		v1Analytic.GET("/send-volumes", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.AnalyticController.GetSendVolumes)
 	}
 }

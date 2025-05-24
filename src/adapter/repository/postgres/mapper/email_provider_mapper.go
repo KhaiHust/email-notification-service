@@ -48,3 +48,10 @@ func ToEmailProviderEntity(emailProviderModel *model.EmailProviderModel) *entity
 		Environment:       emailProviderModel.Environment,
 	}
 }
+func ToListEmailProviderEntity(emailProviderModels []*model.EmailProviderModel) []*entity.EmailProviderEntity {
+	emailProviderEntities := make([]*entity.EmailProviderEntity, len(emailProviderModels))
+	for i, emailProviderModel := range emailProviderModels {
+		emailProviderEntities[i] = ToEmailProviderEntity(emailProviderModel)
+	}
+	return emailProviderEntities
+}
