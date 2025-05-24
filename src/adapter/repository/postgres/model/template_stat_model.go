@@ -8,10 +8,11 @@ type CountEmailRequestStatusModel struct {
 	Period *time.Time `gorm:"colum:period"`
 }
 type ChartStatModel struct {
-	Period time.Time `json:"period" gorm:"column:period"`
-	Sent   int64     `json:"sent" gorm:"column:sent"`
-	Error  int64     `json:"error" gorm:"column:error"`
-	Open   int64     `json:"open" gorm:"column:open"`
+	Period    time.Time `json:"period" gorm:"column:period"`
+	Sent      int64     `json:"sent" gorm:"column:sent"`
+	Error     int64     `json:"error" gorm:"column:error"`
+	Open      int64     `json:"open" gorm:"column:open"`
+	Scheduled int64     `json:"schedule" gorm:"column:schedule"`
 }
 type TemplateStatModel struct {
 	Sent          int64                `json:"sent" gorm:"column:sent"`

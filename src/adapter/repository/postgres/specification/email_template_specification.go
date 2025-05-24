@@ -104,6 +104,7 @@ func BuildChartStatsQuery(filter *request.TemplateMetricFilter) (string, []inter
 			"COUNT(*) FILTER (WHERE status = 'SENT') AS sent",
 			"COUNT(*) FILTER (WHERE status = 'ERROR') AS error",
 			"COUNT(*) FILTER (WHERE status = 'OPENED') AS open",
+			"COUNT(*) FILTER (WHERE status = 'SCHEDULED') AS scheduled",
 		).
 		From("email_requests er").
 		Where(sq.Eq{"er.workspace_id": filter.WorkspaceID, "er.template_id": filter.TemplateID}).
@@ -143,7 +144,8 @@ SELECT
   periods.period,
   COALESCE(stats.sent, 0) AS sent,
   COALESCE(stats.error, 0) AS error,
-  COALESCE(stats.open, 0) AS open
+  COALESCE(stats.open, 0) AS open,
+  COALESCE(stats.scheduled, 0) AS scheduled
 FROM periods
 LEFT JOIN (%s) AS stats
   ON stats.period = periods.period::timestamptz

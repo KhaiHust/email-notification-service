@@ -10,10 +10,11 @@ func ToChartStatDto(chartModel *model.ChartStatModel) *dto.ChartStatDto {
 		return nil
 	}
 	return &dto.ChartStatDto{
-		Period: chartModel.Period,
-		Sent:   chartModel.Sent,
-		Error:  chartModel.Error,
-		Open:   chartModel.Open,
+		Period:    chartModel.Period,
+		Sent:      chartModel.Sent,
+		Error:     chartModel.Error,
+		Open:      chartModel.Open,
+		Scheduled: chartModel.Scheduled,
 	}
 }
 func ToChartStatDtos(chartModels []*model.ChartStatModel) []*dto.ChartStatDto {

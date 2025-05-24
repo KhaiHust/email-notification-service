@@ -81,18 +81,6 @@ func (a AnalyticController) buildSendVolumeFilter(c *gin.Context) (*request.Send
 func (a AnalyticController) buildTemplateMetricFilter(c *gin.Context) (*request.TemplateMetricFilter, error) {
 	filter := &request.TemplateMetricFilter{}
 	values := c.Request.URL.Query()
-
-	startDate, err := utils.GetQueryInt64Pointer(values, constant.QueryParamStartDate)
-	if startDate == nil || err != nil {
-		return nil, fmt.Errorf("start date is required")
-	}
-	endDate, err := utils.GetQueryInt64Pointer(values, constant.QueryParamEndDate)
-	if endDate == nil || err != nil {
-		return nil, fmt.Errorf("end date is required")
-	}
-	if *startDate > *endDate {
-		return nil, fmt.Errorf("start date must be less than end date")
-	}
 	isChart, err := strconv.ParseBool(values.Get(constant.QueryParamIsChart))
 	if err != nil {
 		return nil, fmt.Errorf("isChart param is invalid")
@@ -116,11 +104,24 @@ func (a AnalyticController) buildTemplateMetricFilter(c *gin.Context) (*request.
 			return nil, fmt.Errorf("duration param must be greater than 0")
 		}
 		filter.Duration = int(duration)
+		filter.Interval = *internal
+		filter.IsChart = isChart
+	} else {
+		startDate, err := utils.GetQueryInt64Pointer(values, constant.QueryParamStartDate)
+		if startDate == nil || err != nil {
+			return nil, fmt.Errorf("start date is required")
+		}
+		endDate, err := utils.GetQueryInt64Pointer(values, constant.QueryParamEndDate)
+		if endDate == nil || err != nil {
+			return nil, fmt.Errorf("end date is required")
+		}
+		if *startDate > *endDate {
+			return nil, fmt.Errorf("start date must be less than end date")
+		}
+		filter.StartDate = startDate
+		filter.EndDate = endDate
 	}
-	filter.StartDate = startDate
-	filter.EndDate = endDate
-	filter.Interval = *internal
-	filter.IsChart = isChart
+
 	return filter, nil
 
 }

@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"context"
+	"errors"
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto"
@@ -23,13 +24,17 @@ type AnalyticUsecase struct {
 
 func (a AnalyticUsecase) GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error) {
 	var response dto.TemplateMetricDTO
-	//get chart
-	chartStats, err := a.getChartStats(ctx, filter)
-	if err != nil {
-		log.Error(ctx, "Error when get chart stats", err)
-		return nil, err
+	if filter.IsChart {
+		//get chart
+		chartStats, err := a.getChartStats(ctx, filter)
+		if err != nil {
+			log.Error(ctx, "Error when get chart stats", err)
+			return nil, err
+		}
+		response.ChartStats = chartStats
+		return &response, nil
 	}
-	response.ChartStats = chartStats
+
 	//get template stats
 	templateStat, err := a.emailRequestRepositoryPort.GetTemplateStats(ctx, filter)
 	if err != nil {
@@ -60,10 +65,11 @@ func (a AnalyticUsecase) getChartStats(ctx context.Context, filter *request.Temp
 		internval = time.Hour * 24 * 7
 	case constant.IntervalMonth:
 		internval = time.Hour * 24 * 30
-
+	default:
+		return nil, errors.New("Invalid interval")
 	}
 	// StartDate is endDate - filter.Interval * filter.Duration and time is 00:00:00
-	startDate := endDate.Add(-internval * time.Duration(filter.Duration)).Truncate(time.Hour * 24).Add(time.Hour*24 + time.Second)
+	startDate := endDate.Add(-internval * time.Duration(filter.Duration)).Truncate(time.Hour * 24)
 	filter.StartDate = utils.ToUnixTimeToPointer(&startDate)
 	chartStats, err := a.emailRequestRepositoryPort.GetChartStats(ctx, filter)
 	if err != nil {
