@@ -7,9 +7,6 @@ type EmailRequestSendingMessage struct {
 	IntegrationID int64            `json:"integration_id"`
 }
 type EmailSendData struct {
-	EmailRequestID int64             `json:"email_request_id"`
-	TrackingID     string            `json:"tracking_id"`
-	To             string            `json:"to"`
-	Subject        map[string]string `json:"subject"`
-	Body           map[string]string `json:"body"`
+	EmailRequestID int64  `json:"email_request_id"`
+	TrackingID     string `json:"tracking_id"`
 }

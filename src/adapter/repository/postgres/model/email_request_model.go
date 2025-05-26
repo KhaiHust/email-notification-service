@@ -23,6 +23,7 @@ type EmailRequestModel struct {
 	OpenedCount        int64               `gorm:"column:opened_count"`
 	EmailTemplateModel *EmailTemplateModel `gorm:"foreignKey:template_id;references:id"`
 	EmailProviderModel *EmailProviderModel `gorm:"foreignKey:email_provider_id;references:id"`
+	SendAt             *time.Time          `gorm:"column:send_at"`
 }
 
 func (EmailRequestModel) TableName() string {

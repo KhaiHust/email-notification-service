@@ -1,0 +1,2 @@
+ALTER TABLE email_requests
+ADD COLUMN send_at TIMESTAMP DEFAULT NULL;

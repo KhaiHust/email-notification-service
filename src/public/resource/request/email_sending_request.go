@@ -5,7 +5,6 @@ import "github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 type EmailSendingRequest struct {
 	TemplateId int64               `json:"template_id" validate:"required"`
 	Datas      []*EmailSendingData `json:"datas,omitempty"`
-	Data       *EmailSendingData   `json:"data,omitempty"`
 	ProviderID int64               `json:"provider_id" validate:"required"`
 }
 type EmailSendingData struct {

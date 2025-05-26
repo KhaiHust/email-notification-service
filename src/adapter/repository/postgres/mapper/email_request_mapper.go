@@ -22,6 +22,7 @@ func ToEmailRequestModel(emailRequestEntity *entity.EmailRequestEntity) *model.E
 		TrackingID:      emailRequestEntity.TrackingID,
 		OpenedCount:     emailRequestEntity.OpenedCount,
 		OpenedAt:        utils.FromUnixPointerToTime(emailRequestEntity.OpenedAt),
+		SendAt:          utils.FromUnixPointerToTime(emailRequestEntity.SendAt),
 	}
 	if emailRequestEntity.SentAt != nil {
 		emailRequestModel.SentAt = utils.ToTimePointer(*emailRequestEntity.SentAt)
@@ -46,6 +47,7 @@ func ToEmailRequestEntity(emailRequestModel *model.EmailRequestModel) *entity.Em
 		TrackingID:          emailRequestModel.TrackingID,
 		OpenedCount:         emailRequestModel.OpenedCount,
 		OpenedAt:            utils.ToUnixTimeToPointer(emailRequestModel.OpenedAt),
+		SendAt:              utils.ToUnixTimeToPointer(emailRequestModel.SendAt),
 	}
 	if emailRequestModel.SentAt != nil {
 		emailRequestEntity.SentAt = utils.ToUnixTimeToPointer(emailRequestModel.SentAt)

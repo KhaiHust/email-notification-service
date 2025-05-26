@@ -22,4 +22,5 @@ type EmailRequestEntity struct {
 	OpenedCount         int64
 	EmailTemplateEntity *EmailTemplateEntity
 	EmailProviderEntity *EmailProviderEntity
+	SendAt              *int64 // For scheduling emails
 }

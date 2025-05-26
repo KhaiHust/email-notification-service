@@ -69,7 +69,21 @@ func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailR
 }
 
 func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, providerID int64, req *request.EmailSendingRequestDto) error {
-	return e.emailSendingUsecase.SendBatches(ctx, providerID, req)
+	//seperate schedule and normal email request
+	emailRequestIDs := make([]int64, 0, len(req.Datas))
+	for _, emailRequest := range req.Datas {
+		emailRequestIDs = append(emailRequestIDs, emailRequest.EmailRequestID)
+	}
+	emailRequests, err := e.emailRequestRepositoryPort.GetEmailRequestByIDs(ctx, emailRequestIDs)
+	if err != nil {
+		log.Error(ctx, "Error when get email request by ids", err)
+		return err
+	}
+	if len(emailRequests) == 0 {
+		log.Warn(ctx, "No email requests found for the given IDs")
+		return nil
+	}
+	return e.emailSendingUsecase.SendBatches(ctx, providerID, emailRequests, req)
 }
 func (e EventHandlerUsecase) toEmailLogEntity(emailRequest *entity.EmailRequestEntity) *entity.EmailLogsEntity {
 	var loggedAt int64

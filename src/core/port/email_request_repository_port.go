@@ -22,4 +22,5 @@ type IEmailRequestRepositoryPort interface {
 	GetChartStats(ctx context.Context, filter *request.TemplateMetricFilter) ([]*dto.ChartStatDto, error)
 	GetTemplateStats(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateStat, error)
 	GetTemplateStatsByProvider(ctx context.Context, filter *request.TemplateMetricFilter) ([]*dto.ProviderStat, error)
+	GetEmailRequestByIDs(ctx context.Context, emailRequestIDs []int64) ([]*entity.EmailRequestEntity, error)
 }

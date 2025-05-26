@@ -19,6 +19,17 @@ type EmailRequestRepositoryAdapter struct {
 	base
 }
 
+func (e EmailRequestRepositoryAdapter) GetEmailRequestByIDs(ctx context.Context, emailRequestIDs []int64) ([]*entity.EmailRequestEntity, error) {
+	var emailRequestModels []*model.EmailRequestModel
+	if err := e.db.WithContext(ctx).Where("id IN ?", emailRequestIDs).Find(&emailRequestModels).Error; err != nil {
+		return nil, err
+	}
+	if len(emailRequestModels) == 0 {
+		return nil, common.ErrRecordNotFound
+	}
+	return mapper.ToListEmailRequestEntity(emailRequestModels), nil
+}
+
 func (e EmailRequestRepositoryAdapter) GetTemplateStatsByProvider(ctx context.Context, filter *request.TemplateMetricFilter) ([]*dto.ProviderStat, error) {
 	rawQuery, args, err := specification.BuildProviderStatQuery(filter)
 	if err != nil {

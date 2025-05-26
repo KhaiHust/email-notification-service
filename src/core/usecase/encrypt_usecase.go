@@ -18,9 +18,29 @@ type IEncryptUseCase interface {
 	DecryptAES(ctx context.Context, cipherText string) (string, error)
 	EncryptTrackingID(ctx context.Context, trackingID string) (string, error)
 	DecryptTrackingID(ctx context.Context, trackingID string) (string, error)
+	EncryptDataEmailRequest(ctx context.Context, data string) (string, error)
+	DecryptDataEmailRequest(ctx context.Context, data string) (string, error)
 }
 type EncryptUseCase struct {
 	props *properties.EncryptProperties
+}
+
+func (e EncryptUseCase) EncryptDataEmailRequest(ctx context.Context, data string) (string, error) {
+	block, err := aes.NewCipher([]byte(e.props.EncryptDataEmailRequestKey))
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		return "", err
+	}
+	return e.encrypt(ctx, data, block)
+}
+
+func (e EncryptUseCase) DecryptDataEmailRequest(ctx context.Context, data string) (string, error) {
+	dataBytes, err := base64.URLEncoding.DecodeString(data)
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
+		return "", err
+	}
+	return e.decrypt(ctx, err, dataBytes)
 }
 
 func (e EncryptUseCase) EncryptTrackingID(ctx context.Context, trackingID string) (string, error) {

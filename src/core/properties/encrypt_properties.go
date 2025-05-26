@@ -3,9 +3,10 @@ package properties
 import "github.com/golibs-starter/golib/config"
 
 type EncryptProperties struct {
-	EncryptKey             string
-	EncryptVersionTemplate string
-	EncryptTrackingIDKey   string
+	EncryptKey                 string
+	EncryptVersionTemplate     string
+	EncryptTrackingIDKey       string
+	EncryptDataEmailRequestKey string
 }
 
 func (e EncryptProperties) Prefix() string {
