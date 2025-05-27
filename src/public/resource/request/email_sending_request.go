@@ -9,6 +9,7 @@ type EmailSendingRequest struct {
 }
 type EmailSendingData struct {
 	To      string            `json:"to" validate:"required"`
+	SendAt  *int64            `json:"send_at,omitempty"`
 	Subject map[string]string `json:"subject"`
 	Body    map[string]string `json:"body"`
 }
@@ -30,6 +31,7 @@ func ToEmailSendingDataDto(req *EmailSendingData) *request.EmailSendingData {
 		To:      req.To,
 		Subject: req.Subject,
 		Body:    req.Body,
+		SendAt:  req.SendAt,
 	}
 }
 func ToListEmailSendingDataDto(req []*EmailSendingData) []*request.EmailSendingData {

@@ -1,0 +1,2 @@
+ALTER TABLE email_requests
+ALTER COLUMN data TYPE TEXT;

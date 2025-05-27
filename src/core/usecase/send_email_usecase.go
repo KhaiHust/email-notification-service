@@ -11,7 +11,6 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/exception"
 	"github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/google/uuid"
-	"go.uber.org/fx"
 	"gorm.io/gorm"
 	"sync"
 	"time"
@@ -31,13 +30,10 @@ const (
 type IEmailSendingUsecase interface {
 	SendBatches(ctx context.Context, providerID int64, emailRequests []*entity.EmailRequestEntity, req *request.EmailSendingRequestDto) error
 	ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) error
+	SendEmailByTask(ctx context.Context, emailRequest *entity.EmailRequestEntity) error
 }
 
 type EmailSendingUsecase struct {
-	deps *EmailSendingUsecaseIn
-}
-type EmailSendingUsecaseIn struct {
-	fx.In
 	BatchConfig                *properties.BatchProperties
 	getEmailProviderUseCase    IGetEmailProviderUseCase
 	getEmailTemplateUseCase    IGetEmailTemplateUseCase
@@ -51,14 +47,88 @@ type EmailSendingUsecaseIn struct {
 	emailLogRepositoryPort     port.IEmailLogRepositoryPort
 }
 
+func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *entity.EmailRequestEntity) error {
+
+	decryptPayload, err := e.encryptUseCase.DecryptDataEmailRequest(ctx, string(emailRequest.Data))
+	if err != nil {
+		log.Error(ctx, "Error when decrypt email request data", err)
+		return err
+	}
+	payloadMap := make(map[string]map[string]string)
+	if err := json.Unmarshal([]byte(decryptPayload), &payloadMap); err != nil {
+		log.Error(ctx, "Error when unmarshal email request data", err)
+		return err
+	}
+	template, err := e.getEmailTemplateUseCase.GetTemplateByID(ctx, emailRequest.TemplateId)
+	if err != nil {
+		log.Error(ctx, "Error when get email template by id", err)
+		return err
+	}
+	emailProvider, err := e.getEmailProviderUseCase.GetEmailProviderByWorkspaceID(ctx, emailRequest.WorkspaceID)
+	if err != nil {
+		log.Error(ctx, "Error when get email provider by id", err)
+		return err
+	}
+	var trackingID string
+	if emailRequest.TrackingID != "" {
+		trackingID, err = e.encryptUseCase.EncryptTrackingID(ctx, emailRequest.TrackingID)
+		if err != nil {
+			return err
+		}
+	}
+	dataSending := &request.EmailDataDto{
+		EmailRequestID: emailRequest.ID,
+		Subject:        utils.FillTemplate(template.Subject, payloadMap[SubjectKey]),
+		Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="100" height="100"  /></body></html>`,
+			utils.FillTemplate(template.Body, payloadMap[BodyKey]),
+			utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
+		),
+		To: emailRequest.Recipient,
+	}
+	var sendErr error
+	if err := e.emailProviderPort.Send(ctx, emailProvider, dataSending); err != nil {
+		log.Error(ctx, fmt.Sprintf("Error when send email to %s", dataSending.To), err)
+		if errors.Is(err, common.ErrUnauthorized) {
+			log.Warn(ctx, fmt.Sprintf("401 detected for %s. Refreshing token...", dataSending.To))
+			// Try to refresh the email provider's OAuth info
+			if refreshed, refreshErr := e.updateEmailProviderUseCase.UpdateOAuthInfoByRefreshToken(ctx, emailProvider); refreshErr != nil {
+				log.Error(ctx, "Error when refresh email provider OAuth info", refreshErr)
+				sendErr = refreshErr
+			} else {
+				emailProvider = refreshed
+				// Retry sending the email after refreshing the token
+				if retryErr := e.emailProviderPort.Send(ctx, emailProvider, dataSending); retryErr != nil {
+					log.Error(ctx, fmt.Sprintf("Retry failed to send email to %s", dataSending.To), retryErr)
+					sendErr = retryErr
+				}
+			}
+		} else {
+			sendErr = err
+		}
+	}
+	if sendErr != nil {
+		emailRequest.Status = constant.EmailSendingStatusFailed
+		emailRequest.ErrorMessage = sendErr.Error()
+	} else {
+		emailRequest.Status = constant.EmailSendingStatusSent
+		now := time.Now()
+		emailRequest.SentAt = utils.ToUnixTimeToPointer(&now)
+	}
+	go func() {
+		ev := event.NewEventEmailRequestSync(ctx, emailRequest)
+		e.eventPublisher.Publish(ev)
+	}()
+	return sendErr
+}
+
 func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) error {
-	emailProvider, err := e.deps.getEmailProviderUseCase.GetEmailProviderByWorkspaceID(ctx, workspaceID)
+	emailProvider, err := e.getEmailProviderUseCase.GetEmailProviderByWorkspaceID(ctx, workspaceID)
 	if err != nil {
 		log.Error(ctx, "Error when get email provider by id", err)
 		return err
 	}
 
-	template, err := e.deps.getEmailTemplateUseCase.GetTemplateByID(ctx, req.TemplateID)
+	template, err := e.getEmailTemplateUseCase.GetTemplateByID(ctx, req.TemplateID)
 	if err != nil {
 		log.Error(ctx, "Error when get email template by id", err)
 		return err
@@ -84,24 +154,24 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 			EmailProviderID: emailProvider.ID,
 			WorkspaceID:     workspaceID,
 			TrackingID:      uuid.NewString(),
-			SentAt:          data.SendAt,
+			SendAt:          data.SendAt,
 		})
 	}
-	tx := e.deps.databaseTransactionUseCase.StartTx()
+	tx := e.databaseTransactionUseCase.StartTx()
 	commit := false
 	defer func() {
 		if r := recover(); r != nil {
 			err = exception.InternalServerException
 		}
 		if !commit || err != nil {
-			if errRollback := e.deps.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
+			if errRollback := e.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
 				log.Error(ctx, "Error when rollback transaction", errRollback)
 			} else {
 				log.Info(ctx, "Rollback transaction successfully")
 			}
 		}
 	}()
-	emailRequestEntities, err = e.deps.createEmailRequestUsecase.CreateEmailRequestsWithTx(ctx, tx, emailRequestEntities)
+	emailRequestEntities, err = e.createEmailRequestUsecase.CreateEmailRequestsWithTx(ctx, tx, emailRequestEntities)
 	if err != nil {
 		log.Error(ctx, "Error when save email request", err)
 		return err
@@ -109,17 +179,17 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 	if err = e.SaveEmailLogsByBatches(ctx, tx, emailRequestEntities); err != nil {
 		return err
 	}
-	ev := event.NewEventRequestSendingEmail(ctx, emailRequestEntities, req)
-	err = e.deps.eventPublisher.SyncPublish(ctx, ev)
-	if err != nil {
-		log.Error(ctx, "Error when publish event", err)
-		return err
-	}
-	if err = e.deps.databaseTransactionUseCase.CommitTx(tx); err != nil {
+	if err = e.databaseTransactionUseCase.CommitTx(tx); err != nil {
 		log.Error(ctx, "Error when commit transaction", err)
 		return err
 	}
 	commit = true
+	ev := event.NewEventRequestSendingEmail(ctx, emailRequestEntities, req)
+	go func() {
+		if err := e.eventPublisher.SyncPublish(ctx, ev); err != nil {
+			log.Error(ctx, "Error when publish event", err)
+		}
+	}()
 	return nil
 }
 
@@ -137,7 +207,7 @@ func (e EmailSendingUsecase) SaveEmailLogsByBatches(ctx context.Context, tx *gor
 			LoggedAt:        time.Now().Unix(),
 		})
 	}
-	if _, err := e.deps.emailLogRepositoryPort.SaveEmailLogsByBatches(ctx, tx, emailLogsEntities); err != nil {
+	if _, err := e.emailLogRepositoryPort.SaveEmailLogsByBatches(ctx, tx, emailLogsEntities); err != nil {
 		log.Error(ctx, "Error when save email logs", err)
 		return err
 	}
@@ -145,13 +215,13 @@ func (e EmailSendingUsecase) SaveEmailLogsByBatches(ctx context.Context, tx *gor
 }
 
 func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, emailRequests []*entity.EmailRequestEntity, req *request.EmailSendingRequestDto) error {
-	emailProvider, err := e.deps.getEmailProviderUseCase.GetEmailProviderByID(ctx, providerID)
+	emailProvider, err := e.getEmailProviderUseCase.GetEmailProviderByID(ctx, providerID)
 	if err != nil {
 		log.Error(ctx, "Error when get email provider by id", err)
 		return err
 	}
 
-	template, err := e.deps.getEmailTemplateUseCase.GetTemplateByID(ctx, req.TemplateID)
+	template, err := e.getEmailTemplateUseCase.GetTemplateByID(ctx, req.TemplateID)
 	if err != nil {
 		log.Error(ctx, "Error when get email template by id", err)
 		return err
@@ -162,12 +232,12 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 	for _, emailRequest := range emailRequests {
 		var trackingID string
 		if emailRequest.TrackingID != "" {
-			trackingID, err = e.deps.encryptUseCase.EncryptTrackingID(ctx, emailRequest.TrackingID)
+			trackingID, err = e.encryptUseCase.EncryptTrackingID(ctx, emailRequest.TrackingID)
 			if err != nil {
 				continue
 			}
 		}
-		decryptPayload, err := e.deps.encryptUseCase.DecryptDataEmailRequest(ctx, string(emailRequest.Data))
+		decryptPayload, err := e.encryptUseCase.DecryptDataEmailRequest(ctx, string(emailRequest.Data))
 		if err != nil {
 			log.Error(ctx, "Error when decrypt email request data", err)
 			continue
@@ -182,7 +252,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 			Subject:        utils.FillTemplate(template.Subject, payloadMap[SubjectKey]),
 			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="100" height="100"  /></body></html>`,
 				utils.FillTemplate(template.Body, payloadMap[BodyKey]),
-				utils.GenerateTrackingURL(e.deps.trackingProperties.BaseUrl, trackingID),
+				utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
 			),
 			To: emailRequest.Recipient,
 		})
@@ -190,7 +260,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 	}
 
 	// Setup worker pool
-	numWorkers := e.deps.BatchConfig.NumOfWorkers
+	numWorkers := e.BatchConfig.NumOfWorkers
 	jobs := make(chan *request.EmailDataDto)
 	var wg sync.WaitGroup
 
@@ -205,7 +275,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 		go func() {
 			defer wg.Done()
 			for data := range jobs {
-				sendErr := e.deps.emailProviderPort.Send(ctx, emailProvider, data)
+				sendErr := e.emailProviderPort.Send(ctx, emailProvider, data)
 				status := constant.EmailSendingStatusSent
 				var errMessage string
 				timeNow := time.Now()
@@ -215,7 +285,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 					log.Warn(ctx, fmt.Sprintf("401 detected for %v. Refreshing token...", data.To))
 
 					refreshOnce.Do(func() {
-						refreshed, err := e.deps.updateEmailProviderUseCase.UpdateOAuthInfoByRefreshToken(ctx, emailProvider)
+						refreshed, err := e.updateEmailProviderUseCase.UpdateOAuthInfoByRefreshToken(ctx, emailProvider)
 						if err != nil {
 							refreshErr = err
 							log.Error(ctx, "Token refresh failed", err)
@@ -227,7 +297,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 					})
 
 					if refreshErr == nil {
-						sendErr = e.deps.emailProviderPort.Send(ctx, emailProvider, data)
+						sendErr = e.emailProviderPort.Send(ctx, emailProvider, data)
 					}
 				}
 
@@ -247,7 +317,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 					SentAt:       sentAt,
 				}
 				ev := event.NewEventEmailRequestSync(ctx, emailRequest)
-				e.deps.eventPublisher.Publish(ev)
+				e.eventPublisher.Publish(ev)
 
 			}
 		}()
@@ -262,12 +332,34 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, providerID int64, 
 	return nil
 }
 
-func NewEmailSendingUsecase(deps *EmailSendingUsecaseIn) IEmailSendingUsecase {
+func NewEmailSendingUsecase(
+	batchConfig *properties.BatchProperties,
+	getEmailProviderUseCase IGetEmailProviderUseCase,
+	getEmailTemplateUseCase IGetEmailTemplateUseCase,
+	emailProviderPort port.IEmailProviderPort,
+	updateEmailProviderUseCase IUpdateEmailProviderUseCase,
+	eventPublisher port.IEventPublisher,
+	createEmailRequestUsecase ICreateEmailRequestUsecase,
+	databaseTransactionUseCase IDatabaseTransactionUseCase,
+	trackingProperties *properties.TrackingProperties,
+	encryptUseCase IEncryptUseCase,
+	emailLogRepositoryPort port.IEmailLogRepositoryPort,
+) IEmailSendingUsecase {
 	return &EmailSendingUsecase{
-		deps: deps,
+		BatchConfig:                batchConfig,
+		getEmailProviderUseCase:    getEmailProviderUseCase,
+		getEmailTemplateUseCase:    getEmailTemplateUseCase,
+		emailProviderPort:          emailProviderPort,
+		updateEmailProviderUseCase: updateEmailProviderUseCase,
+		eventPublisher:             eventPublisher,
+		createEmailRequestUsecase:  createEmailRequestUsecase,
+		databaseTransactionUseCase: databaseTransactionUseCase,
+		trackingProperties:         trackingProperties,
+		encryptUseCase:             encryptUseCase,
+		emailLogRepositoryPort:     emailLogRepositoryPort,
 	}
 }
-func (e EmailSendingUsecase) buildEncryptVariableData(ctx context.Context, rawData *request.EmailSendingData) (json.RawMessage, error) {
+func (e EmailSendingUsecase) buildEncryptVariableData(ctx context.Context, rawData *request.EmailSendingData) (string, error) {
 	var data = make(map[string]interface{})
 	data[SubjectKey] = rawData.Subject
 	data[BodyKey] = rawData.Body
@@ -275,13 +367,13 @@ func (e EmailSendingUsecase) buildEncryptVariableData(ctx context.Context, rawDa
 	payload, err := json.Marshal(data)
 	if err != nil {
 		log.Error(ctx, "Error when marshal payload data", err)
-		return nil, err
+		return "", err
 	}
 	// Encrypt the payload
-	encryptedPayload, err := e.deps.encryptUseCase.EncryptDataEmailRequest(ctx, string(payload))
+	encryptedPayload, err := e.encryptUseCase.EncryptDataEmailRequest(ctx, string(payload))
 	if err != nil {
 		log.Error(ctx, "Error when encrypt payload data", err)
-		return nil, err
+		return "", err
 	}
-	return json.RawMessage(encryptedPayload), nil
+	return encryptedPayload, nil
 }

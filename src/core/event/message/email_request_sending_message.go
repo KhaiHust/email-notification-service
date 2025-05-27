@@ -9,4 +9,5 @@ type EmailRequestSendingMessage struct {
 type EmailSendData struct {
 	EmailRequestID int64  `json:"email_request_id"`
 	TrackingID     string `json:"tracking_id"`
+	SendAt         *int64 `json:"send_at,omitempty"` // SendAt is optional, it can be nil if not scheduled
 }

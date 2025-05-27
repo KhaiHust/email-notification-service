@@ -33,6 +33,7 @@ func EmailRequestEntitiesToMessage(emailRequests []*entity.EmailRequestEntity, r
 		sendDatas = append(sendDatas, &message.EmailSendData{
 			EmailRequestID: eREntity.ID,
 			TrackingID:     eREntity.TrackingID,
+			SendAt:         eREntity.SendAt,
 		})
 	}
 

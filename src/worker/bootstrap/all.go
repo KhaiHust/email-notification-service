@@ -41,10 +41,13 @@ func All() fx.Option {
 
 		// Provide all application properties
 		golib.ProvideProps(properties.NewGmailProviderProperties),
+		golib.ProvideProps(properties.NewGoogleCloudTaskProperties),
 		golib.ProvideProps(coreProperties.NewAuthProperties),
 		golib.ProvideProps(coreProperties.NewBatchProperties),
 		golib.ProvideProps(coreProperties.NewEncryptProperties),
 		golib.ProvideProps(coreProperties.NewTrackingProperties),
+		golib.ProvideProps(coreProperties.NewTaskProperties),
+		golib.ProvideProps(coreProperties.NewAppProperties),
 		// Provide port's implements
 		fx.Provide(client.NewGmailProviderAdapter),
 		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
@@ -58,6 +61,7 @@ func All() fx.Option {
 		fx.Provide(postgres.NewEmailLogRepositoryAdapter),
 
 		fx.Provide(publisher.NewEventPublisherAdapter),
+		fx.Provide(thirdparty.NewCloudTaskServiceAdapter),
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
@@ -82,6 +86,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewUpdateEmailRequestUsecase),
 		fx.Provide(usecase.NewGetEmailRequestUsecase),
 		fx.Provide(usecase.NewEncryptUseCase),
+		fx.Provide(usecase.NewScheduleEmailUsecase),
 
 		//provider handler
 		golibmsg.ProvideConsumer(handler.NewEmailSendingRequestHandler),

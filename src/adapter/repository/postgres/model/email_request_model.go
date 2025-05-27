@@ -1,7 +1,6 @@
 package model
 
 import (
-	"encoding/json"
 	"time"
 )
 
@@ -9,7 +8,7 @@ type EmailRequestModel struct {
 	BaseModel
 	TemplateId         int64               `gorm:"column:template_id"`
 	Recipient          string              `gorm:"column:recipient"`
-	Data               json.RawMessage     `gorm:"column:data"`
+	Data               string              `gorm:"column:data"`
 	Status             string              `gorm:"column:status"`
 	ErrorMessage       string              `gorm:"column:error_message"`
 	RetryCount         int64               `gorm:"column:retry_count"`

@@ -3,9 +3,9 @@ package properties
 import "github.com/golibs-starter/golib/config"
 
 type GoogleCloudTaskProperties struct {
-	CloudTaskQueues  string `default:"queue01,queue02,queue03,queue04,queue05,queue06,queue07,queue08,queue09,queue10"`
+	CloudTaskQueues  string `default:"queue1,queue2,queue3,queue4,queue5"`
 	CloudTaskSaltKey string `default:""`
-	GCPTaskLocation  string `default:"asia-east2"`
+	GCPTaskLocation  string `default:"asia-east1"`
 }
 
 func (g GoogleCloudTaskProperties) Prefix() string {

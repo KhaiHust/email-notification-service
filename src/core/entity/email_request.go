@@ -1,14 +1,10 @@
 package entity
 
-import (
-	"encoding/json"
-)
-
 type EmailRequestEntity struct {
 	BaseEntity
 	TemplateId          int64
 	Recipient           string
-	Data                json.RawMessage
+	Data                string
 	Status              string
 	ErrorMessage        string
 	RetryCount          int64

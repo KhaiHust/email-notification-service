@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/public/apihelper"
 	"github.com/KhaiHust/email-notification-service/public/resource/request"
 	"github.com/KhaiHust/email-notification-service/public/service"
@@ -24,6 +25,28 @@ func (e *EmailSendingController) SendEmailRequest(ctx *gin.Context) {
 	err := e.emailSendingService.SendEmailRequest(ctx, 3, &req)
 	if err != nil {
 		log.Error(ctx, "Error when sending email", err)
+		apihelper.AbortErrorHandle(ctx, err)
+		return
+	}
+	apihelper.SuccessfulHandle(ctx, nil)
+}
+
+// SendEmailByTask handles the request to send an email by task ID
+func (e *EmailSendingController) SendEmailByTask(ctx *gin.Context) {
+	var req request.EmailSendTaskRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Error(ctx, "Error when binding request", err)
+		apihelper.AbortErrorHandle(ctx, err)
+		return
+	}
+	if err := e.validator.Struct(&req); err != nil {
+		log.Error(ctx, "Error when validating request", err)
+		apihelper.AbortErrorHandle(ctx, common.ErrBadRequest)
+		return
+	}
+	err := e.emailSendingService.SendEmailByTask(ctx, req.EmailRequestID)
+	if err != nil {
+		log.Error(ctx, "Error when sending email by task", err)
 		apihelper.AbortErrorHandle(ctx, err)
 		return
 	}
