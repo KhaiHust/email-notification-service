@@ -2,12 +2,15 @@ package usecase
 
 import (
 	"context"
+	"fmt"
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/exception"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"github.com/golibs-starter/golib/log"
+	"sync"
+	"time"
 )
 
 type IEventHandlerUsecase interface {
@@ -20,6 +23,7 @@ type EventHandlerUsecase struct {
 	emailRequestRepositoryPort port.IEmailRequestRepositoryPort
 	databaseTransactionUseCase IDatabaseTransactionUseCase
 	emailLogRepositoryPort     port.IEmailLogRepositoryPort
+	scheduleEmailUsecase       IScheduleEmailUsecase
 }
 
 func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailRequest *entity.EmailRequestEntity) error {
@@ -69,7 +73,45 @@ func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailR
 }
 
 func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, providerID int64, req *request.EmailSendingRequestDto) error {
-	return e.emailSendingUsecase.SendBatches(ctx, providerID, req)
+	//seperate schedule and normal email request
+	emailRequestIDs := make([]int64, 0, len(req.Datas))
+	for _, emailRequest := range req.Datas {
+		emailRequestIDs = append(emailRequestIDs, emailRequest.EmailRequestID)
+	}
+	emailRequests, err := e.emailRequestRepositoryPort.GetEmailRequestByIDs(ctx, emailRequestIDs)
+	if err != nil {
+		log.Error(ctx, fmt.Sprintf("Error when get email requests by ids: %v", emailRequestIDs), err)
+		return err
+	}
+	if len(emailRequests) == 0 {
+		log.Warn(ctx, "No email requests found for the given IDs")
+		return nil
+	}
+	//filter email requests that need to be scheduled
+	var wg sync.WaitGroup
+
+	emailRequestsSchedules, emailRequestSending := e.FilterEmailRequestToCreateTasks(emailRequests)
+
+	if len(emailRequestsSchedules) > 0 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := e.scheduleEmailUsecase.ScheduleEmails(ctx, emailRequestsSchedules); err != nil {
+				log.Error(ctx, "Error when schedule email", err)
+			}
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := e.emailSendingUsecase.SendBatches(ctx, providerID, emailRequestSending, req); err != nil {
+			log.Error(ctx, "Error when sending email batches", err)
+		}
+	}()
+
+	wg.Wait()
+	return nil
 }
 func (e EventHandlerUsecase) toEmailLogEntity(emailRequest *entity.EmailRequestEntity) *entity.EmailLogsEntity {
 	var loggedAt int64
@@ -103,6 +145,7 @@ func NewEventHandlerUsecase(
 	emailRequestRepositoryPort port.IEmailRequestRepositoryPort,
 	databaseTransactionUseCase IDatabaseTransactionUseCase,
 	emailLogRepositoryPort port.IEmailLogRepositoryPort,
+	scheduleEmailUsecase IScheduleEmailUsecase,
 ) IEventHandlerUsecase {
 	return &EventHandlerUsecase{
 		emailSendingUsecase:        emailSendingUsecase,
@@ -110,5 +153,18 @@ func NewEventHandlerUsecase(
 		emailRequestRepositoryPort: emailRequestRepositoryPort,
 		databaseTransactionUseCase: databaseTransactionUseCase,
 		emailLogRepositoryPort:     emailLogRepositoryPort,
+		scheduleEmailUsecase:       scheduleEmailUsecase,
 	}
+}
+func (e EventHandlerUsecase) FilterEmailRequestToCreateTasks(emailRequests []*entity.EmailRequestEntity) ([]*entity.EmailRequestEntity, []*entity.EmailRequestEntity) {
+	scheduledEmailRequests := make([]*entity.EmailRequestEntity, 0)
+	sendingEmailRequests := make([]*entity.EmailRequestEntity, 0)
+	for _, emailRequest := range emailRequests {
+		if emailRequest.SendAt != nil && *emailRequest.SendAt > time.Now().Unix() {
+			scheduledEmailRequests = append(scheduledEmailRequests, emailRequest)
+		} else {
+			sendingEmailRequests = append(sendingEmailRequests, emailRequest)
+		}
+	}
+	return scheduledEmailRequests, sendingEmailRequests
 }

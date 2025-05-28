@@ -13,6 +13,14 @@ type EmailLogRepositoryAdapter struct {
 	base
 }
 
+func (e EmailLogRepositoryAdapter) SaveEmailLogsByBatches(ctx context.Context, tx *gorm.DB, emailLogs []*entity.EmailLogsEntity) ([]*entity.EmailLogsEntity, error) {
+	emailLogsModels := mapper.ToListEmailLogModel(emailLogs)
+	if err := tx.WithContext(ctx).Model(&model.EmailLogsModel{}).Save(emailLogsModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToListEmailLogEntity(emailLogsModels), nil
+}
+
 func (e EmailLogRepositoryAdapter) GetLogsByEmailRequestIDAndWorkspaceID(ctx context.Context, emailRequestID int64, workspaceID int64) ([]*entity.EmailLogsEntity, error) {
 	var emailLogs []*model.EmailLogsModel
 	if err := e.db.WithContext(ctx).Where("email_request_id = ? AND workspace_id = ?", emailRequestID, workspaceID).Find(&emailLogs).Error; err != nil {

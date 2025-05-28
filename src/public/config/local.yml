@@ -55,4 +55,5 @@ app:
       EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
 

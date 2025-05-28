@@ -5,11 +5,11 @@ import "github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 type EmailSendingRequest struct {
 	TemplateId int64               `json:"template_id" validate:"required"`
 	Datas      []*EmailSendingData `json:"datas,omitempty"`
-	Data       *EmailSendingData   `json:"data,omitempty"`
 	ProviderID int64               `json:"provider_id" validate:"required"`
 }
 type EmailSendingData struct {
 	To      string            `json:"to" validate:"required"`
+	SendAt  *int64            `json:"send_at,omitempty"`
 	Subject map[string]string `json:"subject"`
 	Body    map[string]string `json:"body"`
 }
@@ -31,6 +31,7 @@ func ToEmailSendingDataDto(req *EmailSendingData) *request.EmailSendingData {
 		To:      req.To,
 		Subject: req.Subject,
 		Body:    req.Body,
+		SendAt:  req.SendAt,
 	}
 }
 func ToListEmailSendingDataDto(req []*EmailSendingData) []*request.EmailSendingData {

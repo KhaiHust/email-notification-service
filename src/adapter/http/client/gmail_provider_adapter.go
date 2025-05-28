@@ -17,7 +17,6 @@ import (
 	"github.com/golibs-starter/golib/web/client"
 	"golang.org/x/oauth2"
 	"net/url"
-	"strings"
 )
 
 type GmailProviderAdapter struct {
@@ -151,7 +150,7 @@ func (g *GmailProviderAdapter) getGmailUserInfo(ctx context.Context, accessToken
 }
 func (g *GmailProviderAdapter) buildMessage(from string, data *request.EmailDataDto) string {
 	return "From: " + from + "\r\n" +
-		"To: " + strings.Join(data.Tos, ", ") + "\r\n" +
+		"To: " + data.To + "\r\n" +
 		"Subject: " + data.Subject + "\r\n" +
 		"MIME-Version: 1.0\r\n" +
 		"Content-Type: text/html; charset=UTF-8\r\n\r\n" +

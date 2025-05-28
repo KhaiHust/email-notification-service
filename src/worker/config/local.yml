@@ -12,6 +12,8 @@ app:
   redis:
     host: localhost
     port: 6379
+  config:
+    GoogleCloudProject: "email-noti-platform"
 
   services:
     provider:
@@ -24,11 +26,14 @@ app:
         RedirectUri: ${GMAIL_REDIRECT_URI}
         AccessType: offline
     tracking:
-      BaseUrl: https://conventions-trader-gpl-wr.trycloudflare.com/email-notification-public/v1/tracking
+      BaseUrl: https://rocket-korean-logo-herein.trycloudflare.com/email-notification-public/v1/tracking
     encrypt:
       EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+    task:
+      BaseUrl: https://rocket-korean-logo-herein.trycloudflare.com/email-notification-public/
+      SecretKey: "test_task_secret_key"
 
   kafka:
     bootstrapServers: localhost:9092

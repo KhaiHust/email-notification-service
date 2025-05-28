@@ -10,6 +10,7 @@ type EmailSendingData struct {
 	EmailRequestID int64
 	TrackingID     string
 	To             string
+	SendAt         *int64
 	Subject        map[string]string
 	Body           map[string]string
 }

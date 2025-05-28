@@ -52,3 +52,13 @@ func ToListEmailLogEntity(emailLogModels []*model.EmailLogsModel) []*entity.Emai
 	}
 	return emailLogEntities
 }
+func ToListEmailLogModel(emailLogEntities []*entity.EmailLogsEntity) []*model.EmailLogsModel {
+	if emailLogEntities == nil {
+		return nil
+	}
+	emailLogModels := make([]*model.EmailLogsModel, len(emailLogEntities))
+	for i, emailLogEntity := range emailLogEntities {
+		emailLogModels[i] = ToEmailLogModel(emailLogEntity)
+	}
+	return emailLogModels
+}

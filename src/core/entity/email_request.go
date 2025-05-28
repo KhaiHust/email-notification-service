@@ -1,14 +1,10 @@
 package entity
 
-import (
-	"encoding/json"
-)
-
 type EmailRequestEntity struct {
 	BaseEntity
 	TemplateId          int64
 	Recipient           string
-	Data                json.RawMessage
+	Data                string
 	Status              string
 	ErrorMessage        string
 	RetryCount          int64
@@ -22,4 +18,5 @@ type EmailRequestEntity struct {
 	OpenedCount         int64
 	EmailTemplateEntity *EmailTemplateEntity
 	EmailProviderEntity *EmailProviderEntity
+	SendAt              *int64 // For scheduling emails
 }
