@@ -79,7 +79,13 @@ func (a AnalyticUsecase) getChartStats(ctx context.Context, filter *request.Temp
 	return chartStats, nil
 }
 func (a AnalyticUsecase) GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (map[string]*dto.SendVolumeDTO, error) {
-	// Get total send volume by date
+	startDatePtr := utils.FromUnixPointerToTime(filter.StartDate)
+	startDate := startDatePtr.Truncate(time.Hour * 24)
+	filter.StartDate = utils.ToUnixTimeToPointer(&startDate)
+
+	endDatePtr := utils.FromUnixPointerToTime(filter.EndDate)
+	endDate := endDatePtr.Truncate(time.Hour * 24).Add(time.Hour*23 + time.Minute*59 + time.Second*59)
+	filter.EndDate = utils.ToUnixTimeToPointer(&endDate)
 	volumesByDate, err := a.GetSendVolumeByDate(ctx, filter)
 	if err != nil {
 		return nil, err

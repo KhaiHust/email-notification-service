@@ -27,7 +27,7 @@ func (a AnalyticController) GetSendVolumes(c *gin.Context) {
 	}
 	filter, err := a.buildSendVolumeFilter(c)
 	if err != nil {
-		apihelper.AbortErrorHandle(c, err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
 		return
 	}
 	filter.WorkspaceId = workspaceID
