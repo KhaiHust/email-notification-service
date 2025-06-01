@@ -16,10 +16,37 @@ import (
 type IAnalyticUsecase interface {
 	GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (map[string]*dto.SendVolumeDTO, error)
 	GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error)
+	GetSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) ([]*dto.SendVolumeByProviderDto, error)
 }
 type AnalyticUsecase struct {
 	emailRequestRepositoryPort  port.IEmailRequestRepositoryPort
 	emailProviderRepositoryPort port.IEmailProviderRepositoryPort
+}
+
+func (a AnalyticUsecase) GetSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) ([]*dto.SendVolumeByProviderDto, error) {
+	volumesByProvider, err := a.emailRequestRepositoryPort.GetVolumeProvider(ctx, filter)
+	if err != nil {
+		log.Error(ctx, "Error when get send volume by provider", err)
+		return nil, err
+	}
+	if len(volumesByProvider) == 0 {
+		return []*dto.SendVolumeByProviderDto{}, nil
+	}
+	providerIDs := make([]int64, 0)
+	for _, v := range volumesByProvider {
+		providerIDs = append(providerIDs, v.ProviderID)
+	}
+	providerMap, err := a.buildProviderMap(ctx, providerIDs)
+	if err != nil {
+		log.Error(ctx, "Error when build provider map", err)
+		return nil, err
+	}
+	for _, v := range volumesByProvider {
+		if provider, ok := providerMap[v.ProviderID]; ok {
+			v.Provider = provider.Provider
+		}
+	}
+	return volumesByProvider, nil
 }
 
 func (a AnalyticUsecase) GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error) {
@@ -92,7 +119,7 @@ func (a AnalyticUsecase) GetSendVolumes(ctx context.Context, filter *request.Sen
 	}
 
 	// Get total send volume by provider
-	volumesByProvider, err := a.GetSendVolumeByProvider(ctx, filter)
+	volumesByProvider, err := a.GetSendVolumeByProviderByDate(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
@@ -139,8 +166,8 @@ func (a AnalyticUsecase) GetSendVolumeByDate(ctx context.Context, filter *reques
 	}
 	return volumesByDate, nil
 }
-func (a AnalyticUsecase) GetSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error) {
-	volumesByProvider, err := a.emailRequestRepositoryPort.GetTotalSendVolumeByProvider(ctx, filter)
+func (a AnalyticUsecase) GetSendVolumeByProviderByDate(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error) {
+	volumesByProvider, err := a.emailRequestRepositoryPort.GetTotalSendVolumeProviderByDate(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

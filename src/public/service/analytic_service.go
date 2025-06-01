@@ -13,9 +13,18 @@ import (
 type IAnalyticService interface {
 	GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (interface{}, error)
 	GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error)
+	GetSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) ([]*response.SendVolumeByProviderResponse, error)
 }
 type AnalyticService struct {
 	analyticUsecase usecase.IAnalyticUsecase
+}
+
+func (a AnalyticService) GetSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) ([]*response.SendVolumeByProviderResponse, error) {
+	volumesByProvider, err := a.analyticUsecase.GetSendVolumeByProvider(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return response.ToSendVolumeByProviderResponse(volumesByProvider), nil
 }
 
 func (a AnalyticService) GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error) {

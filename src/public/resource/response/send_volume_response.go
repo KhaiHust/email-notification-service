@@ -22,3 +22,25 @@ func ToSendVolumeResponse(send map[string]*dto.SendVolumeDTO) *SendVolumeRespons
 	}
 	return response
 }
+
+type SendVolumeByProviderResponse struct {
+	ProviderID int64  `json:"provider_id"`
+	Provider   string `json:"provider"`
+	Total      int64  `json:"total"`
+	TotalError int64  `json:"total_error"`
+	TotalSent  int64  `json:"total_sent"`
+}
+
+func ToSendVolumeByProviderResponse(send []*dto.SendVolumeByProviderDto) []*SendVolumeByProviderResponse {
+	var response []*SendVolumeByProviderResponse
+	for _, v := range send {
+		response = append(response, &SendVolumeByProviderResponse{
+			ProviderID: v.ProviderID,
+			Provider:   v.Provider,
+			Total:      v.Total,
+			TotalError: v.TotalError,
+			TotalSent:  v.TotalSent,
+		})
+	}
+	return response
+}

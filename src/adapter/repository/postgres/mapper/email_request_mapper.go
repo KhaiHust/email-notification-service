@@ -3,6 +3,7 @@ package mapper
 import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto"
 	"github.com/KhaiHust/email-notification-service/core/utils"
 )
 
@@ -81,4 +82,19 @@ func ToListEmailStatusCountEntity(emailStatusCountModels []*model.EmailRequestSt
 		emailStatusCountEntities[i] = ToEmailStatusCountEntity(emailStatusCountModel)
 	}
 	return emailStatusCountEntities
+}
+func ToSendVolumeByProviderDto(sendVolumeByProviderModel *model.SendVolumeByProviderModel) *dto.SendVolumeByProviderDto {
+	return &dto.SendVolumeByProviderDto{
+		ProviderID: sendVolumeByProviderModel.ProviderID,
+		Total:      sendVolumeByProviderModel.Total,
+		TotalError: sendVolumeByProviderModel.TotalError,
+		TotalSent:  sendVolumeByProviderModel.TotalSent,
+	}
+}
+func ToListSendVolumeByProviderDto(sendVolumeByProviderModels []*model.SendVolumeByProviderModel) []*dto.SendVolumeByProviderDto {
+	sendVolumeByProviderDtos := make([]*dto.SendVolumeByProviderDto, len(sendVolumeByProviderModels))
+	for i, sendVolumeByProviderModel := range sendVolumeByProviderModels {
+		sendVolumeByProviderDtos[i] = ToSendVolumeByProviderDto(sendVolumeByProviderModel)
+	}
+	return sendVolumeByProviderDtos
 }
