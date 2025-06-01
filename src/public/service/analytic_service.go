@@ -5,15 +5,26 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/entity/dto"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
+	"github.com/KhaiHust/email-notification-service/core/utils"
 	"github.com/KhaiHust/email-notification-service/public/resource/response"
+	"time"
 )
 
 type IAnalyticService interface {
 	GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (interface{}, error)
 	GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error)
+	GetSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) ([]*response.SendVolumeByProviderResponse, error)
 }
 type AnalyticService struct {
 	analyticUsecase usecase.IAnalyticUsecase
+}
+
+func (a AnalyticService) GetSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) ([]*response.SendVolumeByProviderResponse, error) {
+	volumesByProvider, err := a.analyticUsecase.GetSendVolumeByProvider(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return response.ToSendVolumeByProviderResponse(volumesByProvider), nil
 }
 
 func (a AnalyticService) GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error) {
@@ -27,6 +38,18 @@ func (a AnalyticService) GetTemplateMetrics(ctx context.Context, filter *request
 }
 
 func (a AnalyticService) GetSendVolumes(ctx context.Context, filter *request.SendVolumeFilter) (interface{}, error) {
+	if filter.StartDate == nil {
+		if filter.EndDate != nil {
+			startDate := *filter.EndDate - int64(14*24*time.Hour/time.Second)
+			filter.StartDate = &startDate
+		} else {
+			now := time.Now()
+			startDate := now.Unix() - int64(14*24*time.Hour/time.Second)
+			filter.StartDate = &startDate
+			filter.EndDate = utils.ToUnixTimeToPointer(&now)
+		}
+	}
+
 	// Call the usecase to get send volumes
 	volumes, err := a.analyticUsecase.GetSendVolumes(ctx, filter)
 	if err != nil {

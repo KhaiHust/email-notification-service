@@ -101,6 +101,8 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	{
 		v1Analytic.GET("/send-volumes", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.AnalyticController.GetSendVolumes)
+		v1Analytic.GET("/send-volumes-by-provider", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.AnalyticController.GetSendVolumeByProvider)
 	}
 	v1Task := group.Group("/v1/tasks")
 	{

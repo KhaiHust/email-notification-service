@@ -19,6 +19,18 @@ type EmailRequestRepositoryAdapter struct {
 	base
 }
 
+func (e EmailRequestRepositoryAdapter) GetVolumeProvider(ctx context.Context, filter *request.SendVolumeFilter) ([]*dto.SendVolumeByProviderDto, error) {
+	var sendVolumeByProviderModels []*model.SendVolumeByProviderModel
+	rawQuery, args, err := specification.NewSendVolumeSpecification(filter).ToSendVolumeByProviderQuery()
+	if err != nil {
+		return nil, err
+	}
+	if err := e.db.WithContext(ctx).Raw(rawQuery, args...).Scan(&sendVolumeByProviderModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToListSendVolumeByProviderDto(sendVolumeByProviderModels), nil
+}
+
 func (e EmailRequestRepositoryAdapter) GetEmailRequestByIDs(ctx context.Context, emailRequestIDs []int64) ([]*entity.EmailRequestEntity, error) {
 	var emailRequestModels []*model.EmailRequestModel
 	if err := e.db.WithContext(ctx).Where("id IN ?", emailRequestIDs).Find(&emailRequestModels).Error; err != nil {
@@ -66,14 +78,14 @@ func (e EmailRequestRepositoryAdapter) GetChartStats(ctx context.Context, filter
 	return mapper.ToChartStatDtos(chartStatModels), nil
 }
 
-func (e EmailRequestRepositoryAdapter) GetTotalSendVolumeByProvider(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error) {
+func (e EmailRequestRepositoryAdapter) GetTotalSendVolumeProviderByDate(ctx context.Context, filter *request.SendVolumeFilter) (map[string]interface{}, error) {
 	specs := specification.NewSendVolumeSpecification(filter)
 	query, args, err := specs.ToSendVolumeQueryByProvider()
 	if err != nil {
 		return nil, err
 	}
 
-	var results []*model.SendVolumeByProviderModel
+	var results []*model.SendVolumeProviderByDateModel
 	if err = e.db.WithContext(ctx).Raw(query, args...).Find(&results).Error; err != nil {
 		return nil, err
 	}

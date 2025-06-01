@@ -19,6 +19,26 @@ type AnalyticController struct {
 	analyticService service.IAnalyticService
 }
 
+func (a AnalyticController) GetSendVolumeByProvider(c *gin.Context) {
+	workspaceID := a.GetWorkspaceIDFromContext(c)
+	if workspaceID == 0 {
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	filter, err := a.buildSendVolumeFilter(c)
+	if err != nil {
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	filter.WorkspaceId = workspaceID
+
+	sendVolumes, err := a.analyticService.GetSendVolumeByProvider(c, filter)
+	if err != nil {
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, sendVolumes)
+}
 func (a AnalyticController) GetSendVolumes(c *gin.Context) {
 	workspaceID := a.GetWorkspaceIDFromContext(c)
 	if workspaceID == 0 {
@@ -27,7 +47,7 @@ func (a AnalyticController) GetSendVolumes(c *gin.Context) {
 	}
 	filter, err := a.buildSendVolumeFilter(c)
 	if err != nil {
-		apihelper.AbortErrorHandle(c, err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
 		return
 	}
 	filter.WorkspaceId = workspaceID
