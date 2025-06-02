@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/constant"
+	coreRequestDto "github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/public/apihelper"
 	"github.com/KhaiHust/email-notification-service/public/resource/request"
 	"github.com/KhaiHust/email-notification-service/public/service"
@@ -15,6 +16,30 @@ type EmailProviderController struct {
 	emailProviderService service.IEmailProviderService
 }
 
+func (e EmailProviderController) GetAllEmailProviders(c *gin.Context) {
+	workspaceID := e.GetWorkspaceIDFromContext(c)
+	if workspaceID == 0 {
+		log.Error(c, "workspaceID is 0")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+
+	filter := e.buildQueryParamGetAllProviders(c)
+	if filter == nil {
+		log.Error(c, "filter is nil")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	filter.WorkspaceID = &workspaceID
+	results, err := e.emailProviderService.GetAllEmailProviders(c, filter)
+	if err != nil {
+		log.Error(c, "GetAllEmailProviders error: %v", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, results)
+
+}
 func (e EmailProviderController) GetOAuthUrl(c *gin.Context) {
 	provider := c.Param(constant.ParamEmailProvider)
 	if provider == "" {
@@ -95,4 +120,15 @@ func NewEmailProviderController(base *BaseController, emailProviderService servi
 		BaseController:       base,
 		emailProviderService: emailProviderService,
 	}
+}
+func (e EmailProviderController) buildQueryParamGetAllProviders(c *gin.Context) *coreRequestDto.GetEmailProviderRequestFilter {
+	query := c.Request.URL.Query()
+	filter := &coreRequestDto.GetEmailProviderRequestFilter{}
+	if provider := query.Get(constant.QueryParamProvider); provider != "" {
+		filter.Provider = &provider
+	}
+	if env := query.Get(constant.QueryParamEnvironment); env != "" {
+		filter.Environment = &env
+	}
+	return filter
 }

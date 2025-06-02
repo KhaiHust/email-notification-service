@@ -31,6 +31,7 @@ app:
       EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
     task:
       BaseUrl: https://rocket-korean-logo-herein.trycloudflare.com/email-notification-public/
       SecretKey: "test_task_secret_key"
@@ -46,6 +47,10 @@ app:
           retention: 72h
     producer:
       eventMappings:
+        EmailRequestSendingEvent:
+          topicName: c1.email.email-sending-request
+          transactional: false
+          disable: false
         EmailRequestSyncEvent:
           topicName: c1.email.email-request-sync
           transactional: false
@@ -60,3 +65,8 @@ app:
           topic: c1.email.email-request-sync
           groupId: c1.email.email-request-sync.EmailRequestSyncHandler.local
           enable: true
+  cron:
+    jobs:
+      - name: EmailSendRetryCronJob
+        spec: "@every 1m"
+        disabled: false

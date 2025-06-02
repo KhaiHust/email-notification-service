@@ -40,19 +40,19 @@ func NewEmailRequestSpecificationForQuery(sp *EmailRequestSpecification) (string
 		builder = buildEmailRequestSpecConditions(sp, builder)
 		if sp.SortOrder == constant.ASC {
 			if sp.Since != nil {
-				builder = builder.Where(sq.GtOrEq{"id": *sp.Since})
+				builder = builder.Where(sq.Gt{"id": *sp.Since})
 			}
 			if sp.Until != nil {
-				builder = builder.Where(sq.LtOrEq{"id": *sp.Until})
+				builder = builder.Where(sq.Lt{"id": *sp.Until})
 			}
 			builder = builder.OrderBy("id ASC")
 		}
 		if sp.SortOrder == constant.DESC {
 			if sp.Since != nil {
-				builder = builder.Where(sq.LtOrEq{"id": *sp.Since})
+				builder = builder.Where(sq.Lt{"id": *sp.Since})
 			}
 			if sp.Until != nil {
-				builder = builder.Where(sq.GtOrEq{"id": *sp.Until})
+				builder = builder.Where(sq.Gt{"id": *sp.Until})
 			}
 			builder = builder.OrderBy("id DESC")
 		}

@@ -20,6 +20,7 @@ func ToEmailSendingRequestDto(req *EmailSendingRequest) *request.EmailSendingReq
 	}
 	return &request.EmailSendingRequestDto{
 		TemplateID: req.TemplateId,
+		ProviderID: req.ProviderID,
 		Datas:      ToListEmailSendingDataDto(req.Datas),
 	}
 }

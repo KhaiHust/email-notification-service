@@ -4,6 +4,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/public/apihelper"
 	"github.com/KhaiHust/email-notification-service/public/resource/request"
+	publicResponse "github.com/KhaiHust/email-notification-service/public/resource/response"
 	"github.com/KhaiHust/email-notification-service/public/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golibs-starter/golib/log"
@@ -15,20 +16,25 @@ type EmailSendingController struct {
 }
 
 func (e *EmailSendingController) SendEmailRequest(ctx *gin.Context) {
-	//workspaceCode := ctx.Param(constant.ParamWorkspaceCode)
+	workspaceID := e.GetWorkspaceIDFromContext(ctx)
+	if workspaceID == 0 {
+		log.Error(ctx, "Error when get workspace id from context", common.ErrBadRequest)
+		apihelper.AbortErrorHandle(ctx, common.ErrBadRequest)
+		return
+	}
 	var req request.EmailSendingRequest
 	if err := ctx.ShouldBind(&req); err != nil {
 		log.Error(ctx, "Error when binding request", err)
 		apihelper.AbortErrorHandle(ctx, err)
 		return
 	}
-	err := e.emailSendingService.SendEmailRequest(ctx, 3, &req)
+	response, err := e.emailSendingService.SendEmailRequest(ctx, workspaceID, &req)
 	if err != nil {
 		log.Error(ctx, "Error when sending email", err)
 		apihelper.AbortErrorHandle(ctx, err)
 		return
 	}
-	apihelper.SuccessfulHandle(ctx, nil)
+	apihelper.SuccessfulHandle(ctx, &publicResponse.EmailSendingResponse{RequestID: response})
 }
 
 // SendEmailByTask handles the request to send an email by task ID

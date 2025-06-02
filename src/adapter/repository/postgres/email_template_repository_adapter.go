@@ -18,6 +18,14 @@ type EmailTemplateRepositoryAdapter struct {
 	base
 }
 
+func (e EmailTemplateRepositoryAdapter) GetTemplatesByIDs(ctx context.Context, IDs []int64) ([]*entity.EmailTemplateEntity, error) {
+	var emailTemplateModels []*model.EmailTemplateModel
+	if err := e.db.WithContext(ctx).Where("id IN ?", IDs).Find(&emailTemplateModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToEmailTemplateEntities(emailTemplateModels), nil
+}
+
 func (e EmailTemplateRepositoryAdapter) UpdateTemplate(ctx context.Context, tx *gorm.DB, template *entity.EmailTemplateEntity) (*entity.EmailTemplateEntity, error) {
 	emailTemplateModel := mapper.ToEmailTemplateModel(template)
 	if err := tx.WithContext(ctx).Model(&model.EmailTemplateModel{}).Where("id = ?", template.ID).Updates(emailTemplateModel).Error; err != nil {

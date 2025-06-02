@@ -15,4 +15,5 @@ type IEmailTemplateRepositoryPort interface {
 	GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error)
 	GetTemplateForUpdateByIDAndWorkspaceID(ctx context.Context, tx *gorm.DB, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error)
 	UpdateTemplate(ctx context.Context, tx *gorm.DB, template *entity.EmailTemplateEntity) (*entity.EmailTemplateEntity, error)
+	GetTemplatesByIDs(ctx context.Context, IDs []int64) ([]*entity.EmailTemplateEntity, error)
 }

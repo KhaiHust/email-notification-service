@@ -7,12 +7,48 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres/model"
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"gorm.io/gorm"
 )
 
 type EmailProviderRepositoryAdapter struct {
 	base
+}
+
+func (e EmailProviderRepositoryAdapter) GetProvidersByIds(ctx context.Context, ids []int64) ([]*entity.EmailProviderEntity, error) {
+	var emailProviderModels []*model.EmailProviderModel
+	if err := e.db.WithContext(ctx).Model(&model.EmailProviderModel{}).Where("id IN ?", ids).Find(&emailProviderModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToListEmailProviderEntity(emailProviderModels), nil
+}
+
+func (e EmailProviderRepositoryAdapter) GetAllEmailProviders(ctx context.Context, filter *request.GetEmailProviderRequestFilter) ([]*entity.EmailProviderEntity, error) {
+	//build query
+	query := e.db.WithContext(ctx).Model(&model.EmailProviderModel{}).
+		Select("id, workspace_id, provider, email, from_name, environment")
+
+	if filter != nil {
+		conditions := make(map[string]interface{})
+		if filter.WorkspaceID != nil {
+			conditions["workspace_id"] = *filter.WorkspaceID
+		}
+		if filter.Provider != nil {
+			conditions["provider"] = *filter.Provider
+		}
+		if filter.Environment != nil {
+			conditions["environment"] = *filter.Environment
+		}
+		if len(conditions) > 0 {
+			query = query.Where(conditions)
+		}
+	}
+	var emailProviderModels []*model.EmailProviderModel
+	if err := query.Find(&emailProviderModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToListEmailProviderEntity(emailProviderModels), nil
 }
 
 func (e EmailProviderRepositoryAdapter) GetEmailProviderByIds(ctx context.Context, ids []int64) ([]*entity.EmailProviderEntity, error) {
@@ -38,9 +74,9 @@ func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceCodeAndProvid
 	return mapper.ToEmailProviderEntity(&emailProviderModel), nil
 }
 
-func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceID(ctx context.Context, workspaceID int64) (*entity.EmailProviderEntity, error) {
+func (e EmailProviderRepositoryAdapter) GetEmailProviderByIDAndWorkspaceID(ctx context.Context, providerID, workspaceID int64) (*entity.EmailProviderEntity, error) {
 	var emailProviderModels *model.EmailProviderModel
-	if err := e.db.WithContext(ctx).Where("workspace_id = ?", workspaceID).First(&emailProviderModels).Error; err != nil {
+	if err := e.db.WithContext(ctx).Where("id = ? AND workspace_id = ?", providerID, workspaceID).First(&emailProviderModels).Error; err != nil {
 		return nil, err
 	}
 	return mapper.ToEmailProviderEntity(emailProviderModels), nil

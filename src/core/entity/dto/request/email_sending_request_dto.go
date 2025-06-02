@@ -1,10 +1,10 @@
 package request
 
 type EmailSendingRequestDto struct {
-	TemplateID    int64
-	WorkspaceID   int64
-	IntegrationID int64
-	Datas         []*EmailSendingData
+	TemplateID  int64
+	WorkspaceID int64
+	ProviderID  int64
+	Datas       []*EmailSendingData
 }
 type EmailSendingData struct {
 	EmailRequestID int64

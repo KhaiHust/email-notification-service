@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/KhaiHust/email-notification-service/core/common"
 	"github.com/KhaiHust/email-notification-service/core/entity"
+	coreRequest "github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/public/resource/request"
 	"github.com/KhaiHust/email-notification-service/public/resource/response"
@@ -14,10 +15,19 @@ type IEmailProviderService interface {
 	GetOAuthUrl(ctx context.Context, provider string) (*response.OAuthProviderResponse, error)
 	CreateEmailProvider(ctx context.Context, provider string, userId int64, workspaceCode string, req *request.CreateEmailProviderRequest) (*entity.EmailProviderEntity, error)
 	GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) ([]*response.EmailProviderResponse, error)
+	GetAllEmailProviders(ctx context.Context, filter *coreRequest.GetEmailProviderRequestFilter) ([]*response.EmailProviderResponse, error)
 }
 type EmailProviderService struct {
 	getEmailProviderUseCase    usecase.IGetEmailProviderUseCase
 	createEmailProviderUseCase usecase.ICreateEmailProviderUseCase
+}
+
+func (e EmailProviderService) GetAllEmailProviders(ctx context.Context, filter *coreRequest.GetEmailProviderRequestFilter) ([]*response.EmailProviderResponse, error) {
+	results, err := e.getEmailProviderUseCase.GetAllEmailProviders(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return response.ToEmailProviderResponseList(results), nil
 }
 
 func (e EmailProviderService) GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) ([]*response.EmailProviderResponse, error) {

@@ -16,11 +16,16 @@ type IGetEmailTemplateUseCase interface {
 	GetAllTemplates(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, error)
 	GetAllTemplatesWithMetrics(ctx context.Context, filter *request.GetListEmailTemplateFilter) ([]*entity.EmailTemplateEntity, int64, error)
 	GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error)
+	GetTemplatesByIDs(ctx context.Context, IDs []int64) ([]*entity.EmailTemplateEntity, error)
 }
 type GetEmailTemplateUseCase struct {
 	emailTemplateRepositoryPort port.IEmailTemplateRepositoryPort
 	getEmailRequestUsecase      IGetEmailRequestUsecase
 	encryptUseCase              IEncryptUseCase
+}
+
+func (e GetEmailTemplateUseCase) GetTemplatesByIDs(ctx context.Context, IDs []int64) ([]*entity.EmailTemplateEntity, error) {
+	return e.emailTemplateRepositoryPort.GetTemplatesByIDs(ctx, IDs)
 }
 
 func (e GetEmailTemplateUseCase) GetTemplateByIDAndWorkspaceID(ctx context.Context, ID int64, workspaceID int64) (*entity.EmailTemplateEntity, error) {

@@ -26,4 +26,5 @@ const (
 	QueryParamInterval        = "interval"
 	QueryParamIsChart         = "is_chart"
 	QueryParamDuration        = "duration"
+	QueryParamProvider        = "provider"
 )
