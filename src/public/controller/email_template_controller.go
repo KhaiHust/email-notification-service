@@ -102,6 +102,32 @@ func NewEmailTemplateController(
 		emailTemplateService: emailTemplateService,
 	}
 }
+func (e *EmailTemplateController) DeleteTemplate(c *gin.Context) {
+	workspaceID := e.GetWorkspaceIDFromContext(c)
+	if workspaceID == 0 {
+		log.Error(c, "Error when get workspace id from context", common.ErrBadRequest)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	userID, err := e.GetUserIDFromContext(c)
+	if err != nil {
+		log.Error(c, "Error when get user id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrForbidden)
+		return
+	}
+	templateID, err := strconv.ParseInt(c.Param(constant.ParamTemplateId), 10, 64)
+	if err != nil {
+		log.Error(c, "Error when get template id from context", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	if err := e.emailTemplateService.DeleteEmailTemplate(c, userID, workspaceID, templateID); err != nil {
+		log.Error(c, "Error when delete email template", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, nil)
+}
 func (e *EmailTemplateController) UpdateTemplate(c *gin.Context) {
 	workspaceID := e.GetWorkspaceIDFromContext(c)
 	if workspaceID == 0 {

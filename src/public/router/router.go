@@ -78,6 +78,9 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 		v1Template.GET("/:templateId/metrics",
 			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.AnalyticController.GetTemplateMetrics)
+		v1Template.DELETE(fmt.Sprintf("/:%s", constant.ParamTemplateId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailTemplateController.DeleteTemplate)
 	}
 	v1ApiKey := v1Workspace.Group("/:workspaceCode/api-keys")
 	{

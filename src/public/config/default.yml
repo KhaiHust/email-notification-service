@@ -24,6 +24,7 @@ app:
           - { urlPattern: "/v1/workspaces/.*/templates", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/templates/.", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/templates/.", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates/.", method: DELETE, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/send", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/api-keys", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/api-keys.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
