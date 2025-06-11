@@ -45,6 +45,7 @@ type EmailSendingUsecase struct {
 	trackingProperties         *properties.TrackingProperties
 	encryptUseCase             IEncryptUseCase
 	emailLogRepositoryPort     port.IEmailLogRepositoryPort
+	updateEmailRequestUsecase  IUpdateEmailRequestUsecase
 }
 
 func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *entity.EmailRequestEntity) error {
@@ -275,7 +276,7 @@ func (e EmailSendingUsecase) SendBatches(ctx context.Context, emailRequests []*e
 		dataSendings = append(dataSendings, &request.EmailDataDto{
 			EmailRequestID: emailRequest.ID,
 			Subject:        utils.FillTemplate(template.Subject, payloadMap[SubjectKey]),
-			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="100" height="100"  /></body></html>`,
+			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="1" height="1"  /></body></html>`,
 				utils.FillTemplate(template.Body, payloadMap[BodyKey]),
 				utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
 			),

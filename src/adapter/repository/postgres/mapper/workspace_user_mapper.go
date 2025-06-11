@@ -27,10 +27,10 @@ func ToWorkspaceUserEntity(workspaceUserModel *model.WorkspaceUserModel) *entity
 		Role:        workspaceUserModel.Role,
 	}
 }
-func ToListWorkspaceUserEntity(workspaceUserModels []model.WorkspaceUserModel) []entity.WorkspaceUserEntity {
-	var workspaceUserEntities []entity.WorkspaceUserEntity
+func ToListWorkspaceUserEntity(workspaceUserModels []*model.WorkspaceUserModel) []*entity.WorkspaceUserEntity {
+	var workspaceUserEntities []*entity.WorkspaceUserEntity
 	for _, workspaceUserModel := range workspaceUserModels {
-		workspaceUserEntities = append(workspaceUserEntities, *ToWorkspaceUserEntity(&workspaceUserModel))
+		workspaceUserEntities = append(workspaceUserEntities, ToWorkspaceUserEntity(workspaceUserModel))
 	}
 	return workspaceUserEntities
 }

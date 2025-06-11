@@ -46,7 +46,7 @@ func (v ValidateAccessWorkspaceUsecase) ValidateAccessWorkspaceByUserIdAndCode(c
 	if !isFind {
 		return nil, 0, fmt.Errorf("workspace %s not found", code)
 	}
-	workspaceUser, isFind := lo.Find(workspace.WorkspaceUserEntity, func(wu entity.WorkspaceUserEntity) bool {
+	workspaceUser, isFind := lo.Find(workspace.WorkspaceUserEntity, func(wu *entity.WorkspaceUserEntity) bool {
 		return wu.UserID == userId
 	})
 	if !isFind {

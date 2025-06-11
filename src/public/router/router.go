@@ -28,6 +28,7 @@ type RegisterRoutersIn struct {
 	EmailTrackingController *controller.EmailTrackingController
 	EmailLogController      *controller.EmailLogController
 	AnalyticController      *controller.AnalyticController
+	WebhookController       *controller.WebhookController
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
@@ -50,6 +51,8 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 		v1Workspace.GET("", p.WorkspaceController.GetWorkspaces)
 		v1Workspace.POST("/:workspaceCode/send", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailSendingController.SendEmailRequest)
+		v1Workspace.GET("/:workspaceCode",
+			p.WorkspaceController.GetWorkspaceDetail)
 	}
 	v1EmailProvider := v1Workspace.Group("/:workspaceCode/providers")
 	{
@@ -112,5 +115,15 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	v1Task := group.Group("/v1/tasks")
 	{
 		v1Task.POST("/email-request/schedule", p.EmailSendingController.SendEmailByTask)
+	}
+	v1Webhook := v1Workspace.Group("/:workspaceCode/webhooks")
+	{
+		v1Webhook.POST("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.WebhookController.Create)
+	}
+	v1Members := v1Workspace.Group("/:workspaceCode/members")
+	{
+		v1Members.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.UserController.GetListMembers)
 	}
 }

@@ -15,6 +15,15 @@ type WorkspaceUserRepositoryAdapter struct {
 	base
 }
 
+func (w WorkspaceUserRepositoryAdapter) GetWorkspaceUserByWorkspaceID(ctx context.Context, workspaceID int64) ([]*entity.WorkspaceUserEntity, error) {
+	var workspaceUserModels []*model.WorkspaceUserModel
+	err := w.db.WithContext(ctx).Where("workspace_id = ?", workspaceID).Find(&workspaceUserModels).Error
+	if err != nil {
+		return nil, err
+	}
+	return mapper.ToListWorkspaceUserEntity(workspaceUserModels), nil
+}
+
 func (w WorkspaceUserRepositoryAdapter) GetWorkspaceUserByWorkspaceIDAndUserID(ctx context.Context, workspaceID int64, userID int64) (*entity.WorkspaceUserEntity, error) {
 	var workspaceUserModel model.WorkspaceUserModel
 	err := w.db.WithContext(ctx).Where("workspace_id = ? AND user_id = ?", workspaceID, userID).First(&workspaceUserModel).Error

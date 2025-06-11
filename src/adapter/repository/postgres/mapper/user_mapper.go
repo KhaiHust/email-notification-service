@@ -24,3 +24,10 @@ func ToUserEntity(userModel *model.UserModel) *entity.UserEntity {
 		Password: userModel.Password,
 	}
 }
+func ToListUserEntity(userModels []*model.UserModel) []*entity.UserEntity {
+	var userEntities []*entity.UserEntity
+	for _, user := range userModels {
+		userEntities = append(userEntities, ToUserEntity(user))
+	}
+	return userEntities
+}

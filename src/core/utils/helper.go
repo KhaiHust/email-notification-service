@@ -25,7 +25,10 @@ func FromUnixPointerToTime(t *int64) *time.Time {
 	if t == nil {
 		return nil
 	}
-	tm := time.Unix(*t, 0)
+	//convert to utc
+	loc, _ := time.LoadLocation("Local") // Change to your desired location
+
+	tm := time.Unix(*t, 0).In(loc)
 	return &tm
 }
 func ToInt64Pointer(t int64) *int64 {

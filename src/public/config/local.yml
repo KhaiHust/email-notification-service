@@ -1,7 +1,6 @@
 app:
   logging:
     level: INFO
-    development: true
   datasource:
     driver: postgres
     host: localhost

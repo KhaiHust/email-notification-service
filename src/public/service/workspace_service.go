@@ -10,10 +10,19 @@ import (
 type IWorkspaceService interface {
 	CreateNewWorkspace(ctx context.Context, userID int64, req *request.CreateWorkspaceRequest) (*response.WorkspaceResponse, error)
 	GetWorkspacesByUserId(ctx context.Context, userID int64) ([]*response.WorkspaceResponse, error)
+	GetWorkspaceDetail(ctx context.Context, userID int64, code string) (*response.WorkspaceResponse, error)
 }
 type WorkspaceService struct {
 	createWorkspaceUseCase usecase.ICreateWorkspaceUseCase
 	getWorkspaceUseCase    usecase.IGetWorkspaceUseCase
+}
+
+func (w WorkspaceService) GetWorkspaceDetail(ctx context.Context, userID int64, code string) (*response.WorkspaceResponse, error) {
+	workspaceEntity, err := w.getWorkspaceUseCase.GetWorkspaceByCode(ctx, userID, code)
+	if err != nil {
+		return nil, err
+	}
+	return response.ToWorkspaceResponse(workspaceEntity), nil
 }
 
 func (w WorkspaceService) GetWorkspacesByUserId(ctx context.Context, userID int64) ([]*response.WorkspaceResponse, error) {

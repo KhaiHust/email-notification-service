@@ -10,6 +10,7 @@ type ApiKeyResponse struct {
 	UpdatedAt   int64  `json:"updated_at"`
 	ExpiresAt   *int64 `json:"expires_at,omitempty"`
 	Prefix      string `json:"prefix,omitempty"`
+	RawKey      string `json:"raw_key,omitempty"`
 }
 
 func ToApiKeyResponse(key *entity.ApiKeyEntity) *ApiKeyResponse {
@@ -24,6 +25,7 @@ func ToApiKeyResponse(key *entity.ApiKeyEntity) *ApiKeyResponse {
 		UpdatedAt:   key.UpdatedAt,
 		ExpiresAt:   key.ExpiresAt,
 		Prefix:      key.RawPrefix,
+		RawKey:      key.RawKey,
 	}
 }
 func ToListApiKeyResponse(keys []*entity.ApiKeyEntity) []*ApiKeyResponse {
