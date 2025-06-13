@@ -64,6 +64,9 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 			p.EmailProviderController.GetEmailProvider)
 		v1EmailProvider.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailProviderController.GetAllEmailProviders)
+		v1EmailProvider.PATCH(fmt.Sprintf("/:%s", constant.ParamEmailProviderID),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.EmailProviderController.UpdateEmailProvider)
 	}
 	v1Template := v1Workspace.Group("/:workspaceCode/templates")
 	{

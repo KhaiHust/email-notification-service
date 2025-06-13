@@ -6,9 +6,11 @@ import (
 	coreRequestDto "github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/public/apihelper"
 	"github.com/KhaiHust/email-notification-service/public/resource/request"
+	"github.com/KhaiHust/email-notification-service/public/resource/response"
 	"github.com/KhaiHust/email-notification-service/public/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golibs-starter/golib/log"
+	"strconv"
 )
 
 type EmailProviderController struct {
@@ -114,6 +116,39 @@ func (e EmailProviderController) GetEmailProvider(c *gin.Context) {
 		return
 	}
 	apihelper.SuccessfulHandle(c, result)
+}
+func (e EmailProviderController) UpdateEmailProvider(c *gin.Context) {
+	workspaceID := e.GetWorkspaceIDFromContext(c)
+	if workspaceID == 0 {
+		log.Error(c, "workspaceID is 0")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	providerID, err := strconv.ParseInt(c.Param(constant.ParamEmailProviderID), 10, 64)
+	if err != nil || providerID <= 0 {
+		log.Error(c, "providerID is invalid: %v", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	var req request.UpdateEmailProviderRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error(c, "Failed to bind the request's body to update email provider")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	if err := e.validator.Struct(&req); err != nil {
+		log.Error(c, "Failed to validate the request's body to update email provider")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	result, err := e.emailProviderService.UpdateEmailProviderRequest(c, workspaceID, providerID, &req)
+	if err != nil {
+		log.Error(c, "UpdateEmailProvider error: %v", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, response.ToEmailProviderResponse(result))
+
 }
 func NewEmailProviderController(base *BaseController, emailProviderService service.IEmailProviderService) *EmailProviderController {
 	return &EmailProviderController{

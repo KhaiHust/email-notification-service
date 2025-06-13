@@ -12,7 +12,7 @@ type IGetEmailProviderUseCase interface {
 	GetOAuthUrl(ctx context.Context, provider string) (*response.OAuthUrlResponseDto, error)
 	GetEmailProviderByID(ctx context.Context, ID int64) (*entity.EmailProviderEntity, error)
 	GetEmailProviderByIDAndWorkspaceID(ctx context.Context, providerID int64, workspaceID int64) (*entity.EmailProviderEntity, error)
-	GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) (*entity.EmailProviderEntity, error)
+	GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) ([]*entity.EmailProviderEntity, error)
 	GetAllEmailProviders(ctx context.Context, filter *request.GetEmailProviderRequestFilter) ([]*entity.EmailProviderEntity, error)
 	GetProvidersByIds(ctx context.Context, ids []int64) ([]*entity.EmailProviderEntity, error)
 }
@@ -29,7 +29,7 @@ func (g GetEmailProviderUseCase) GetAllEmailProviders(ctx context.Context, filte
 	return g.emailProviderRepositoryPort.GetAllEmailProviders(ctx, filter)
 }
 
-func (g GetEmailProviderUseCase) GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) (*entity.EmailProviderEntity, error) {
+func (g GetEmailProviderUseCase) GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) ([]*entity.EmailProviderEntity, error) {
 	return g.emailProviderRepositoryPort.GetEmailProviderByWorkspaceCodeAndProvider(ctx, workspaceCode, provider)
 }
 

@@ -16,6 +16,17 @@ type EmailProviderRepositoryAdapter struct {
 	base
 }
 
+func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceIDAndID(ctx context.Context, workspaceID, providerID int64) (*entity.EmailProviderEntity, error) {
+	var emailProviderModel model.EmailProviderModel
+	if err := e.db.WithContext(ctx).Where("workspace_id = ? AND id = ?", workspaceID, providerID).First(&emailProviderModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return mapper.ToEmailProviderEntity(&emailProviderModel), nil
+}
+
 func (e EmailProviderRepositoryAdapter) GetProvidersByIds(ctx context.Context, ids []int64) ([]*entity.EmailProviderEntity, error) {
 	var emailProviderModels []*model.EmailProviderModel
 	if err := e.db.WithContext(ctx).Model(&model.EmailProviderModel{}).Where("id IN ?", ids).Find(&emailProviderModels).Error; err != nil {
@@ -59,19 +70,19 @@ func (e EmailProviderRepositoryAdapter) GetEmailProviderByIds(ctx context.Contex
 	return mapper.ToListEmailProviderEntity(emailProviderModels), nil
 }
 
-func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) (*entity.EmailProviderEntity, error) {
+func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) ([]*entity.EmailProviderEntity, error) {
 	//build raw sql
 	sql := "SELECT ep.id, ep.workspace_id, ep.provider, ep.email, ep.from_name, ep.environment FROM email_providers ep " +
 		"JOIN workspaces w ON ep.workspace_id = w.id " +
 		"WHERE w.code = ? AND ep.provider = ?"
-	var emailProviderModel model.EmailProviderModel
+	var emailProviderModel []*model.EmailProviderModel
 	if err := e.db.WithContext(ctx).Raw(sql, workspaceCode, provider).Scan(&emailProviderModel).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, common.ErrRecordNotFound
 		}
 		return nil, err
 	}
-	return mapper.ToEmailProviderEntity(&emailProviderModel), nil
+	return mapper.ToListEmailProviderEntity(emailProviderModel), nil
 }
 
 func (e EmailProviderRepositoryAdapter) GetEmailProviderByIDAndWorkspaceID(ctx context.Context, providerID, workspaceID int64) (*entity.EmailProviderEntity, error) {
