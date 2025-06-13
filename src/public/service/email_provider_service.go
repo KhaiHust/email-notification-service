@@ -17,11 +17,20 @@ type IEmailProviderService interface {
 	GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) ([]*response.EmailProviderResponse, error)
 	GetAllEmailProviders(ctx context.Context, filter *coreRequest.GetEmailProviderRequestFilter) ([]*response.EmailProviderResponse, error)
 	UpdateEmailProviderRequest(ctx context.Context, workspaceID, providerID int64, req *request.UpdateEmailProviderRequest) (*entity.EmailProviderEntity, error)
+	DeactivateEmailProvider(ctx context.Context, workspaceID, providerID int64) (*entity.EmailProviderEntity, error)
 }
 type EmailProviderService struct {
 	getEmailProviderUseCase    usecase.IGetEmailProviderUseCase
 	createEmailProviderUseCase usecase.ICreateEmailProviderUseCase
 	updateEmailProviderUseCase usecase.IUpdateEmailProviderUseCase
+}
+
+func (e EmailProviderService) DeactivateEmailProvider(ctx context.Context, workspaceID, providerID int64) (*entity.EmailProviderEntity, error) {
+	result, err := e.updateEmailProviderUseCase.DeactivateEmailProvider(ctx, workspaceID, providerID)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (e EmailProviderService) UpdateEmailProviderRequest(ctx context.Context, workspaceID, providerID int64, req *request.UpdateEmailProviderRequest) (*entity.EmailProviderEntity, error) {

@@ -10,6 +10,8 @@ type EmailRequestSpecification struct {
 	WorkspaceIDs     []int64
 	EmailTemplateIDs []int64
 	Statuses         []string
+	RequestID        *string
+	Recipient        *string
 	*BaseSpecification
 }
 
@@ -92,6 +94,12 @@ func buildEmailRequestSpecConditions(sp *EmailRequestSpecification, builder sq.S
 	if sp.UpdatedAtTo != nil {
 		builder = builder.Where(sq.LtOrEq{"updated_at": *sp.UpdatedAtTo})
 	}
+	if sp.RequestID != nil && *sp.RequestID != "" {
+		builder = builder.Where(sq.Eq{"request_id": *sp.RequestID})
+	}
+	if sp.Recipient != nil && *sp.Recipient != "" {
+		builder = builder.Where(sq.Eq{"recipient": *sp.Recipient})
+	}
 	return builder
 }
 func NewEmailRequestSpecificationForCountStatus(sp *EmailRequestSpecification) (string, []interface{}, error) {
@@ -121,5 +129,7 @@ func ToEmailRequestSpecification(filter *request.EmailRequestFilter) *EmailReque
 		EmailTemplateIDs:  filter.EmailTemplateIDs,
 		Statuses:          filter.Statuses,
 		BaseSpecification: ToBaseSpecification(filter.BaseFilter),
+		RequestID:         filter.RequestID,
+		Recipient:         filter.Email,
 	}
 }

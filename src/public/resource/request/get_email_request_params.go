@@ -36,5 +36,6 @@ func ToGetEmailRequestFilter(param *GetListEmailRequestParams) *request.EmailReq
 		RequestID:        param.RequestID,
 		Statuses:         param.Statuses,
 		EmailTemplateIDs: param.EmailTemplateIDs,
+		Email:            param.Email,
 	}
 }

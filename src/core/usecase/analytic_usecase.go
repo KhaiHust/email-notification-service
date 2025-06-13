@@ -46,7 +46,23 @@ func (a AnalyticUsecase) GetSendVolumeByProvider(ctx context.Context, filter *re
 			v.Provider = provider.Provider
 		}
 	}
-	return volumesByProvider, nil
+
+	volumesByProviderMap := make(map[string]*dto.SendVolumeByProviderDto)
+	for _, v := range volumesByProvider {
+		if existing, ok := volumesByProviderMap[v.Provider]; ok {
+			existing.Total += v.Total
+			existing.TotalSent += v.TotalSent
+			existing.TotalError += v.TotalError
+		} else {
+			volumesByProviderMap[v.Provider] = v
+		}
+	}
+	//convert map to slice
+	volumesByProviderSlice := make([]*dto.SendVolumeByProviderDto, 0, len(volumesByProviderMap))
+	for _, v := range volumesByProviderMap {
+		volumesByProviderSlice = append(volumesByProviderSlice, v)
+	}
+	return volumesByProviderSlice, nil
 }
 
 func (a AnalyticUsecase) GetTemplateMetrics(ctx context.Context, filter *request.TemplateMetricFilter) (*dto.TemplateMetricDTO, error) {
@@ -74,6 +90,23 @@ func (a AnalyticUsecase) GetTemplateMetrics(ctx context.Context, filter *request
 	if err != nil {
 		log.Error(ctx, "Error when get provider stats", err)
 		return nil, err
+	}
+	// combine provider stats
+	providerStatsMap := make(map[string]*dto.ProviderStat)
+	for _, providerStat := range providerStats {
+		if existing, ok := providerStatsMap[providerStat.ProviderName]; ok {
+			existing.Sent += providerStat.Sent
+			existing.Error += providerStat.Error
+			existing.Scheduled += providerStat.Scheduled
+			existing.Open += providerStat.Open
+		} else {
+			providerStatsMap[providerStat.ProviderName] = providerStat
+		}
+	}
+	// convert map to slice
+	providerStats = make([]*dto.ProviderStat, 0, len(providerStatsMap))
+	for _, providerStat := range providerStatsMap {
+		providerStats = append(providerStats, providerStat)
 	}
 	response.TemplateStat.ProviderStats = providerStats
 	return &response, nil
@@ -139,13 +172,19 @@ func (a AnalyticUsecase) GetSendVolumes(ctx context.Context, filter *request.Sen
 		}
 		volumesProvider := volumesByProvider[date]
 		if m, ok := volumesProvider.(map[int64]int64); ok {
+			volumesProviderMap := make(map[string]int64)
+			// Iterate over the map to build the provider map
 			for providerID, totalSend := range m {
 				if provider, ok := providerMap[providerID]; ok {
-					volumesProviderMap := make(map[string]int64)
-					volumesProviderMap[provider.Provider] = totalSend
-					sendVolumeDto.TotalSendByProvider = volumesProviderMap
+					if _, exists := volumesProviderMap[provider.Provider]; !exists {
+						volumesProviderMap[provider.Provider] = totalSend
+					} else {
+						// If the provider already exists, add to the total
+						volumesProviderMap[provider.Provider] += totalSend
+					}
 				}
 			}
+			sendVolumeDto.TotalSendByProvider = volumesProviderMap
 		}
 		sendVolumeDtoMap[date] = sendVolumeDto
 	}

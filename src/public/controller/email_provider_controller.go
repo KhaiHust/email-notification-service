@@ -150,6 +150,27 @@ func (e EmailProviderController) UpdateEmailProvider(c *gin.Context) {
 	apihelper.SuccessfulHandle(c, response.ToEmailProviderResponse(result))
 
 }
+func (e EmailProviderController) DeactivateEmailProvider(c *gin.Context) {
+	workspaceID := e.GetWorkspaceIDFromContext(c)
+	if workspaceID == 0 {
+		log.Error(c, "workspaceID is 0")
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	providerID, err := strconv.ParseInt(c.Param(constant.ParamEmailProviderID), 10, 64)
+	if err != nil || providerID <= 0 {
+		log.Error(c, "providerID is invalid: %v", err)
+		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
+	}
+	result, err := e.emailProviderService.DeactivateEmailProvider(c, workspaceID, providerID)
+	if err != nil {
+		log.Error(c, "DeactivateEmailProvider error: %v", err)
+		apihelper.AbortErrorHandle(c, err)
+		return
+	}
+	apihelper.SuccessfulHandle(c, response.ToEmailProviderResponse(result))
+}
 func NewEmailProviderController(base *BaseController, emailProviderService service.IEmailProviderService) *EmailProviderController {
 	return &EmailProviderController{
 		BaseController:       base,

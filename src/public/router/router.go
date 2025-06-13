@@ -67,6 +67,10 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 		v1EmailProvider.PATCH(fmt.Sprintf("/:%s", constant.ParamEmailProviderID),
 			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.EmailProviderController.UpdateEmailProvider)
+		v1EmailProvider.DELETE(fmt.Sprintf("/:%s", constant.ParamEmailProviderID),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			middleware.ValidateRoleAdminMiddleware(),
+			p.EmailProviderController.DeactivateEmailProvider)
 	}
 	v1Template := v1Workspace.Group("/:workspaceCode/templates")
 	{

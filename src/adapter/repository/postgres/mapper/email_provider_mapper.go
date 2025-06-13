@@ -23,6 +23,7 @@ func ToEmailProviderModel(emailProviderEntity *entity.EmailProviderEntity) *mode
 		Email:             emailProviderEntity.Email,
 		FromName:          emailProviderEntity.FromName,
 		Environment:       emailProviderEntity.Environment,
+		Active:            emailProviderEntity.Active,
 	}
 }
 func ToEmailProviderEntity(emailProviderModel *model.EmailProviderModel) *entity.EmailProviderEntity {
@@ -46,6 +47,7 @@ func ToEmailProviderEntity(emailProviderModel *model.EmailProviderModel) *entity
 		Email:             emailProviderModel.Email,
 		FromName:          emailProviderModel.FromName,
 		Environment:       emailProviderModel.Environment,
+		Active:            emailProviderModel.Active,
 	}
 }
 func ToListEmailProviderEntity(emailProviderModels []*model.EmailProviderModel) []*entity.EmailProviderEntity {

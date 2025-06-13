@@ -46,3 +46,13 @@ func (w *WorkspaceAccessMiddleware) WorkspaceAccessMiddlewareHandle() gin.Handle
 		c.Set(constant.WorkspaceIdKey, workspaceId)
 	}
 }
+func ValidateRoleAdminMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		role, exists := c.Get(constant.WorkspaceRoleKey)
+		if !exists || role != constant.WorkspaceRoleAdmin {
+			apihelper.AbortErrorHandle(c, common.ErrForbidden)
+			return
+		}
+		c.Next()
+	}
+}

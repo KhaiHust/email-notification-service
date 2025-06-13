@@ -1,6 +1,9 @@
 package response
 
-import "github.com/KhaiHust/email-notification-service/core/entity/dto"
+import (
+	"github.com/KhaiHust/email-notification-service/core/entity/dto"
+	"math"
+)
 
 type TemplateMetricResponse struct {
 	ChartStats   []*ChartStatResponse  `json:"chart_stats,omitempty"`
@@ -88,5 +91,7 @@ func calculateOpenRate(open int64, sent int64) float64 {
 	if sent == 0 {
 		return 0
 	}
-	return float64(open) / float64(sent+open) * 100
+	// round the open rate to 2 decimal places
+	rate := float64(open) / float64(sent+open) * 100
+	return math.Round(rate*100) / 100
 }
