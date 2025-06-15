@@ -15,6 +15,7 @@ type EmailProviderModel struct {
 	Email             string    `gorm:"column:email"`
 	FromName          string    `gorm:"column:from_name"`
 	Environment       string    `gorm:"column:environment"`
+	Active            *bool     `gorm:"column:active"`
 }
 
 func (EmailProviderModel) TableName() string {

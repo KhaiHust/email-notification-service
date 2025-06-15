@@ -9,7 +9,7 @@ import (
 )
 
 type IEmailSendingService interface {
-	SendEmailRequest(ctx context.Context, workspaceID int64, req *request.EmailSendingRequest) error
+	SendEmailRequest(ctx context.Context, workspaceID int64, req *request.EmailSendingRequest) (string, error)
 	SendEmailByTask(ctx context.Context, emailRequestID int64) error
 }
 type EmailSendingService struct {
@@ -26,17 +26,18 @@ func (e EmailSendingService) SendEmailByTask(ctx context.Context, emailRequestID
 	return e.emailSendingUsecase.SendEmailByTask(ctx, emailRequest)
 }
 
-func (e EmailSendingService) SendEmailRequest(ctx context.Context, workspaceID int64, req *request.EmailSendingRequest) error {
+func (e EmailSendingService) SendEmailRequest(ctx context.Context, workspaceID int64, req *request.EmailSendingRequest) (string, error) {
 	reqDto := request.ToEmailSendingRequestDto(req)
 	if reqDto == nil {
 		log.Error(ctx, "Request is nil")
-		return nil
+		return "", nil
 	}
-	if err := e.emailSendingUsecase.ProcessSendingEmails(ctx, workspaceID, reqDto); err != nil {
+	requestID, err := e.emailSendingUsecase.ProcessSendingEmails(ctx, workspaceID, reqDto)
+	if err != nil {
 		log.Error(ctx, "Error when process sending emails", err)
-		return err
+		return "", err
 	}
-	return nil
+	return requestID, nil
 }
 
 func NewEmailSendingService(

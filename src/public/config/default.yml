@@ -19,12 +19,17 @@ app:
           - { urlPattern: "/v1/workspaces/*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/providers/.*/oauth", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
-          - { urlPattern: "/v1/workspaces/.*/providers/.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/providers/.*", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/providers/.*", method: DELETE, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/providers.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/templates", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/templates", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
-          - { urlPattern: "/v1/workspaces/.*/templates/.", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
-          - { urlPattern: "/v1/workspaces/.*/templates/.", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates/.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates/.*", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates/.*", method: DELETE, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/send", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/api-keys", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/api-keys.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/analytics/.*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/webhooks/.*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/members/.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }

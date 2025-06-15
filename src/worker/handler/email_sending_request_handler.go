@@ -31,7 +31,7 @@ func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) 
 	}
 
 	payload := evt.PayloadData
-	if err := em.eventHandlerUsecase.SendEmailRequestHandler(ctx, payload.IntegrationID, mapper.ToEmailSendingDto(payload)); err != nil {
+	if err := em.eventHandlerUsecase.SendEmailRequestHandler(ctx, mapper.ToEmailSendingDto(payload)); err != nil {
 		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Error handling event: %v", err))
 		return
 	}

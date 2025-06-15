@@ -15,6 +15,16 @@ type UserRepositoryAdapter struct {
 	base
 }
 
+func (u UserRepositoryAdapter) GetUsersByIds(ctx context.Context, IDs []int64) ([]*entity.UserEntity, error) {
+	var userModels []*model.UserModel
+	if err := u.db.WithContext(ctx).Model(&model.UserModel{}).
+		Select("id, email, full_name, created_at, updated_at").
+		Where("id IN ?", IDs).Find(&userModels).Error; err != nil {
+		return nil, err
+	}
+	return mapper.ToListUserEntity(userModels), nil
+}
+
 func (u UserRepositoryAdapter) SaveUser(ctx context.Context, tx *gorm.DB, user *entity.UserEntity) (*entity.UserEntity, error) {
 	userModel := mapper.ToUserModel(user)
 	if err := tx.WithContext(ctx).Model(&model.UserModel{}).Create(userModel).Error; err != nil {

@@ -16,7 +16,7 @@ type EmailTemplateSpecification struct {
 }
 
 func NewEmailTemplateSpecificationQuery(sp *EmailTemplateSpecification) (string, []interface{}, error) {
-	query := sq.Select("id, name, workspace_id, created_at, updated_at").From("email_templates").Where("1=1")
+	query := sq.Select("id, name, workspace_id, created_at, updated_at").From("email_templates").Where("1=1 AND active IS TRUE")
 	if sp != nil {
 		query = addCondition(sp, query)
 		// Handle ID filtering
@@ -45,7 +45,7 @@ func NewEmailTemplateSpecificationQuery(sp *EmailTemplateSpecification) (string,
 	return query.ToSql()
 }
 func NewEmailTemplateSpecificationQueryWithCount(sp *EmailTemplateSpecification) (string, []interface{}, error) {
-	query := sq.Select("COUNT(*)").From("email_templates").Where("1=1")
+	query := sq.Select("COUNT(*)").From("email_templates").Where("1=1 AND active IS TRUE")
 	if sp != nil {
 		query = addCondition(sp, query)
 	}

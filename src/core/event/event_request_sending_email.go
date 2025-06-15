@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
-	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/event/message"
 	"github.com/golibs-starter/golib/web/event"
 )
@@ -20,14 +19,14 @@ func (a EventRequestSendingEmail) Payload() interface{} {
 func (a EventRequestSendingEmail) String() string {
 	return a.ToString(a)
 }
-func NewEventRequestSendingEmail(ctx context.Context, emailRequests []*entity.EmailRequestEntity, req *request.EmailSendingRequestDto) *EventRequestSendingEmail {
+func NewEventRequestSendingEmail(ctx context.Context, emailRequests []*entity.EmailRequestEntity) *EventRequestSendingEmail {
 	return &EventRequestSendingEmail{
 		AbstractEvent: event.NewAbstractEvent(ctx, constant.EmailRequestSendingEvent),
-		PayloadData:   EmailRequestEntitiesToMessage(emailRequests, req),
+		PayloadData:   EmailRequestEntitiesToMessage(emailRequests),
 	}
 }
 
-func EmailRequestEntitiesToMessage(emailRequests []*entity.EmailRequestEntity, req *request.EmailSendingRequestDto) *message.EmailRequestSendingMessage {
+func EmailRequestEntitiesToMessage(emailRequests []*entity.EmailRequestEntity) *message.EmailRequestSendingMessage {
 	sendDatas := make([]*message.EmailSendData, 0, len(emailRequests))
 	for _, eREntity := range emailRequests {
 		sendDatas = append(sendDatas, &message.EmailSendData{
@@ -38,9 +37,6 @@ func EmailRequestEntitiesToMessage(emailRequests []*entity.EmailRequestEntity, r
 	}
 
 	return &message.EmailRequestSendingMessage{
-		SendData:      sendDatas,
-		TemplateId:    req.TemplateID,
-		WorkspaceID:   req.WorkspaceID,
-		IntegrationID: req.IntegrationID,
+		SendData: sendDatas,
 	}
 }

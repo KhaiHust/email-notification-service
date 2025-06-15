@@ -1,13 +1,17 @@
 package response
 
-import "github.com/KhaiHust/email-notification-service/core/entity"
+import (
+	"fmt"
+	"github.com/KhaiHust/email-notification-service/core/entity"
+)
 
 type EmailProviderResponse struct {
-	ID       int64  `json:"id,omitempty"`
-	Provider string `json:"provider,omitempty"`
-	Email    string `json:"email,omitempty"`
-	FromName string `json:"from_name,omitempty"`
-	Env      string `json:"env,omitempty"`
+	ID           int64  `json:"id,omitempty"`
+	Provider     string `json:"provider,omitempty"`
+	Email        string `json:"email,omitempty"`
+	FromName     string `json:"from_name,omitempty"`
+	Env          string `json:"env,omitempty"`
+	ProviderName string `json:"provider_name,omitempty"`
 }
 
 func ToEmailProviderResponse(emailProvider *entity.EmailProviderEntity) *EmailProviderResponse {
@@ -15,11 +19,12 @@ func ToEmailProviderResponse(emailProvider *entity.EmailProviderEntity) *EmailPr
 		return nil
 	}
 	return &EmailProviderResponse{
-		ID:       emailProvider.ID,
-		Provider: emailProvider.Provider,
-		Email:    emailProvider.Email,
-		FromName: emailProvider.FromName,
-		Env:      emailProvider.Environment,
+		ID:           emailProvider.ID,
+		Provider:     emailProvider.Provider,
+		Email:        emailProvider.Email,
+		FromName:     emailProvider.FromName,
+		Env:          emailProvider.Environment,
+		ProviderName: fmt.Sprintf("%s (%s)", emailProvider.Provider, emailProvider.Environment),
 	}
 }
 func ToEmailProviderResponseList(emailProviders []*entity.EmailProviderEntity) []*EmailProviderResponse {

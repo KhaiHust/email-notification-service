@@ -14,7 +14,7 @@ import (
 )
 
 type IEventHandlerUsecase interface {
-	SendEmailRequestHandler(ctx context.Context, providerID int64, req *request.EmailSendingRequestDto) error
+	SendEmailRequestHandler(ctx context.Context, req *request.EmailSendingRequestDto) error
 	SyncEmailRequestHandler(ctx context.Context, emailRequest *entity.EmailRequestEntity) error
 }
 type EventHandlerUsecase struct {
@@ -72,7 +72,7 @@ func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailR
 	return nil
 }
 
-func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, providerID int64, req *request.EmailSendingRequestDto) error {
+func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, req *request.EmailSendingRequestDto) error {
 	//seperate schedule and normal email request
 	emailRequestIDs := make([]int64, 0, len(req.Datas))
 	for _, emailRequest := range req.Datas {
@@ -105,7 +105,7 @@ func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, provid
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := e.emailSendingUsecase.SendBatches(ctx, providerID, emailRequestSending, req); err != nil {
+		if err := e.emailSendingUsecase.SendBatches(ctx, emailRequestSending); err != nil {
 			log.Error(ctx, "Error when sending email batches", err)
 		}
 	}()

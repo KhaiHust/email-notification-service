@@ -19,7 +19,6 @@ func ToApiKeyEntity(apiKeyModel *model.ApiKeyModel) *entity.ApiKeyEntity {
 		Environment: apiKeyModel.Environment,
 		ExpiresAt:   utils.ToUnixTimeToPointer(apiKeyModel.ExpiresAt),
 		Revoked:     apiKeyModel.Revoked,
-		KeyEnc:      apiKeyModel.KeyEnc,
 	}
 }
 func ToApiKeyModel(apiKeyEntity *entity.ApiKeyEntity) *model.ApiKeyModel {
@@ -35,7 +34,6 @@ func ToApiKeyModel(apiKeyEntity *entity.ApiKeyEntity) *model.ApiKeyModel {
 		Environment: apiKeyEntity.Environment,
 		ExpiresAt:   utils.FromUnixPointerToTime(apiKeyEntity.ExpiresAt),
 		Revoked:     apiKeyEntity.Revoked,
-		KeyEnc:      apiKeyEntity.KeyEnc,
 	}
 }
 func ToListApiKeyEntity(apiKeyModels []*model.ApiKeyModel) []*entity.ApiKeyEntity {

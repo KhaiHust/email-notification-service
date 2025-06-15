@@ -5,5 +5,5 @@ type WorkspaceEntity struct {
 	Name                string
 	Description         string
 	Code                string
-	WorkspaceUserEntity []WorkspaceUserEntity
+	WorkspaceUserEntity []*WorkspaceUserEntity
 }

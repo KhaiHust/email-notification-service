@@ -6,6 +6,7 @@ require (
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golibs-starter/golib v1.0.1
+	github.com/golibs-starter/golib-security v1.0.0
 	github.com/google/uuid v1.3.0
 	github.com/jinzhu/copier v0.4.0
 	github.com/samber/lo v1.49.1
@@ -22,6 +23,7 @@ require (
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

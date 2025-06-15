@@ -12,10 +12,20 @@ type IUserService interface {
 	SignUp(ctx context.Context, req *request.CreateUserRequest) (*entity.UserEntity, error)
 	Login(ctx context.Context, req *request.LoginRequest) (*response.LoginResponse, error)
 	GenerateTokenFromRefreshToken(ctx context.Context, refreshToken string) (*response.LoginResponse, error)
+	GetListMembers(ctx context.Context, workspaceID int64) ([]*entity.UserEntity, error)
 }
 type UserService struct {
 	createUserUseCase usecase.ICreateUserUseCase
 	loginUsecase      usecase.ILoginUsecase
+	getUserUseCase    usecase.IGetUserUseCase
+}
+
+func (u UserService) GetListMembers(ctx context.Context, workspaceID int64) ([]*entity.UserEntity, error) {
+	users, err := u.getUserUseCase.GetListUsers(ctx, workspaceID)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }
 
 func (u UserService) GenerateTokenFromRefreshToken(ctx context.Context, refreshToken string) (*response.LoginResponse, error) {
@@ -43,9 +53,14 @@ func (u UserService) SignUp(ctx context.Context, req *request.CreateUserRequest)
 	return user, nil
 }
 
-func NewUserService(createUserUseCase usecase.ICreateUserUseCase, loginUsecase usecase.ILoginUsecase) IUserService {
+func NewUserService(
+	createUserUseCase usecase.ICreateUserUseCase,
+	loginUsecase usecase.ILoginUsecase,
+	getUserUseCase usecase.IGetUserUseCase,
+) IUserService {
 	return &UserService{
 		createUserUseCase: createUserUseCase,
 		loginUsecase:      loginUsecase,
+		getUserUseCase:    getUserUseCase,
 	}
 }

@@ -11,7 +11,6 @@ type ApiKeyModel struct {
 	Environment string     `gorm:"column:environment"`
 	ExpiresAt   *time.Time `gorm:"column:expires_at"`
 	Revoked     bool       `gorm:"column:revoked"`
-	KeyEnc      string     `gorm:"column:key_enc"`
 }
 
 func (a *ApiKeyModel) TableName() string {

@@ -36,6 +36,7 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 		log.Error(ctx, "GetOAuthInfoByCode error: %v", err)
 		return nil, err
 	}
+	active := true
 	providerEntity := entity.EmailProviderEntity{
 		WorkspaceId:       workspace.ID,
 		Provider:          provider,
@@ -48,6 +49,7 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 		Email:             oauthResponse.Email,
 		FromName:          req.FromName,
 		Environment:       req.Environment,
+		Active:            &active,
 	}
 	tx := c.databaseTransactionUseCase.StartTx()
 	defer func() {

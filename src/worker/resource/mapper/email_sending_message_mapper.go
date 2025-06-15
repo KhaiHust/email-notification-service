@@ -7,8 +7,7 @@ import (
 
 func ToEmailSendingDto(msg *message.EmailRequestSendingMessage) *request.EmailSendingRequestDto {
 	return &request.EmailSendingRequestDto{
-		TemplateID: msg.TemplateId,
-		Datas:      ToListSendingDataDto(msg.SendData),
+		Datas: ToListSendingDataDto(msg.SendData),
 	}
 }
 func ToListSendingDataDto(data []*message.EmailSendData) []*request.EmailSendingData {

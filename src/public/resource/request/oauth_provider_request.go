@@ -15,3 +15,15 @@ func ToEmailProviderDto(req *CreateEmailProviderRequest) *request.CreateEmailPro
 		Environment: req.Environment,
 	}
 }
+
+type UpdateEmailProviderRequest struct {
+	FromName *string `json:"from_name"`
+	Code     *string `json:"code"`
+}
+
+func ToUpdateEmailProviderDto(req *UpdateEmailProviderRequest) *request.UpdateEmailProviderDto {
+	return &request.UpdateEmailProviderDto{
+		FromName: req.FromName,
+		Code:     req.Code,
+	}
+}

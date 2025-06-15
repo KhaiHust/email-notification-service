@@ -39,7 +39,7 @@ func (c CreateTemplateUseCase) CreateTemplate(ctx context.Context, template *ent
 		}
 		if !commitTx || err != nil {
 			if errRollback := c.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
-				log.Error(ctx, "Error when rollback transaction", errRollback)
+				log.Error(ctx, "Error when rollback transaction ", errRollback)
 			} else {
 				log.Info(ctx, "Rollback transaction successfully")
 			}

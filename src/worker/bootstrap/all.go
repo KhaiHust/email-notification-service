@@ -9,8 +9,10 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
+	"github.com/KhaiHust/email-notification-service/worker/cronjob"
 	"github.com/KhaiHust/email-notification-service/worker/handler"
 	"github.com/golibs-starter/golib"
+	golibcron "github.com/golibs-starter/golib-cron"
 	golibdata "github.com/golibs-starter/golib-data"
 	golibmsg "github.com/golibs-starter/golib-message-bus"
 	golibsec "github.com/golibs-starter/golib-security"
@@ -34,7 +36,8 @@ func All() fx.Option {
 		golibmsg.KafkaAdminOpt(),
 		golibmsg.KafkaProducerOpt(),
 		golibmsg.KafkaConsumerOpt(),
-
+		// Provide cronjob
+		golibcron.Opt(),
 		// Provide datasource auto config
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
@@ -87,11 +90,14 @@ func All() fx.Option {
 		fx.Provide(usecase.NewGetEmailRequestUsecase),
 		fx.Provide(usecase.NewEncryptUseCase),
 		fx.Provide(usecase.NewScheduleEmailUsecase),
+		fx.Provide(usecase.NewEmailSendRetryUsecase),
 
 		//provider handler
 		golibmsg.ProvideConsumer(handler.NewEmailSendingRequestHandler),
 		golibmsg.ProvideConsumer(handler.NewEmailRequestSyncHandler),
 
+		//provide cronjob
+		golibcron.ProvideJob(cronjob.NewEmailSendRetryCronJob),
 		// Graceful shutdown.
 		// OnStop hooks will run in reverse order.
 		//golibgin.OnStopHttpServerOpt(),

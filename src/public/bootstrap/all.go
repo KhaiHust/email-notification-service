@@ -66,6 +66,7 @@ func All() fx.Option {
 		fx.Provide(postgres.NewEmailRequestRepositoryAdapter),
 		fx.Provide(postgres.NewApiKeyRepositoryAdapter),
 		fx.Provide(postgres.NewEmailLogRepositoryAdapter),
+		fx.Provide(postgres.NewWebhookRepositoryAdapter),
 
 		fx.Provide(publisher.NewEventPublisherAdapter),
 
@@ -97,6 +98,8 @@ func All() fx.Option {
 		fx.Provide(usecase.NewEmailTrackingUsecase),
 		fx.Provide(usecase.NewGetEmailLogUsecase),
 		fx.Provide(usecase.NewAnalyticUsecase),
+		fx.Provide(usecase.NewDeleteTemplateUseCase),
+		fx.Provide(usecase.NewCreateWebhookUseCase),
 
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
@@ -109,6 +112,7 @@ func All() fx.Option {
 		fx.Provide(service.NewEmailTrackingService),
 		fx.Provide(service.NewEmailLogService),
 		fx.Provide(service.NewAnalyticService),
+		fx.Provide(service.NewWebhookService),
 
 		//Provide controllers
 		fx.Provide(helper.NewCustomValidate),
@@ -123,6 +127,7 @@ func All() fx.Option {
 		fx.Provide(controller.NewEmailTrackingController),
 		fx.Provide(controller.NewEmailLogController),
 		fx.Provide(controller.NewAnalyticController),
+		fx.Provide(controller.NewWebhookController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewWorkspaceAccessMiddleware),

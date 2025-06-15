@@ -8,4 +8,5 @@ type EmailRequestFilter struct {
 	*BaseFilter
 	SentAtFrom *int64
 	SentAtTo   *int64
+	Email      *string
 }

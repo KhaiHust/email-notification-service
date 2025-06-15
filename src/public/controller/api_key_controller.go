@@ -38,7 +38,7 @@ func (a *ApiKeyController) GetListApiKey(c *gin.Context) {
 	apihelper.SuccessfulHandle(c, response.ToListApiKeyResponse(result))
 
 }
-func (a ApiKeyController) CreateNewApiKey(c *gin.Context) {
+func (a *ApiKeyController) CreateNewApiKey(c *gin.Context) {
 	var req request.CreateApiKeyRequest
 	if err := c.ShouldBind(&req); err != nil {
 		log.Error(c, "Failed to bind the request's body to create new api key", err)
@@ -62,7 +62,7 @@ func (a ApiKeyController) CreateNewApiKey(c *gin.Context) {
 		apihelper.AbortErrorHandle(c, err)
 		return
 	}
-	apihelper.SuccessfulHandle(c, result)
+	apihelper.SuccessfulHandle(c, response.ToApiKeyResponse(result))
 }
 func NewApiKeyController(base *BaseController, apiKeyService service.IApiKeyService) *ApiKeyController {
 	return &ApiKeyController{

@@ -13,4 +13,5 @@ type EmailProviderEntity struct {
 	Email             string
 	FromName          string
 	Environment       string
+	Active            *bool
 }

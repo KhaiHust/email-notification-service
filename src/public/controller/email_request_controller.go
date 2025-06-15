@@ -10,6 +10,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/public/service"
 	"github.com/gin-gonic/gin"
 	"github.com/golibs-starter/golib/log"
+	"strconv"
 )
 
 type EmailRequestController struct {
@@ -69,7 +70,28 @@ func (e *EmailRequestController) buildParamsGetListEmailRequests(ctx *gin.Contex
 	if queryParams.UpdatedAtTo, err = utils.GetQueryInt64Pointer(values, constant.QueryParamUpdatedAtTo); err != nil {
 		return nil, err
 	}
+	requestID := utils.GetQueryStringPointer(values, constant.QueryParamRequestID)
+	if requestID != nil && *requestID != "" {
+		queryParams.RequestID = requestID
+	}
 
+	queryParams.Statuses = utils.GetQueryStringArray(values, constant.QueryParamErStatuses)
+
+	recipientEmail := utils.GetQueryStringPointer(values, constant.QueryRecipientEmail)
+	if recipientEmail != nil && *recipientEmail != "" {
+		queryParams.Email = recipientEmail
+	}
+	templateIDs := utils.GetQueryStringArray(values, constant.QueryParamEmailTemplateIDs)
+	if len(templateIDs) > 0 {
+		queryParams.EmailTemplateIDs = make([]int64, len(templateIDs))
+		for i, idStr := range templateIDs {
+			id, err := strconv.ParseInt(idStr, 10, 64)
+			if err != nil {
+				return nil, common.ErrBadRequest
+			}
+			queryParams.EmailTemplateIDs[i] = id
+		}
+	}
 	// SortOrder with validation
 	if sortOrder := values.Get(constant.QueryParamSortOrder); sortOrder != "" {
 		if sortOrder != constant.ASC && sortOrder != constant.DESC {
