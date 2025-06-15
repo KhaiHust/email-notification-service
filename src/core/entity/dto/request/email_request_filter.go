@@ -9,4 +9,5 @@ type EmailRequestFilter struct {
 	SentAtFrom *int64
 	SentAtTo   *int64
 	Email      *string
+	RetryCount *int64
 }

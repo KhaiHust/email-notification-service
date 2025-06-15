@@ -11,6 +11,7 @@ type EmailSendingData struct {
 	TrackingID     string
 	To             string
 	SendAt         *int64
+	IsRetry        bool
 	Subject        map[string]string
 	Body           map[string]string
 }

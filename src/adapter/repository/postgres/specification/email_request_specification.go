@@ -13,6 +13,7 @@ type EmailRequestSpecification struct {
 	RequestID        *string
 	Recipient        *string
 	*BaseSpecification
+	RetryCount *int64
 }
 
 func NewEmailRequestSpecificationForCount(sp *EmailRequestSpecification) (string, []interface{}, error) {
@@ -35,7 +36,7 @@ func NewEmailRequestSpecificationForCount(sp *EmailRequestSpecification) (string
 
 func NewEmailRequestSpecificationForQuery(sp *EmailRequestSpecification) (string, []interface{}, error) {
 	builder := sq.
-		Select("id", "template_id", "status", "created_at", "updated_at", "email_provider_id", "request_id", "recipient").
+		Select("id", "template_id", "status", "created_at", "updated_at", "email_provider_id", "request_id", "recipient", "retry_count", "workspace_id").
 		From("email_requests")
 
 	if sp != nil {
@@ -100,6 +101,9 @@ func buildEmailRequestSpecConditions(sp *EmailRequestSpecification, builder sq.S
 	if sp.Recipient != nil && *sp.Recipient != "" {
 		builder = builder.Where(sq.Eq{"recipient": *sp.Recipient})
 	}
+	if sp.RetryCount != nil {
+		builder = builder.Where(sq.LtOrEq{"retry_count": *sp.RetryCount})
+	}
 	return builder
 }
 func NewEmailRequestSpecificationForCountStatus(sp *EmailRequestSpecification) (string, []interface{}, error) {
@@ -131,5 +135,6 @@ func ToEmailRequestSpecification(filter *request.EmailRequestFilter) *EmailReque
 		BaseSpecification: ToBaseSpecification(filter.BaseFilter),
 		RequestID:         filter.RequestID,
 		Recipient:         filter.Email,
+		RetryCount:        filter.RetryCount,
 	}
 }

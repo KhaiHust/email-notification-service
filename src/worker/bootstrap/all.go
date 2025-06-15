@@ -66,12 +66,14 @@ func All() fx.Option {
 		fx.Provide(postgres.NewEmailTemplateRepositoryAdapter),
 		fx.Provide(postgres.NewEmailRequestRepositoryAdapter),
 		fx.Provide(postgres.NewEmailLogRepositoryAdapter),
+		fx.Provide(postgres.NewWebhookRepositoryAdapter),
 
 		fx.Provide(publisher.NewEventPublisherAdapter),
 		fx.Provide(thirdparty.NewCloudTaskServiceAdapter),
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
+		fx.Provide(client.NewWebhookServiceAdapter),
 
 		// Provide use cases
 		fx.Provide(usecase.NewDatabaseTransactionUseCase),
@@ -95,6 +97,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewEncryptUseCase),
 		fx.Provide(usecase.NewScheduleEmailUsecase),
 		fx.Provide(usecase.NewEmailSendRetryUsecase),
+		fx.Provide(usecase.NewWebhookUsecase),
 
 		//provider handler
 		golibmsg.ProvideConsumer(handler.NewEmailSendingRequestHandler),

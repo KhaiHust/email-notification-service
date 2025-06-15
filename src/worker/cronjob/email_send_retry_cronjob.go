@@ -10,7 +10,8 @@ import (
 
 const (
 	EmailSendRetryCronJobLockKey        = "email_send_retry_cron_job_lock"
-	ExpiredTimeForEmailSendRetryCronJob = 4 // minutes
+	ExpiredTimeForEmailSendRetryCronJob = 10 // minutes
+
 )
 
 type EmailSendRetryCronJob struct {

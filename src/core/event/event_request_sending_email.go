@@ -33,6 +33,7 @@ func EmailRequestEntitiesToMessage(emailRequests []*entity.EmailRequestEntity) *
 			EmailRequestID: eREntity.ID,
 			TrackingID:     eREntity.TrackingID,
 			SendAt:         eREntity.SendAt,
+			IsRetry:        eREntity.IsRetry,
 		})
 	}
 

@@ -31,6 +31,7 @@ type IEmailSendingUsecase interface {
 	SendBatches(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error
 	ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) (string, error)
 	SendEmailByTask(ctx context.Context, emailRequest *entity.EmailRequestEntity) error
+	SendSyncs(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error
 }
 
 type EmailSendingUsecase struct {
@@ -216,33 +217,10 @@ func (e EmailSendingUsecase) SaveEmailLogsByBatches(ctx context.Context, tx *gor
 }
 
 func (e EmailSendingUsecase) SendBatches(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error {
-	providerIDs := make([]int64, 0)
-	templateIDs := make([]int64, 0)
-	for _, emailRequest := range emailRequests {
-		templateIDs = append(templateIDs, emailRequest.TemplateId)
-		providerIDs = append(providerIDs, emailRequest.EmailProviderID)
-	}
-	emailProviders, err := e.getEmailProviderUseCase.GetProvidersByIds(ctx, providerIDs)
+	emailProviderMap, templateMap, err := e.buildTemplateAndProviderMap(ctx, emailRequests)
 	if err != nil {
-		log.Error(ctx, "Error when get email providers by ids", err)
 		return err
 	}
-	templates, err := e.getEmailTemplateUseCase.GetTemplatesByIDs(ctx, templateIDs)
-	if err != nil {
-		log.Error(ctx, "Error when get email templates by ids", err)
-		return err
-	}
-	// build email provider map
-	emailProviderMap := make(map[int64]*entity.EmailProviderEntity)
-	for _, provider := range emailProviders {
-		emailProviderMap[provider.ID] = provider
-	}
-	//build template map
-	templateMap := make(map[int64]*entity.EmailTemplateEntity)
-	for _, t := range templates {
-		templateMap[t.ID] = t
-	}
-
 	// Prepare emailRequest to send
 	dataSendings := make([]*request.EmailDataDto, 0, len(emailRequests))
 	for _, emailRequest := range emailRequests {
@@ -371,6 +349,7 @@ func NewEmailSendingUsecase(
 	trackingProperties *properties.TrackingProperties,
 	encryptUseCase IEncryptUseCase,
 	emailLogRepositoryPort port.IEmailLogRepositoryPort,
+	updateEmailRequestUsecase IUpdateEmailRequestUsecase,
 ) IEmailSendingUsecase {
 	return &EmailSendingUsecase{
 		BatchConfig:                batchConfig,
@@ -384,6 +363,7 @@ func NewEmailSendingUsecase(
 		trackingProperties:         trackingProperties,
 		encryptUseCase:             encryptUseCase,
 		emailLogRepositoryPort:     emailLogRepositoryPort,
+		updateEmailRequestUsecase:  updateEmailRequestUsecase,
 	}
 }
 func (e EmailSendingUsecase) buildEncryptVariableData(ctx context.Context, rawData *request.EmailSendingData) (string, error) {
@@ -403,4 +383,167 @@ func (e EmailSendingUsecase) buildEncryptVariableData(ctx context.Context, rawDa
 		return "", err
 	}
 	return encryptedPayload, nil
+}
+func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error {
+	emailProviderMap, templateMap, err := e.buildTemplateAndProviderMap(ctx, emailRequests)
+	if err != nil {
+		return err
+	}
+	// Prepare emailRequest to send
+	dataSendings := make([]*request.EmailDataDto, 0, len(emailRequests))
+	for idx, emailRequest := range emailRequests {
+		now := time.Now().Unix()
+		emailRequest.SentAt = &now
+		emailProvider, ok := emailProviderMap[emailRequest.EmailProviderID]
+		if !ok {
+			log.Error(ctx, fmt.Sprintf("Email provider with ID %d not found for email request %d", emailRequest.EmailProviderID, emailRequest.ID))
+			emailRequests[idx].Status = constant.EmailSendingStatusFailed
+			emailRequests[idx].ErrorMessage = fmt.Sprintf("Email provider with ID %d not found", emailRequest.EmailProviderID)
+			continue
+		}
+		template, ok := templateMap[emailRequest.TemplateId]
+		if !ok {
+			log.Error(ctx, fmt.Sprintf("Template with ID %d not found for email request %d", emailRequest.TemplateId, emailRequest.ID))
+			emailRequests[idx].Status = constant.EmailSendingStatusFailed
+			emailRequests[idx].ErrorMessage = fmt.Sprintf("Template with ID %d not found", emailRequest.TemplateId)
+			continue
+		}
+		var trackingID string
+		if emailRequest.TrackingID != "" {
+			trackingID, err = e.encryptUseCase.EncryptTrackingID(ctx, emailRequest.TrackingID)
+			if err != nil {
+				log.Error(ctx, "Error when encrypt tracking ID", err)
+				emailRequests[idx].Status = constant.EmailSendingStatusFailed
+				emailRequests[idx].ErrorMessage = "Error when encrypt tracking ID"
+				continue
+			}
+		}
+		decryptPayload, err := e.encryptUseCase.DecryptDataEmailRequest(ctx, emailRequest.Data)
+		if err != nil {
+			log.Error(ctx, "Error when decrypt email request data", err)
+			emailRequests[idx].Status = constant.EmailSendingStatusFailed
+			emailRequests[idx].ErrorMessage = "Error when decrypt email request data"
+			continue
+		}
+		payloadMap := make(map[string]map[string]string)
+		if err := json.Unmarshal([]byte(decryptPayload), &payloadMap); err != nil {
+			log.Error(ctx, "Error when unmarshal email request data", err)
+			emailRequests[idx].Status = constant.EmailSendingStatusFailed
+			emailRequests[idx].ErrorMessage = "Error when unmarshal email request data"
+			continue
+		}
+		dataSendings = append(dataSendings, &request.EmailDataDto{
+			EmailRequestID: emailRequest.ID,
+			Subject:        utils.FillTemplate(template.Subject, payloadMap[SubjectKey]),
+			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="1" height="1"  /></body></html>`,
+				utils.FillTemplate(template.Body, payloadMap[BodyKey]),
+				utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
+			),
+			To:       emailRequest.Recipient,
+			Provider: emailProvider,
+		})
+	}
+
+	mapEmailRequests := make(map[int64]*entity.EmailRequestEntity)
+	for _, emailRequest := range emailRequests {
+		mapEmailRequests[emailRequest.ID] = emailRequest
+	}
+	// Setup worker pool
+	numWorkers := e.BatchConfig.NumOfWorkers
+	jobs := make(chan *request.EmailDataDto)
+	var wg sync.WaitGroup
+
+	var (
+		refreshOnce sync.Once
+		refreshErr  error
+		mu          sync.Mutex
+	)
+
+	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for data := range jobs {
+				sendErr := e.emailProviderPort.Send(ctx, data.Provider, data)
+				status := constant.EmailSendingStatusSent
+				var errMessage string
+				timeNow := time.Now()
+				sentAt := utils.ToUnixTimeToPointer(&timeNow)
+
+				if errors.Is(sendErr, common.ErrUnauthorized) {
+					log.Warn(ctx, fmt.Sprintf("401 detected for %v. Refreshing token...", data.To))
+
+					refreshOnce.Do(func() {
+						refreshed, err := e.updateEmailProviderUseCase.UpdateOAuthInfoByRefreshToken(ctx, data.Provider)
+						if err != nil {
+							refreshErr = err
+							log.Error(ctx, "Token refresh failed", err)
+							return
+						}
+						mu.Lock()
+						data.Provider = refreshed
+						mu.Unlock()
+					})
+
+					if refreshErr == nil {
+						sendErr = e.emailProviderPort.Send(ctx, data.Provider, data)
+					}
+				}
+
+				if sendErr != nil {
+					status = constant.EmailSendingStatusFailed
+					errMessage = sendErr.Error()
+					log.Error(ctx, fmt.Sprintf("Failed to send email to %v", data.To), sendErr)
+				}
+				emailRequest := mapEmailRequests[data.EmailRequestID]
+				emailRequest.Status = status
+				emailRequest.ErrorMessage = errMessage
+				emailRequest.SentAt = sentAt
+			}
+		}()
+	}
+	for _, data := range dataSendings {
+		jobs <- data
+	}
+	close(jobs)
+	wg.Wait()
+	return e.SyncToDB(ctx, emailRequests)
+}
+
+func (e EmailSendingUsecase) buildTemplateAndProviderMap(ctx context.Context, emailRequests []*entity.EmailRequestEntity) (map[int64]*entity.EmailProviderEntity, map[int64]*entity.EmailTemplateEntity, error) {
+	providerIDs := make([]int64, 0)
+	templateIDs := make([]int64, 0)
+	for _, emailRequest := range emailRequests {
+		templateIDs = append(templateIDs, emailRequest.TemplateId)
+		providerIDs = append(providerIDs, emailRequest.EmailProviderID)
+	}
+	emailProviders, err := e.getEmailProviderUseCase.GetProvidersByIds(ctx, providerIDs)
+	if err != nil {
+		log.Error(ctx, "Error when get email providers by ids", err)
+		return nil, nil, err
+	}
+	templates, err := e.getEmailTemplateUseCase.GetTemplatesByIDs(ctx, templateIDs)
+	if err != nil {
+		log.Error(ctx, "Error when get email templates by ids", err)
+		return nil, nil, err
+	}
+	// build email provider map
+	emailProviderMap := make(map[int64]*entity.EmailProviderEntity)
+	for _, provider := range emailProviders {
+		emailProviderMap[provider.ID] = provider
+	}
+	//build template map
+	templateMap := make(map[int64]*entity.EmailTemplateEntity)
+	for _, t := range templates {
+		templateMap[t.ID] = t
+	}
+	return emailProviderMap, templateMap, nil
+}
+
+func (e EmailSendingUsecase) SyncToDB(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error {
+	if _, err := e.updateEmailRequestUsecase.UpdateStatusByBatches(ctx, emailRequests); err != nil {
+		log.Error(ctx, "Error when update email requests", err)
+		return err
+	}
+	return nil
 }

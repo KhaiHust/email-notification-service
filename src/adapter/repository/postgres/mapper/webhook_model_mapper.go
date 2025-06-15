@@ -29,3 +29,13 @@ func ToWebhookModel(webhookEntity *entity.WebhookEntity) *model.WebhookModel {
 		Enabled:     webhookEntity.Enabled,
 	}
 }
+func ToListWebhookEntity(webhookModels []*model.WebhookModel) []*entity.WebhookEntity {
+	if webhookModels == nil {
+		return nil
+	}
+	webhookEntities := make([]*entity.WebhookEntity, len(webhookModels))
+	for i, webhookModel := range webhookModels {
+		webhookEntities[i] = ToWebhookEntity(webhookModel)
+	}
+	return webhookEntities
+}
