@@ -10,6 +10,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/http/strategy"
 	"github.com/KhaiHust/email-notification-service/adapter/properties"
 	"github.com/KhaiHust/email-notification-service/core/common"
+	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/response"
@@ -23,6 +24,10 @@ type GmailProviderAdapter struct {
 	httpClient        client.ContextualHttpClient
 	props             *properties.GmailProviderProperties
 	googleOAuthConfig *oauth2.Config
+}
+
+func (g GmailProviderAdapter) GetType() string {
+	return constant.EmailProviderGmail
 }
 
 func (g GmailProviderAdapter) GetOAuthByRefreshToken(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity) (*response.OAuthInfoResponseDto, error) {
@@ -54,7 +59,7 @@ func (g GmailProviderAdapter) GetOAuthByRefreshToken(ctx context.Context, emailP
 }
 
 func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity, emailData *request.EmailDataDto) error {
-	message := g.buildMessage(emailProviderEntity.Email, emailData)
+	message := g.buildMessage(emailProviderEntity, emailData)
 	log.Info(ctx, "Message: %s", message)
 	token := &oauth2.Token{
 		AccessToken:  emailProviderEntity.OAuthToken,
@@ -148,8 +153,8 @@ func (g *GmailProviderAdapter) getGmailUserInfo(ctx context.Context, accessToken
 	}
 	return &userInfo.Email, nil
 }
-func (g *GmailProviderAdapter) buildMessage(from string, data *request.EmailDataDto) string {
-	return "From: " + from + "\r\n" +
+func (g *GmailProviderAdapter) buildMessage(emailProvider *entity.EmailProviderEntity, data *request.EmailDataDto) string {
+	return "From: " + emailProvider.FromName + " <" + emailProvider.Email + ">\r\n" +
 		"To: " + data.To + "\r\n" +
 		"Subject: " + data.Subject + "\r\n" +
 		"MIME-Version: 1.0\r\n" +

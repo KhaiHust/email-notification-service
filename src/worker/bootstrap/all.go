@@ -44,6 +44,7 @@ func All() fx.Option {
 
 		// Provide all application properties
 		golib.ProvideProps(properties.NewGmailProviderProperties),
+		golib.ProvideProps(properties.NewOutlookProviderProperties),
 		golib.ProvideProps(properties.NewGoogleCloudTaskProperties),
 		golib.ProvideProps(coreProperties.NewAuthProperties),
 		golib.ProvideProps(coreProperties.NewBatchProperties),
@@ -52,8 +53,11 @@ func All() fx.Option {
 		golib.ProvideProps(coreProperties.NewTaskProperties),
 		golib.ProvideProps(coreProperties.NewAppProperties),
 		// Provide port's implements
-		fx.Provide(client.NewGmailProviderAdapter),
-		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
+		fx.Provide(
+			fx.Annotate(client.NewGmailProviderAdapter, fx.ResultTags(`group:"emailProviderImpl"`)),
+			fx.Annotate(client.NewOutlookProviderAdapter, fx.ResultTags(`group:"emailProviderImpl"`)),
+			strategyAdapterImpl.NewEmailProviderAdapter,
+		),
 		fx.Provide(postgres.NewWorkspaceRepositoryAdapter),
 		fx.Provide(postgres.NewEmailProviderRepositoryAdapter),
 		fx.Provide(postgres.NewDatabaseTransactionAdapter),

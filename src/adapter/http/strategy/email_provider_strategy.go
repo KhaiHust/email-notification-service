@@ -8,6 +8,7 @@ import (
 )
 
 type IEmailProviderStrategy interface {
+	GetType() string
 	GetOAuthUrl() (*response.OAuthUrlResponseDto, error)
 	GetOAuthInfoByCode(ctx context.Context, code string) (*response.OAuthInfoResponseDto, error)
 	SendEmail(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity, emailData *request.EmailDataDto) error

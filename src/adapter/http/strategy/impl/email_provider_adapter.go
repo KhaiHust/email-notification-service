@@ -4,11 +4,11 @@ import (
 	"context"
 	"github.com/KhaiHust/email-notification-service/adapter/http/strategy"
 	"github.com/KhaiHust/email-notification-service/core/common"
-	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/response"
 	"github.com/KhaiHust/email-notification-service/core/port"
+	"go.uber.org/fx"
 )
 
 type EmailProviderAdapter struct {
@@ -47,13 +47,21 @@ func (e EmailProviderAdapter) GetOAuthUrl(ctx context.Context, provider string) 
 	return emailProviderStrategy.GetOAuthUrl()
 }
 
-func NewEmailProviderAdapter(gmailProviderImpl strategy.IEmailProviderStrategy) port.IEmailProviderPort {
+type EmailProviderAdapterIn struct {
+	fx.In
+	Providers []strategy.IEmailProviderStrategy `group:"emailProviderImpl"`
+}
+
+func NewEmailProviderAdapter(ins EmailProviderAdapterIn) port.IEmailProviderPort {
 	mapStrategy := make(map[string]strategy.IEmailProviderStrategy)
-	mapStrategy[constant.EmailProviderGmail] = gmailProviderImpl
+	for _, provider := range ins.Providers {
+		mapStrategy[provider.GetType()] = provider
+	}
 	return &EmailProviderAdapter{
 		providers: mapStrategy,
 	}
 }
+
 func (e EmailProviderAdapter) getStrategy(provider string) strategy.IEmailProviderStrategy {
 	return e.providers[provider]
 }
