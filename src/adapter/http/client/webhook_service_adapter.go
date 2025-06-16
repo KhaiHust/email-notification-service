@@ -16,7 +16,7 @@ type WebhookServiceAdapter struct {
 
 func (w WebhookServiceAdapter) Send(ctx context.Context, webhook *entity.WebhookEntity, message string) error {
 	requestBody := dto.WebhookRequest{Text: message}
-	resp, err := w.httpClient.Post(ctx, webhook.URL, requestBody, client.WithContentType("application/json"))
+	resp, err := w.httpClient.Post(ctx, webhook.URL, requestBody, nil)
 	if err != nil {
 		log.Error(ctx, "Error when sending webhook", err)
 	}

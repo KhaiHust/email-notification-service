@@ -58,18 +58,19 @@ func (e EmailSendRetryUsecase) ProcessBatches(ctx context.Context) error {
 			}
 		}
 		if len(emailRequestMaxRetries) > 0 {
-			go func() {
-				if err := e.HandleMaxRetryCountReached(ctx, emailRequestMaxRetries); err != nil {
-					log.Error(ctx, "Failed to handle max retry count reached: %v", err)
-				} else {
-					log.Info(ctx, "Handled max retry count reached for %d email requests", len(emailRequestMaxRetries))
-				}
-			}()
+			if err := e.HandleMaxRetryCountReached(ctx, emailRequestMaxRetries); err != nil {
+				log.Error(ctx, "Failed to handle max retry count reached: %v", err)
+				return err
+			} else {
+				log.Info(ctx, "Handled max retry count reached for %d email requests", len(emailRequestMaxRetries))
+			}
 		}
-		ev := event.NewEventRequestSendingEmail(ctx, emailRequestRetries)
-		if err = e.eventPublisher.SyncPublish(ctx, ev); err != nil {
-			log.Error(ctx, "Failed to publish email sending event: %v", err)
-			return err
+		if len(emailRequestRetries) > 0 {
+			ev := event.NewEventRequestSendingEmail(ctx, emailRequestRetries)
+			if err = e.eventPublisher.SyncPublish(ctx, ev); err != nil {
+				log.Error(ctx, "Failed to publish email sending event: %v", err)
+				return err
+			}
 		}
 		log.Info(ctx, "Processing batch of email requests: %d", len(emailRequests))
 		filter.BaseFilter.Since = &emailRequests[len(emailRequests)-1].ID
@@ -106,6 +107,6 @@ func (e EmailSendRetryUsecase) HandleMaxRetryCountReached(ctx context.Context, e
 		log.Error(ctx, "Failed to update email requests status: %v", err)
 		return err
 	}
-	e.webhookUsecase.SendNotifyMaxRetry(ctx, emailRequests)
+	go e.webhookUsecase.SendNotifyMaxRetry(ctx, emailRequests)
 	return nil
 }

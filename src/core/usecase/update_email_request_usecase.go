@@ -6,7 +6,9 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/exception"
 	"github.com/KhaiHust/email-notification-service/core/port"
+	"github.com/KhaiHust/email-notification-service/core/utils"
 	"github.com/golibs-starter/golib/log"
+	"time"
 )
 
 type IUpdateEmailRequestUsecase interface {
@@ -57,7 +59,7 @@ func (u UpdateEmailRequestUsecase) UpdateStatusByBatches(ctx context.Context, em
 			if errRollback := u.databaseTransactionUseCase.RollbackTx(tx); errRollback != nil {
 				log.Error(ctx, "Error when rollback transaction", errRollback)
 			} else {
-				err = u.databaseTransactionUseCase.CommitTx(tx)
+				log.Info(ctx, "Transaction rolled back successfully")
 			}
 		}
 	}()
@@ -100,7 +102,11 @@ func (u UpdateEmailRequestUsecase) toEmailLogEntity(emailRequest *entity.EmailRe
 		loggedAt = *emailRequest.OpenedAt
 	}
 	if emailRequest.Status == constant.EmailSendingStatusFailed {
-		loggedAt = *emailRequest.SentAt
+		sendAt := emailRequest.SentAt
+		if sendAt == nil {
+			sendAt = utils.ToInt64Pointer(time.Now().Unix())
+		}
+		loggedAt = *sendAt
 	}
 	return &entity.EmailLogsEntity{
 		EmailRequestID:  emailRequest.ID,

@@ -15,6 +15,7 @@ func ToWebhookEntity(webhookModel *model.WebhookModel) *entity.WebhookEntity {
 		URL:         webhookModel.URL,
 		Type:        webhookModel.Type,
 		Enabled:     webhookModel.Enabled,
+		Name:        webhookModel.Name,
 	}
 }
 func ToWebhookModel(webhookEntity *entity.WebhookEntity) *model.WebhookModel {
@@ -27,6 +28,7 @@ func ToWebhookModel(webhookEntity *entity.WebhookEntity) *model.WebhookModel {
 		URL:         webhookEntity.URL,
 		Type:        webhookEntity.Type,
 		Enabled:     webhookEntity.Enabled,
+		Name:        webhookEntity.Name,
 	}
 }
 func ToListWebhookEntity(webhookModels []*model.WebhookModel) []*entity.WebhookEntity {

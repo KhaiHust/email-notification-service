@@ -7,3 +7,9 @@ type CreateWebhookRequest struct {
 	Name        string
 	Enabled     bool
 }
+type UpdateWebhookRequest struct {
+	URL     *string
+	Type    *string
+	Name    *string
+	Enabled *bool
+}

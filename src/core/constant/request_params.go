@@ -8,4 +8,5 @@ const (
 	ParamTemplateId      = "templateId"
 	ParamEmailRequestId  = "emailRequestId"
 	ParamEmailProviderID = "emailProviderID"
+	ParamWebhookId       = "webhookId"
 )

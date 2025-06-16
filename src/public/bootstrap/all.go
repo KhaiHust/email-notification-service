@@ -77,6 +77,7 @@ func All() fx.Option {
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
+		fx.Provide(client.NewWebhookServiceAdapter),
 
 		// Provide use cases
 		fx.Provide(usecase.NewDatabaseTransactionUseCase),
@@ -105,6 +106,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewAnalyticUsecase),
 		fx.Provide(usecase.NewDeleteTemplateUseCase),
 		fx.Provide(usecase.NewCreateWebhookUseCase),
+		fx.Provide(usecase.NewWebhookUsecase),
 
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),
