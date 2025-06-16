@@ -44,6 +44,15 @@ app:
         ResponseType: code
         RedirectUri: ${GMAIL_REDIRECT_URI}
         AccessType: "offline"
+      outlook:
+        BaseOAuthUrl: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+        ClientId: ${OUTLOOK_CLIENT_ID}
+        ClientSecret: ${OUTLOOK_CLIENT_SECRET}
+        Scopes: "Mail.Send SMTP.Send User.Read offline_access"
+        ResponseType: code
+        RedirectUri: ${OUTLOOK_REDIRECT_URI}
+        AccessType: "offline"
+        TokenUrl: https://login.microsoftonline.com/common/oauth2/v2.0/token
     auth:
         jwt:
           PrivateKey: ${JWT_PRIVATE_KEY}

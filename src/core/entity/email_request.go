@@ -19,4 +19,5 @@ type EmailRequestEntity struct {
 	EmailTemplateEntity *EmailTemplateEntity
 	EmailProviderEntity *EmailProviderEntity
 	SendAt              *int64 // For scheduling emails
+	IsRetry             bool   // Indicates if this is a retry attempt
 }

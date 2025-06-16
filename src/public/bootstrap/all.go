@@ -50,13 +50,18 @@ func All() fx.Option {
 
 		// Provide all application properties
 		golib.ProvideProps(properties.NewGmailProviderProperties),
+		golib.ProvideProps(properties.NewOutlookProviderProperties),
 		golib.ProvideProps(coreProperties.NewAuthProperties),
 		golib.ProvideProps(coreProperties.NewBatchProperties),
 		golib.ProvideProps(coreProperties.NewEncryptProperties),
 		golib.ProvideProps(coreProperties.NewTrackingProperties),
 		// Provide port's implements
-		fx.Provide(client.NewGmailProviderAdapter),
-		fx.Provide(strategyAdapterImpl.NewEmailProviderAdapter),
+		fx.Provide(
+			fx.Annotate(client.NewGmailProviderAdapter, fx.ResultTags(`group:"emailProviderImpl"`)),
+			fx.Annotate(client.NewOutlookProviderAdapter, fx.ResultTags(`group:"emailProviderImpl"`)),
+			strategyAdapterImpl.NewEmailProviderAdapter,
+		),
+
 		fx.Provide(postgres.NewWorkspaceRepositoryAdapter),
 		fx.Provide(postgres.NewEmailProviderRepositoryAdapter),
 		fx.Provide(postgres.NewDatabaseTransactionAdapter),
@@ -72,6 +77,7 @@ func All() fx.Option {
 
 		// Provide third-party services
 		fx.Provide(thirdparty.NewRedisService),
+		fx.Provide(client.NewWebhookServiceAdapter),
 
 		// Provide use cases
 		fx.Provide(usecase.NewDatabaseTransactionUseCase),
@@ -100,6 +106,7 @@ func All() fx.Option {
 		fx.Provide(usecase.NewAnalyticUsecase),
 		fx.Provide(usecase.NewDeleteTemplateUseCase),
 		fx.Provide(usecase.NewCreateWebhookUseCase),
+		fx.Provide(usecase.NewWebhookUsecase),
 
 		// Provide services
 		fx.Provide(service.NewEmailProviderService),

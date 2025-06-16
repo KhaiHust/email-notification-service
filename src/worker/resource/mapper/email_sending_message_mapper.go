@@ -22,5 +22,6 @@ func ToSendingDataDto(data *message.EmailSendData) *request.EmailSendingData {
 		EmailRequestID: data.EmailRequestID,
 		TrackingID:     data.TrackingID,
 		SendAt:         data.SendAt,
+		IsRetry:        data.IsRetry,
 	}
 }

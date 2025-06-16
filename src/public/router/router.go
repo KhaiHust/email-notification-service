@@ -127,6 +127,20 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	{
 		v1Webhook.POST("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
 			p.WebhookController.Create)
+		v1Webhook.GET("", p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.WebhookController.GetAll)
+		v1Webhook.DELETE(fmt.Sprintf("/:%s", constant.ParamWebhookId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.WebhookController.Delete)
+		v1Webhook.PATCH(fmt.Sprintf("/:%s", constant.ParamWebhookId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.WebhookController.Update)
+		v1Webhook.GET(fmt.Sprintf("/:%s", constant.ParamWebhookId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.WebhookController.GetDetail)
+		v1Webhook.POST(fmt.Sprintf("/:%s/test", constant.ParamWebhookId),
+			p.WorkspaceAccessMiddleware.WorkspaceAccessMiddlewareHandle(),
+			p.WebhookController.Test)
 	}
 	v1Members := v1Workspace.Group("/:workspaceCode/members")
 	{

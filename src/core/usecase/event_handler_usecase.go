@@ -75,8 +75,10 @@ func (e EventHandlerUsecase) SyncEmailRequestHandler(ctx context.Context, emailR
 func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, req *request.EmailSendingRequestDto) error {
 	//seperate schedule and normal email request
 	emailRequestIDs := make([]int64, 0, len(req.Datas))
+	mapData := make(map[int64]*request.EmailSendingData)
 	for _, emailRequest := range req.Datas {
 		emailRequestIDs = append(emailRequestIDs, emailRequest.EmailRequestID)
+		mapData[emailRequest.EmailRequestID] = emailRequest
 	}
 	emailRequests, err := e.emailRequestRepositoryPort.GetEmailRequestByIDs(ctx, emailRequestIDs)
 	if err != nil {
@@ -87,9 +89,16 @@ func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, req *r
 		log.Warn(ctx, "No email requests found for the given IDs")
 		return nil
 	}
+	for _, emailRequest := range emailRequests {
+		if exist, ok := mapData[emailRequest.ID]; ok {
+			if exist.IsRetry {
+				emailRequest.IsRetry = true
+				emailRequest.RetryCount += 1
+			}
+		}
+	}
 	//filter email requests that need to be scheduled
 	var wg sync.WaitGroup
-
 	emailRequestsSchedules, emailRequestSending := e.FilterEmailRequestToCreateTasks(emailRequests)
 
 	if len(emailRequestsSchedules) > 0 {
@@ -105,7 +114,7 @@ func (e EventHandlerUsecase) SendEmailRequestHandler(ctx context.Context, req *r
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		if err := e.emailSendingUsecase.SendBatches(ctx, emailRequestSending); err != nil {
+		if err := e.emailSendingUsecase.SendSyncs(ctx, emailRequestSending); err != nil {
 			log.Error(ctx, "Error when sending email batches", err)
 		}
 	}()
@@ -162,7 +171,8 @@ func (e EventHandlerUsecase) FilterEmailRequestToCreateTasks(emailRequests []*en
 	for _, emailRequest := range emailRequests {
 		if emailRequest.SendAt != nil && *emailRequest.SendAt > time.Now().Unix() {
 			scheduledEmailRequests = append(scheduledEmailRequests, emailRequest)
-		} else {
+		} else if emailRequest.Status == constant.EmailSendingStatusQueued ||
+			emailRequest.Status == constant.EmailSendingStatusFailed {
 			sendingEmailRequests = append(sendingEmailRequests, emailRequest)
 		}
 	}
