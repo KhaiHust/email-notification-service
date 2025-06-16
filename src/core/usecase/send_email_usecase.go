@@ -12,6 +12,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"mime"
 	"sync"
 	"time"
 
@@ -23,8 +24,10 @@ import (
 )
 
 const (
-	SubjectKey = "subject"
-	BodyKey    = "body"
+	SubjectKey       = "subject"
+	BodyKey          = "body"
+	PrefixCacheLease = "email_request_lease_%d"
+	LeaseDuration    = 60 // seconds
 )
 
 type IEmailSendingUsecase interface {
@@ -47,6 +50,7 @@ type EmailSendingUsecase struct {
 	encryptUseCase             IEncryptUseCase
 	emailLogRepositoryPort     port.IEmailLogRepositoryPort
 	updateEmailRequestUsecase  IUpdateEmailRequestUsecase
+	redisPort                  port.IRedisPort
 }
 
 func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *entity.EmailRequestEntity) error {
@@ -350,6 +354,7 @@ func NewEmailSendingUsecase(
 	encryptUseCase IEncryptUseCase,
 	emailLogRepositoryPort port.IEmailLogRepositoryPort,
 	updateEmailRequestUsecase IUpdateEmailRequestUsecase,
+	redisPort port.IRedisPort,
 ) IEmailSendingUsecase {
 	return &EmailSendingUsecase{
 		BatchConfig:                batchConfig,
@@ -364,6 +369,7 @@ func NewEmailSendingUsecase(
 		encryptUseCase:             encryptUseCase,
 		emailLogRepositoryPort:     emailLogRepositoryPort,
 		updateEmailRequestUsecase:  updateEmailRequestUsecase,
+		redisPort:                  redisPort,
 	}
 }
 func (e EmailSendingUsecase) buildEncryptVariableData(ctx context.Context, rawData *request.EmailSendingData) (string, error) {
@@ -389,11 +395,12 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 	if err != nil {
 		return err
 	}
-	// Prepare emailRequest to send
+
 	dataSendings := make([]*request.EmailDataDto, 0, len(emailRequests))
 	for idx, emailRequest := range emailRequests {
 		now := time.Now().Unix()
 		emailRequest.SentAt = &now
+
 		emailProvider, ok := emailProviderMap[emailRequest.EmailProviderID]
 		if !ok {
 			log.Error(ctx, fmt.Sprintf("Email provider with ID %d not found for email request %d", emailRequest.EmailProviderID, emailRequest.ID))
@@ -401,6 +408,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 			emailRequests[idx].ErrorMessage = fmt.Sprintf("Email provider with ID %d not found", emailRequest.EmailProviderID)
 			continue
 		}
+
 		template, ok := templateMap[emailRequest.TemplateId]
 		if !ok {
 			log.Error(ctx, fmt.Sprintf("Template with ID %d not found for email request %d", emailRequest.TemplateId, emailRequest.ID))
@@ -408,6 +416,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 			emailRequests[idx].ErrorMessage = fmt.Sprintf("Template with ID %d not found", emailRequest.TemplateId)
 			continue
 		}
+
 		var trackingID string
 		if emailRequest.TrackingID != "" {
 			trackingID, err = e.encryptUseCase.EncryptTrackingID(ctx, emailRequest.TrackingID)
@@ -418,6 +427,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 				continue
 			}
 		}
+
 		decryptPayload, err := e.encryptUseCase.DecryptDataEmailRequest(ctx, emailRequest.Data)
 		if err != nil {
 			log.Error(ctx, "Error when decrypt email request data", err)
@@ -425,6 +435,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 			emailRequests[idx].ErrorMessage = "Error when decrypt email request data"
 			continue
 		}
+
 		payloadMap := make(map[string]map[string]string)
 		if err := json.Unmarshal([]byte(decryptPayload), &payloadMap); err != nil {
 			log.Error(ctx, "Error when unmarshal email request data", err)
@@ -432,9 +443,11 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 			emailRequests[idx].ErrorMessage = "Error when unmarshal email request data"
 			continue
 		}
+		subject := utils.FillTemplate(template.Subject, payloadMap[SubjectKey])
+		encodedSubject := mime.BEncoding.Encode("UTF-8", subject)
 		dataSendings = append(dataSendings, &request.EmailDataDto{
 			EmailRequestID: emailRequest.ID,
-			Subject:        utils.FillTemplate(template.Subject, payloadMap[SubjectKey]),
+			Subject:        encodedSubject,
 			Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="1" height="1"  /></body></html>`,
 				utils.FillTemplate(template.Body, payloadMap[BodyKey]),
 				utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
@@ -448,44 +461,65 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 	for _, emailRequest := range emailRequests {
 		mapEmailRequests[emailRequest.ID] = emailRequest
 	}
-	// Setup worker pool
+
 	numWorkers := e.BatchConfig.NumOfWorkers
-	jobs := make(chan *request.EmailDataDto)
+	jobs := make(chan *request.EmailDataDto, numWorkers*2)
+	results := make(chan *entity.EmailRequestEntity, len(dataSendings))
 	var wg sync.WaitGroup
 
-	var (
-		refreshOnce sync.Once
-		refreshErr  error
-		mu          sync.Mutex
-	)
+	// Per-provider refreshOnce and refreshErr storage
+	type refreshData struct {
+		once *sync.Once
+		err  error
+		mu   sync.Mutex
+	}
+	providerRefreshMap := sync.Map{} // map[int64]*refreshData
 
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for data := range jobs {
+				// 1. Acquire lease on Redis
+				leaseKey := fmt.Sprintf(PrefixCacheLease, data.EmailRequestID)
+				ok, err := e.redisPort.SetLock(ctx, leaseKey, "1", LeaseDuration)
+				if err != nil {
+					log.Error(ctx, fmt.Sprintf("Failed to acquire lock for email request %d: %v", data.EmailRequestID, err))
+					continue
+				}
+				if !ok {
+					log.Warn(ctx, fmt.Sprintf("Lock already exists for email request %d, skipping", data.EmailRequestID))
+					continue
+				}
+
+				// 2. Send email
 				sendErr := e.emailProviderPort.Send(ctx, data.Provider, data)
 				status := constant.EmailSendingStatusSent
 				var errMessage string
 				timeNow := time.Now()
 				sentAt := utils.ToUnixTimeToPointer(&timeNow)
 
+				// 3. Handle 401 (refresh token logic) PER PROVIDER
 				if errors.Is(sendErr, common.ErrUnauthorized) {
 					log.Warn(ctx, fmt.Sprintf("401 detected for %v. Refreshing token...", data.To))
 
-					refreshOnce.Do(func() {
+					providerID := data.Provider.ID // Adjust as per your struct
+					// Get or create refreshData for this provider
+					v, _ := providerRefreshMap.LoadOrStore(providerID, &refreshData{once: new(sync.Once)})
+					refresh := v.(*refreshData)
+					refresh.once.Do(func() {
 						refreshed, err := e.updateEmailProviderUseCase.UpdateOAuthInfoByRefreshToken(ctx, data.Provider)
 						if err != nil {
-							refreshErr = err
+							refresh.err = err
 							log.Error(ctx, "Token refresh failed", err)
 							return
 						}
-						mu.Lock()
+						refresh.mu.Lock()
 						data.Provider = refreshed
-						mu.Unlock()
+						refresh.mu.Unlock()
 					})
 
-					if refreshErr == nil {
+					if refresh.err == nil {
 						sendErr = e.emailProviderPort.Send(ctx, data.Provider, data)
 					}
 				}
@@ -495,19 +529,39 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 					errMessage = sendErr.Error()
 					log.Error(ctx, fmt.Sprintf("Failed to send email to %v", data.To), sendErr)
 				}
+
 				emailRequest := mapEmailRequests[data.EmailRequestID]
 				emailRequest.Status = status
 				emailRequest.ErrorMessage = errMessage
 				emailRequest.SentAt = sentAt
+
+				// 4. Collect results via channel (thread safe)
+				results <- emailRequest
+
+				// 5. Release the lease
+				if err := e.redisPort.DeleteKey(ctx, leaseKey); err != nil {
+					log.Error(ctx, fmt.Sprintf("Failed to release lock for email request %d: %v", data.EmailRequestID, err))
+				} else {
+					log.Info(ctx, fmt.Sprintf("Released lock for email request %d", data.EmailRequestID))
+				}
 			}
 		}()
 	}
+
 	for _, data := range dataSendings {
 		jobs <- data
 	}
 	close(jobs)
 	wg.Wait()
-	return e.SyncToDB(ctx, emailRequests)
+	close(results)
+
+	// Collect results
+	emailRequestsNoSkip := make([]*entity.EmailRequestEntity, 0, len(dataSendings))
+	for r := range results {
+		emailRequestsNoSkip = append(emailRequestsNoSkip, r)
+	}
+
+	return e.SyncToDB(ctx, emailRequestsNoSkip)
 }
 
 func (e EmailSendingUsecase) buildTemplateAndProviderMap(ctx context.Context, emailRequests []*entity.EmailRequestEntity) (map[int64]*entity.EmailProviderEntity, map[int64]*entity.EmailTemplateEntity, error) {

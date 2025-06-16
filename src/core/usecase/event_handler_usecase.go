@@ -171,7 +171,8 @@ func (e EventHandlerUsecase) FilterEmailRequestToCreateTasks(emailRequests []*en
 	for _, emailRequest := range emailRequests {
 		if emailRequest.SendAt != nil && *emailRequest.SendAt > time.Now().Unix() {
 			scheduledEmailRequests = append(scheduledEmailRequests, emailRequest)
-		} else {
+		} else if emailRequest.Status == constant.EmailSendingStatusQueued ||
+			emailRequest.Status == constant.EmailSendingStatusFailed {
 			sendingEmailRequests = append(sendingEmailRequests, emailRequest)
 		}
 	}

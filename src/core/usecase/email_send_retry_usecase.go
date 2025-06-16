@@ -93,7 +93,6 @@ func NewEmailSendRetryUsecase(
 	}
 }
 
-// todo: implement when max retry count is reached
 func (e EmailSendRetryUsecase) HandleMaxRetryCountReached(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error {
 
 	// For example, you can update the status of the email request to "failed permanently"
