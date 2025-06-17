@@ -7,7 +7,7 @@ type AppProperties struct {
 }
 
 func (a AppProperties) Prefix() string {
-	return "app.config"
+	return "app.properties"
 }
 
 func NewAppProperties(loader config.Loader) (*AppProperties, error) {

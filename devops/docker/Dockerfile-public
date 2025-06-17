@@ -1,0 +1,18 @@
+FROM golang:1.23-alpine AS builder
+ARG BUILD_VERSION
+ARG BUILD_COMMIT_HASH
+ARG BUILD_TIME
+ARG BS_PKG=github.com/KhaiHust/email-notification-service/public/bootstrap
+ENV GO111MODULE=on
+COPY ./src /go/src
+WORKDIR /go/src/public
+RUN env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./public \
+    -ldflags="-X '$BS_PKG.Version=$BUILD_VERSION' -X '$BS_PKG.CommitHash=$BUILD_COMMIT_HASH' -X '$BS_PKG.BuildTime=$BUILD_TIME'"
+
+FROM alpine:3.19
+COPY --from=builder /go/src/public/config /app/config
+COPY --from=builder /go/src/public/public /app/public
+EXPOSE 8080
+WORKDIR /app
+RUN chmod +x ./public
+CMD ["./public"]

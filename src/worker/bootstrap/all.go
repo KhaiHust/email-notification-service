@@ -7,6 +7,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/publisher"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
+	"github.com/KhaiHust/email-notification-service/core/msg"
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/worker/cronjob"
@@ -32,13 +33,14 @@ func All() fx.Option {
 		golib.HttpClientOpt(),
 		golibsec.SecuredHttpClientOpt(),
 
-		golibmsg.KafkaCommonOpt(),
-		golibmsg.KafkaAdminOpt(),
-		golibmsg.KafkaProducerOpt(),
-		golibmsg.KafkaConsumerOpt(),
+		msg.KafkaCommonOpt(),
+		msg.KafkaAdminOpt(),
+		msg.KafkaProducerOpt(),
+		msg.KafkaConsumerOpt(),
+
 		// Provide cronjob
 		golibcron.Opt(),
-		// Provide datasource auto config
+		// Provide datasource auto properties
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
 

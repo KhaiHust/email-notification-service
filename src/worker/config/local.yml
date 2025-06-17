@@ -26,7 +26,7 @@ app:
         RedirectUri: ${GMAIL_REDIRECT_URI}
         AccessType: offline
     tracking:
-      BaseUrl: https://studio-low-transmit-noble.trycloudflare.com/email-notification-public/v1/tracking
+      BaseUrl: ${TRACKING_BASE_URL}
     encrypt:
       EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
