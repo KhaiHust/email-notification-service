@@ -32,13 +32,15 @@ jobs:
           credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
       - name: Configure Docker for GCR
-        run: gcloud auth configure-docker --quiet
+        run: gcloud auth configure-docker asia-east1-docker.pkg.dev --quiet
 
       - name: Build and Push All Service Images
         run: |
+          REGION=asia-east1  # or your chosen region
+          REPOSITORY=email-noti-service # your repo name
           for SERVICE in $SERVICES; do
             DOCKERFILE="devops/docker/Dockerfile-$SERVICE"
-            IMAGE="gcr.io/$GCP_PROJECT_ID/email-notification-$SERVICE:$IMAGE_TAG"
+            IMAGE="$REGION-docker.pkg.dev/$GCP_PROJECT_ID/$REPOSITORY/email-notification-$SERVICE:$IMAGE_TAG"
             BUILD_VERSION="$IMAGE_TAG"
             BUILD_COMMIT_HASH="$IMAGE_TAG"
             BUILD_TIME="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
