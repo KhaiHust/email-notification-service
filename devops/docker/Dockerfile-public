@@ -6,6 +6,7 @@ ARG BS_PKG=github.com/KhaiHust/email-notification-service/public/bootstrap
 ENV GO111MODULE=on
 COPY ./src /go/src
 WORKDIR /go/src/public
+RUN cd /go/src/public && go mod tidy
 RUN env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./public \
     -ldflags="-X '$BS_PKG.Version=$BUILD_VERSION' -X '$BS_PKG.CommitHash=$BUILD_COMMIT_HASH' -X '$BS_PKG.BuildTime=$BUILD_TIME'"
 
