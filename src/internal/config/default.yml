@@ -1,8 +1,6 @@
 app:
   name: Email Notification Service Internal
   path: /email-notification-internal
-  port: 8082
-
   security:
     protectedUrls:
       - { urlPattern: "/v1/email-request/send", method: POST, roles: [ "INTERNAL_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }

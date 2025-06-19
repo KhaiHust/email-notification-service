@@ -52,3 +52,36 @@ jobs:
               -t $IMAGE .
             docker push $IMAGE
           done
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ secrets.GITOPS_REPO_URL }}
+          token: ${{ secrets.GITOPS_REPO_TOKEN }}
+          path: gitops
+          ref: master
+
+      - name: Update Helm values.yaml image tag for all services
+        run: |
+                REGION=asia-east1
+                REPOSITORY=email-noti-service
+                IMAGE_TAG="${{ github.sha }}"
+                for SERVICE in $SERVICES; do
+                  CHART_PATH="gitops/helm-charts/$SERVICE"
+                  # Use yq to safely update YAML, install if not available
+                  if ! command -v yq &>/dev/null; then
+                    pip install yq
+                  fi
+                  yq -i \
+                    ".image.repository = \"$REGION-docker.pkg.dev/$GCP_PROJECT_ID/$REPOSITORY/email-notification-$SERVICE\"" \
+                    "$CHART_PATH/values.yaml"
+                  yq -i ".image.tag = \"$IMAGE_TAG\"" "$CHART_PATH/values.yaml"
+                done
+
+      - name: Commit and push updated image tags to GitOps repo
+        run: |
+                cd gitops
+                git config --global user.email ${{ secrets.CI_BOT_EMAIL }}
+                git config --global user.name "CI Bot"
+                git add .
+                git commit -m "chore(ci): update image tags for $IMAGE_TAG [skip ci]" || echo "No changes to commit"
+                git push
