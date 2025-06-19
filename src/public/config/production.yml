@@ -1,0 +1,71 @@
+app:
+  logging:
+    level: INFO
+  datasource:
+    driver: postgres
+    host: ${DB_HOST}
+    port: 5432
+    database: ${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+  security:
+    http:
+      jwt.publicKey: ${JWT_PUBLIC_KEY}
+  kafka:
+    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
+    clientId: ${KAFKA_CLIENT_ID}
+    securityProtocol: SASL_SSL
+    sasl:
+      mechanism: PLAIN
+      username: ${KAFKA_USERNAME}
+      password: ${KAFKA_PASSWORD}
+    admin:
+      topics:
+        - name: c1.email.email-sending-request
+          partitions: 1
+          replicaFactor: 1
+          retention: 72h
+    producer:
+      eventMappings:
+        EmailRequestSendingEvent:
+          topicName: c1.email.email-sending-request
+          transactional: false
+          disable: false
+        EmailRequestSyncEvent:
+          topicName: c1.email.email-request-sync
+          transactional: false
+          disable: false
+  services:
+    provider:
+      gmail:
+        BaseOAuthUrl: https://accounts.google.com/o/oauth2/auth
+        ClientId: ${GMAIL_CLIENT_ID}
+        ClientSecret: ${GMAIL_CLIENT_SECRET}
+        Scopes: "https://www.googleapis.com/auth/userinfo.email https://mail.google.com/"
+        ResponseType: code
+        RedirectUri: ${GMAIL_REDIRECT_URI}
+        AccessType: "offline"
+      outlook:
+        BaseOAuthUrl: https://login.microsoftonline.com/common/oauth2/v2.0/authorize
+        ClientId: ${OUTLOOK_CLIENT_ID}
+        ClientSecret: ${OUTLOOK_CLIENT_SECRET}
+        Scopes: "Mail.Send SMTP.Send User.Read offline_access"
+        ResponseType: code
+        RedirectUri: ${OUTLOOK_REDIRECT_URI}
+        AccessType: "offline"
+        TokenUrl: https://login.microsoftonline.com/common/oauth2/v2.0/token
+    auth:
+      jwt:
+        PrivateKey: ${JWT_PRIVATE_KEY}
+        PublicKey: ${JWT_PUBLIC_KEY}
+        ExpiredAccessToken: 3600
+        ExpiredRefreshToken: 604800
+    encrypt:
+      EncryptKey: ${ENCRYPTION_KEY}
+      EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
+      EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
+      EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
+
