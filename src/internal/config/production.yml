@@ -1,0 +1,17 @@
+app:
+  logging:
+    level: INFO
+  datasource:
+    driver: postgres
+    host: ${DB_HOST}
+    port: 5432
+    database: ${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+  kafka:
+    bootstrapServers: localhost:9092
+  configs:
+    batch:

@@ -73,5 +73,8 @@ func (p *Client) PostBinding() error {
 	if p.Consumer.Tls == nil {
 		p.Consumer.Tls = p.Tls
 	}
+	if p.Consumer.Sasl == nil {
+		p.Consumer.Sasl = p.Sasl
+	}
 	return nil
 }
