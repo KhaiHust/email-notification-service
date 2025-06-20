@@ -12,9 +12,11 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/worker/cronjob"
 	"github.com/KhaiHust/email-notification-service/worker/handler"
+	"github.com/KhaiHust/email-notification-service/worker/router"
 	"github.com/golibs-starter/golib"
 	golibcron "github.com/golibs-starter/golib-cron"
 	golibdata "github.com/golibs-starter/golib-data"
+	golibgin "github.com/golibs-starter/golib-gin"
 	golibmsg "github.com/golibs-starter/golib-message-bus"
 	golibsec "github.com/golibs-starter/golib-security"
 	"go.uber.org/fx"
@@ -107,6 +109,10 @@ func All() fx.Option {
 
 		//provide cronjob
 		golibcron.ProvideJob(cronjob.NewEmailSendRetryCronJob),
+		// Provide gin engine, register core handlers,
+		// actuator endpoints and application routers
+		golibgin.GinHttpServerOpt(),
+		fx.Invoke(router.RegisterGinRouters),
 		// Graceful shutdown.
 		// OnStop hooks will run in reverse order.
 		//golibgin.OnStopHttpServerOpt(),
