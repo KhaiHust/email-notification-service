@@ -1,11 +1,11 @@
 app:
   datasource:
     driver: postgres
-    host: localhost
+    host: ${DB_HOST}
     port: 5432
-    database: email_test_db_2
-    username: email_notification_db_user
-    password: secret
+    database: ${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     migrationSource: file://migrations
   logging:
     development: true

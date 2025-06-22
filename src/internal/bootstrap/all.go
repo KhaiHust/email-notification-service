@@ -36,7 +36,7 @@ func All() fx.Option {
 		//golibsec.HttpSecurityOpt(),
 		//golibsec.JwtAuthFilterOpt(),
 
-		// Provide datasource auto config
+		// Provide datasource auto properties
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
 		golibmsg.KafkaCommonOpt(),

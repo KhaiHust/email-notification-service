@@ -1,6 +1,6 @@
 app:
   name: Email Notification Worker
-
+  path: /email-notification-worker
   security:
     http:
       publicUrls:

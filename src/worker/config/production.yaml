@@ -1,19 +1,16 @@
 app:
-  port: 8081
-  logging:
-    development: true
   datasource:
     driver: postgres
-    host: localhost
+    host: ${DB_HOST}
     port: 5432
-    database: email_notification_db_test
-    username: email_notification_db_user
-    password: secret
+    database: ${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   redis:
-    host: localhost
+    host: ${REDIS_HOST}
     port: 6379
   config:
-    GoogleCloudProject: "email-noti-platform"
+    GoogleCloudProject: ${GOOGLE_CLOUD_PROJECT}
 
   services:
     provider:
@@ -28,17 +25,17 @@ app:
     tracking:
       BaseUrl: ${TRACKING_BASE_URL}
     encrypt:
-      EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
-      EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
-      EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
-      EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptKey: ${ENCRYPTION_KEY}
+      EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
+      EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
+      EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
     task:
-      BaseUrl: https://studio-low-transmit-noble.trycloudflare.com/email-notification-public/
-      SecretKey: "test_task_secret_key"
+      BaseUrl: ${TASK_BASE_URL}
+      SecretKey: ${TASK_SECRET_KEY}
 
   kafka:
     bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
-    clientId: ccloud-go-client-ea58e09f-4481-471f-81e1-9464c8954ac2
+    clientId: ${KAFKA_CLIENT_ID}
     securityProtocol: SASL_SSL
     sasl:
       mechanism: PLAIN
@@ -64,14 +61,14 @@ app:
       handlerMappings:
         EmailSendingRequestHandler:
           topic: c1.email.email-sending-request
-          groupId: c1.email.email-sending-request.EmailSendingRequestHandler.local
+          groupId: c1.email.email-sending-request.EmailSendingRequestHandler.production
           enable: true
         EmailRequestSyncHandler:
           topic: c1.email.email-request-sync
-          groupId: c1.email.email-request-sync.EmailRequestSyncHandler.local
+          groupId: c1.email.email-request-sync.EmailRequestSyncHandler.production
           enable: true
   cron:
     jobs:
       - name: EmailSendRetryCronJob
-        spec: "@every 1m"
+        spec: ${EMAIL_SEND_RETRY_CRON_SCHEDULE}
         disabled: false
