@@ -128,12 +128,17 @@ func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *
 }
 
 func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) (string, error) {
-	emailProvider, err := e.getEmailProviderUseCase.GetEmailProviderByIDAndWorkspaceID(ctx, req.ProviderID, workspaceID)
-	if err != nil {
-		log.Error(ctx, "Error when get email provider by id", err)
-		return "", err
+	var emailProvider *entity.EmailProviderEntity
+	if req.Provider != nil {
+		emailProvider = req.Provider
+	} else {
+		emailProviderEntity, err := e.getEmailProviderUseCase.GetEmailProviderByIDAndWorkspaceID(ctx, req.ProviderID, workspaceID)
+		if err != nil {
+			log.Error(ctx, "Error when get email provider by id", err)
+			return "", err
+		}
+		emailProvider = emailProviderEntity
 	}
-
 	template, err := e.getEmailTemplateUseCase.GetTemplateByID(ctx, req.TemplateID)
 	if err != nil {
 		log.Error(ctx, "Error when get email template by id", err)

@@ -21,6 +21,17 @@ func (b *BaseController) GetWorkspaceIDFromContext(c *gin.Context) int64 {
 	}
 	return workspaceID.(int64)
 }
+func (b *BaseController) GetEnvironmentFromContext(c *gin.Context) string {
+	environment, isExisted := c.Get(constant.EnvironmentKey)
+	if !isExisted || environment == "" {
+		return ""
+	}
+	env, ok := environment.(string)
+	if !ok {
+		return ""
+	}
+	return env
+}
 func NewBaseController(validator *helper.CustomValidate) *BaseController {
 	return &BaseController{
 		validator: validator,

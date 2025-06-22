@@ -17,4 +17,5 @@ type IEmailProviderRepositoryPort interface {
 	GetAllEmailProviders(ctx context.Context, filter *request.GetEmailProviderRequestFilter) ([]*entity.EmailProviderEntity, error)
 	GetProvidersByIds(ctx context.Context, ids []int64) ([]*entity.EmailProviderEntity, error)
 	GetEmailProviderByWorkspaceIDAndID(ctx context.Context, workspaceID, providerID int64) (*entity.EmailProviderEntity, error)
+	GetProviderByProviderAndWorkspaceIDAndEnvironment(ctx context.Context, provider string, workspaceID int64, environment string) (*entity.EmailProviderEntity, error)
 }

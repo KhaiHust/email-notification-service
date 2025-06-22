@@ -33,6 +33,7 @@ const (
 	ErrEmailTemplateVersionInvalidFormatMessage = "Email template version invalid format"
 	ErrEmailTemplateVersionNotMatchMessage      = "Email template version not match"
 	ErrInvalidEmailTrackingIDMessage            = "Invalid email tracking id"
+	ErrProviderNotFoundOrForbiddenMessage       = "Provider not found for environment or API Keys do not have permission to access this provider"
 )
 const (
 	ErrEmailProviderNotFoundCode             = 404001
@@ -49,6 +50,7 @@ const (
 	ErrEmailTemplateVersionInvalidFormatCode = 400005
 	ErrEmailTemplateVersionNotMatchCode      = 400006
 	ErrInvalidEmailTrackingIDCode            = 400007
+	ErrProviderNotFoundOrForbiddenCode       = 404003
 )
 
 var (
@@ -122,6 +124,11 @@ var (
 		Code:           ErrInvalidEmailTrackingIDCode,
 		HttpStatusCode: http.StatusBadRequest,
 	}
+	ErrProviderNotFoundOrForbidden = Errs{
+		Message:        ErrProviderNotFoundOrForbiddenMessage,
+		Code:           ErrProviderNotFoundOrForbiddenCode,
+		HttpStatusCode: http.StatusNotFound,
+	}
 )
 var (
 	mapErrs = map[int]Errs{
@@ -138,6 +145,7 @@ var (
 		ErrEmailTemplateVersionInvalidFormatCode: ErrEmailTemplateVersionInvalidFormat,
 		ErrEmailTemplateVersionNotMatchCode:      ErrEmailTemplateVersionNotMatch,
 		ErrInvalidEmailTrackingIDCode:            ErrInvalidEmailTrackingID,
+		ErrProviderNotFoundOrForbiddenCode:       ErrProviderNotFoundOrForbidden,
 	}
 )
 

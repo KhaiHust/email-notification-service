@@ -3,9 +3,11 @@ package request
 import "github.com/KhaiHust/email-notification-service/core/entity/dto/request"
 
 type EmailSendingRequest struct {
-	TemplateId int64               `json:"template_id" validate:"required"`
-	Datas      []*EmailSendingData `json:"datas,omitempty"`
-	ProviderID int64               `json:"provider_id" validate:"required"`
+	TemplateId  int64               `json:"template_id" validate:"required"`
+	Datas       []*EmailSendingData `json:"datas,omitempty"`
+	ProviderID  int64               `json:"provider_id"`
+	Provider    string              `json:"provider" validate:"required,oneof=gmail outlook"`
+	Environment string              `json:"-"`
 }
 type EmailSendingData struct {
 	To      string            `json:"to" validate:"required"`

@@ -8,6 +8,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	"github.com/KhaiHust/email-notification-service/core/helper"
+	"github.com/KhaiHust/email-notification-service/core/msg"
 	"github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/internal/controllers"
@@ -17,7 +18,6 @@ import (
 	"github.com/golibs-starter/golib"
 	golibdata "github.com/golibs-starter/golib-data"
 	golibgin "github.com/golibs-starter/golib-gin"
-	golibmsg "github.com/golibs-starter/golib-message-bus"
 	golibsec "github.com/golibs-starter/golib-security"
 	"go.uber.org/fx"
 )
@@ -33,15 +33,13 @@ func All() fx.Option {
 		golib.HttpRequestLogOpt(),
 		golib.HttpClientOpt(),
 		golibsec.SecuredHttpClientOpt(),
-		//golibsec.HttpSecurityOpt(),
-		//golibsec.JwtAuthFilterOpt(),
 
 		// Provide datasource auto properties
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
-		golibmsg.KafkaCommonOpt(),
-		golibmsg.KafkaAdminOpt(),
-		golibmsg.KafkaProducerOpt(),
+		msg.KafkaCommonOpt(),
+		msg.KafkaAdminOpt(),
+		msg.KafkaProducerOpt(),
 
 		//provide properties
 		golib.ProvideProps(properties.NewBatchProperties),

@@ -15,10 +15,15 @@ type IGetEmailProviderUseCase interface {
 	GetEmailProviderByWorkspaceCodeAndProvider(ctx context.Context, workspaceCode string, provider string) ([]*entity.EmailProviderEntity, error)
 	GetAllEmailProviders(ctx context.Context, filter *request.GetEmailProviderRequestFilter) ([]*entity.EmailProviderEntity, error)
 	GetProvidersByIds(ctx context.Context, ids []int64) ([]*entity.EmailProviderEntity, error)
+	GetProviderByProviderAndWorkspaceIDAndEnvironment(ctx context.Context, provider string, workspaceID int64, environment string) (*entity.EmailProviderEntity, error)
 }
 type GetEmailProviderUseCase struct {
 	emailProviderPort           port.IEmailProviderPort
 	emailProviderRepositoryPort port.IEmailProviderRepositoryPort
+}
+
+func (g GetEmailProviderUseCase) GetProviderByProviderAndWorkspaceIDAndEnvironment(ctx context.Context, provider string, workspaceID int64, environment string) (*entity.EmailProviderEntity, error) {
+	return g.emailProviderRepositoryPort.GetProviderByProviderAndWorkspaceIDAndEnvironment(ctx, provider, workspaceID, environment)
 }
 
 func (g GetEmailProviderUseCase) GetProvidersByIds(ctx context.Context, ids []int64) ([]*entity.EmailProviderEntity, error) {
