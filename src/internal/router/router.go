@@ -6,6 +6,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golibs-starter/golib"
 	"github.com/golibs-starter/golib/web/actuator"
+	"github.com/newrelic/go-agent/v3/integrations/nrgin"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"go.uber.org/fx"
 )
 
@@ -16,12 +18,15 @@ type RegisterRoutersIn struct {
 	Actuator               *actuator.Endpoint
 	APIKeyMiddleware       *middleware.APIKeyMiddleware
 	EmailSendingController *controllers.EmailSendingController
+	NewRelic               *newrelic.Application
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
+	p.Engine.Use(nrgin.Middleware(p.NewRelic))
 	group := p.Engine.Group(p.App.Path())
 	group.GET("/actuator/health", gin.WrapF(p.Actuator.Health))
 	group.GET("/actuator/info", gin.WrapF(p.Actuator.Info))
+
 	group.Use(p.APIKeyMiddleware.AuthenticationMiddlewareHandle())
 	group.POST("/v1/email-request/send", p.EmailSendingController.SendEmailRequest)
 }

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/KhaiHust/email-notification-service/core/common"
+	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/internal/apihelper"
 	"github.com/gin-gonic/gin"
@@ -25,11 +26,13 @@ func (a *APIKeyMiddleware) AuthenticationMiddlewareHandle() gin.HandlerFunc {
 			apihelper.AbortErrorHandle(c, common.ErrUnauthorized)
 			return
 		}
-		valid, err := a.validateApiKeyUsecase.ValidateKey(c, rawKey)
+		valid, apiKey, err := a.validateApiKeyUsecase.ValidateKey(c, rawKey)
 		if err != nil || !valid {
 			apihelper.AbortErrorHandle(c, common.ErrUnauthorized)
 			return
 		}
+		c.Set(constant.WorkspaceIdKey, apiKey.WorkspaceID)
+		c.Set(constant.EnvironmentKey, apiKey.Environment)
 		c.Next()
 	}
 }

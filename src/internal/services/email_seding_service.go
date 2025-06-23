@@ -38,8 +38,10 @@ func (e EmailSendingService) SendEmailRequest(ctx context.Context, workspaceID i
 
 func NewEmailSendingService(
 	emailSendingUsecase usecase.IEmailSendingUsecase,
+	getEmailProviderUseCase usecase.IGetEmailProviderUseCase,
 ) IEmailSendingService {
 	return &EmailSendingService{
-		emailSendingUsecase: emailSendingUsecase,
+		emailSendingUsecase:     emailSendingUsecase,
+		getEmailProviderUseCase: getEmailProviderUseCase,
 	}
 }

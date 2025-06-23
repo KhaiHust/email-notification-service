@@ -182,6 +182,10 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 			}
 		}
 	}()
+	if len(emailRequestEntities) == 0 {
+		log.Warn(ctx, "No email requests to process")
+		return requestID, fmt.Errorf("request ID: %s, No email requests to process", requestID)
+	}
 	emailRequestEntities, err = e.createEmailRequestUsecase.CreateEmailRequestsWithTx(ctx, tx, emailRequestEntities)
 	if err != nil {
 		log.Error(ctx, "Error when save email request", err)

@@ -52,13 +52,8 @@ func (g GetApiKeyUseCase) GetApiKeyDetail(ctx context.Context, apiKey string) (*
 		}
 		// Cache the API key entity
 		go func() {
-			cachedData, err := json.Marshal(apiKeyEntity)
-			if err != nil {
-				log.Error(ctx, "Error marshalling API key entity: %v", err)
-			} else {
-				if err := g.redisPort.SetToRedis(ctx, cacheKey, cachedData, constant.DefaultTTL); err != nil {
-					log.Error(ctx, "Error setting API key to cache: %v", err)
-				}
+			if err = g.redisPort.SetToRedis(ctx, cacheKey, apiKeyEntity, constant.DefaultTTL); err != nil {
+				log.Error(ctx, "Error setting API key to cache: %v", err)
 			}
 		}()
 	}

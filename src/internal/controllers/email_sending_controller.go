@@ -16,10 +16,14 @@ type EmailSendingController struct {
 }
 
 func (esc *EmailSendingController) SendEmailRequest(c *gin.Context) {
+	//txn := nrgin.Transaction(c)
+	//segment := middleware.NewSegment("YourCustomSegment", txn)
+	//defer middleware.EndSegment(segment)
 	workspaceID := esc.base.GetWorkspaceIDFromContext(c)
 	if workspaceID == 0 {
 		log.Error(c, "Workspace ID is not provided in context")
 		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
 	}
 	environment := esc.base.GetEnvironmentFromContext(c)
 	if environment == "" ||
@@ -27,6 +31,7 @@ func (esc *EmailSendingController) SendEmailRequest(c *gin.Context) {
 			environment != constant.EnvironmentTest) {
 		log.Error(c, "Invalid environment provided in context")
 		apihelper.AbortErrorHandle(c, common.ErrBadRequest)
+		return
 	}
 	var req request.EmailSendingRequest
 	if err := c.ShouldBindJSON(&req); err != nil {

@@ -37,13 +37,8 @@ app:
       SecretKey: "test_task_secret_key"
 
   kafka:
-    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
-    clientId: ccloud-go-client-ea58e09f-4481-471f-81e1-9464c8954ac2
-    securityProtocol: SASL_SSL
-    sasl:
-      mechanism: PLAIN
-      username: ${KAFKA_USERNAME}
-      password: ${KAFKA_PASSWORD}
+    bootstrapServers: localhost:9092
+    clientId: email-notification-worker-client
     admin:
       topics:
         - name: c1.email.email-request-sync
