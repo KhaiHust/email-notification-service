@@ -8,6 +8,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	"github.com/KhaiHust/email-notification-service/core/helper"
+	middlewareCore "github.com/KhaiHust/email-notification-service/core/middleware"
 	"github.com/KhaiHust/email-notification-service/core/middleware/web"
 	"github.com/KhaiHust/email-notification-service/core/msg"
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
@@ -18,9 +19,15 @@ import (
 	"github.com/KhaiHust/email-notification-service/public/service"
 	"github.com/golibs-starter/golib"
 	golibdata "github.com/golibs-starter/golib-data"
+	"github.com/golibs-starter/golib-data/datasource"
 	golibgin "github.com/golibs-starter/golib-gin"
 	golibsec "github.com/golibs-starter/golib-security"
+	"github.com/golibs-starter/golib/log"
+	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rafaelhl/gorm-newrelic-telemetry-plugin/telemetry"
 	"go.uber.org/fx"
+	"gorm.io/gorm"
+	"net/http"
 )
 
 func All() fx.Option {
@@ -33,9 +40,14 @@ func All() fx.Option {
 		golib.ActuatorEndpointOpt(),
 		golib.HttpRequestLogOpt(),
 		web.CORSOpt(),
+		middlewareCore.NewRelicOpt(),
 		// Http security auto properties and authentication filters
 		//golibsec.HttpSecurityOpt(),
-
+		fx.Invoke(func(httpClient *http.Client) *http.Client {
+			httpClient.Transport = newrelic.NewRoundTripper(http.DefaultTransport)
+			return httpClient
+		},
+		),
 		golib.HttpClientOpt(),
 		golibsec.SecuredHttpClientOpt(),
 		golibsec.HttpSecurityOpt(),
@@ -44,6 +56,14 @@ func All() fx.Option {
 		// Provide datasource auto properties
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
+		fx.Invoke(func(conn *gorm.DB, properties *datasource.Properties) {
+			err := conn.Use(telemetry.NewNrTracer(properties.Database,
+				properties.Host, properties.Driver))
+			if err != nil {
+				log.Error("Failed to initialize New Relic telemetry plugin", err)
+			}
+		}),
+
 		msg.KafkaCommonOpt(),
 		msg.KafkaAdminOpt(),
 		msg.KafkaProducerOpt(),

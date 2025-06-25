@@ -7,6 +7,7 @@ type EncryptProperties struct {
 	EncryptVersionTemplate     string
 	EncryptTrackingIDKey       string
 	EncryptDataEmailRequestKey string
+	EncryptTokenProviderKey    string
 }
 
 func (e EncryptProperties) Prefix() string {

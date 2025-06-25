@@ -20,9 +20,34 @@ type IEncryptUseCase interface {
 	DecryptTrackingID(ctx context.Context, trackingID string) (string, error)
 	EncryptDataEmailRequest(ctx context.Context, data string) (string, error)
 	DecryptDataEmailRequest(ctx context.Context, data string) (string, error)
+	EncryptProviderToken(ctx context.Context, token string) (string, error)
+	DecryptProviderToken(ctx context.Context, token string) (string, error)
 }
 type EncryptUseCase struct {
 	props *properties.EncryptProperties
+}
+
+func (e EncryptUseCase) EncryptProviderToken(ctx context.Context, token string) (string, error) {
+	block, err := aes.NewCipher([]byte(e.props.EncryptTokenProviderKey))
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		return "", err
+	}
+	return e.encrypt(ctx, token, block)
+}
+
+func (e EncryptUseCase) DecryptProviderToken(ctx context.Context, token string) (string, error) {
+	dataBytes, err := base64.URLEncoding.DecodeString(token)
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
+		return "", err
+	}
+	block, err := aes.NewCipher([]byte(e.props.EncryptTokenProviderKey))
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		return "", err
+	}
+	return e.decrypt(ctx, dataBytes, block)
 }
 
 func (e EncryptUseCase) EncryptDataEmailRequest(ctx context.Context, data string) (string, error) {
@@ -40,7 +65,12 @@ func (e EncryptUseCase) DecryptDataEmailRequest(ctx context.Context, data string
 		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
 		return "", err
 	}
-	return e.decrypt(ctx, err, dataBytes)
+	block, err := aes.NewCipher([]byte(e.props.EncryptDataEmailRequestKey))
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		return "", err
+	}
+	return e.decrypt(ctx, dataBytes, block)
 }
 
 func (e EncryptUseCase) EncryptTrackingID(ctx context.Context, trackingID string) (string, error) {
@@ -58,7 +88,12 @@ func (e EncryptUseCase) DecryptTrackingID(ctx context.Context, trackingID string
 		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
 		return "", err
 	}
-	return e.decrypt(ctx, err, data)
+	block, err := aes.NewCipher([]byte(e.props.EncryptTrackingIDKey))
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		return "", err
+	}
+	return e.decrypt(ctx, data, block)
 }
 
 func (e EncryptUseCase) DecryptVersionTemplate(ctx context.Context, version string) (string, error) {
@@ -67,7 +102,12 @@ func (e EncryptUseCase) DecryptVersionTemplate(ctx context.Context, version stri
 		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
 		return "", err
 	}
-	return e.decrypt(ctx, err, data)
+	block, err := aes.NewCipher([]byte(e.props.EncryptVersionTemplate))
+	if err != nil {
+		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		return "", err
+	}
+	return e.decrypt(ctx, data, block)
 }
 
 func (e EncryptUseCase) EncryptVersionTemplate(ctx context.Context, version string) (string, error) {
@@ -107,15 +147,14 @@ func (e EncryptUseCase) DecryptAES(ctx context.Context, cipherText string) (stri
 		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
 		return "", err
 	}
-	return e.decrypt(ctx, err, data)
-}
-
-func (e EncryptUseCase) decrypt(ctx context.Context, err error, data []byte) (string, error) {
 	block, err := aes.NewCipher([]byte(e.props.EncryptKey))
 	if err != nil {
 		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
 		return "", err
 	}
+	return e.decrypt(ctx, data, block)
+}
+func (e EncryptUseCase) decrypt(ctx context.Context, data []byte, block cipher.Block) (string, error) {
 	if len(data) < aes.BlockSize {
 		log.Error(ctx, "[EncryptUseCase] Ciphertext too short")
 		return "", fmt.Errorf("ciphertext too short")

@@ -69,4 +69,8 @@ app:
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
-
+      EncryptTokenProviderKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-public"
+      Enabled: true

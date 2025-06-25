@@ -35,6 +35,10 @@ app:
     task:
       BaseUrl: https://studio-low-transmit-noble.trycloudflare.com/email-notification-public/
       SecretKey: "test_task_secret_key"
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-worker"
+      Enabled: true
 
   kafka:
     bootstrapServers: localhost:9092

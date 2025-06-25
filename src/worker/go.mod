@@ -29,7 +29,7 @@ require (
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/iam v1.5.0 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
-	github.com/Shopify/sarama v1.37.2 // indirect
+	github.com/Shopify/sarama v1.38.1 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
