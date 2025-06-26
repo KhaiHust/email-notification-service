@@ -12,7 +12,7 @@ app:
   redis:
     host: localhost
     port: 6379
-  config:
+  properties:
     GoogleCloudProject: "email-noti-platform"
 
   services:
@@ -32,6 +32,7 @@ app:
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptTokenProviderKey: "dGVzdF9lbmNyeXB0X2tleQ=="
     task:
       BaseUrl: https://studio-low-transmit-noble.trycloudflare.com/email-notification-public/
       SecretKey: "test_task_secret_key"

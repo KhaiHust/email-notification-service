@@ -39,12 +39,12 @@ func (e EncryptUseCase) EncryptProviderToken(ctx context.Context, token string) 
 func (e EncryptUseCase) DecryptProviderToken(ctx context.Context, token string) (string, error) {
 	dataBytes, err := base64.URLEncoding.DecodeString(token)
 	if err != nil {
-		log.Error(ctx, "[EncryptUseCase] Error decoding base64: %v", err)
+		log.Error(ctx, fmt.Sprintf("[EncryptUseCase] Error decoding base64: %v", err))
 		return "", err
 	}
 	block, err := aes.NewCipher([]byte(e.props.EncryptTokenProviderKey))
 	if err != nil {
-		log.Error(ctx, "[EncryptUseCase] Error creating AES cipher: %v", err)
+		log.Error(ctx, fmt.Sprintf("[EncryptUseCase] Error creating AES cipher: %v", err))
 		return "", err
 	}
 	return e.decrypt(ctx, dataBytes, block)

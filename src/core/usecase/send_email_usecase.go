@@ -473,7 +473,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 
 	numWorkers := e.BatchConfig.NumOfWorkers
 	jobs := make(chan *request.EmailDataDto, numWorkers*2)
-	results := make(chan *entity.EmailRequestEntity, len(dataSendings))
+
 	var wg sync.WaitGroup
 
 	// Per-provider refreshOnce and refreshErr storage
@@ -544,10 +544,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 				emailRequest.ErrorMessage = errMessage
 				emailRequest.SentAt = sentAt
 
-				// 4. Collect results via channel (thread safe)
-				results <- emailRequest
-
-				// 5. Release the lease
+				// 4. Release the lease
 				if err := e.redisPort.DeleteKey(ctx, leaseKey); err != nil {
 					log.Error(ctx, fmt.Sprintf("Failed to release lock for email request %d: %v", data.EmailRequestID, err))
 				} else {
@@ -562,15 +559,8 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 	}
 	close(jobs)
 	wg.Wait()
-	close(results)
 
-	// Collect results
-	emailRequestsNoSkip := make([]*entity.EmailRequestEntity, 0, len(dataSendings))
-	for r := range results {
-		emailRequestsNoSkip = append(emailRequestsNoSkip, r)
-	}
-
-	return e.SyncToDB(ctx, emailRequestsNoSkip)
+	return e.SyncToDB(ctx, emailRequests)
 }
 
 func (e EmailSendingUsecase) buildTemplateAndProviderMap(ctx context.Context, emailRequests []*entity.EmailRequestEntity) (map[int64]*entity.EmailProviderEntity, map[int64]*entity.EmailTemplateEntity, error) {

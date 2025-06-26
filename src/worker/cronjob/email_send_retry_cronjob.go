@@ -23,11 +23,11 @@ func (e EmailSendRetryCronJob) Run(ctx context.Context) {
 	//check if the job is already running
 	ok, err := e.redisPort.SetLock(ctx, EmailSendRetryCronJobLockKey, "1", ExpiredTimeForEmailSendRetryCronJob)
 	if err != nil {
-		log.Error(ctx, "Error when set lock for email send retry cron job", err)
+		log.Errorc(ctx, "Error when set lock for email send retry cron job", err)
 		return
 	}
 	if !ok {
-		log.Warn(ctx, "Email send retry cron job is already running")
+		log.Warnc(ctx, "Email send retry cron job is already running")
 		return
 	}
 	defer func() {

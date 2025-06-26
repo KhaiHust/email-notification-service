@@ -7,6 +7,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/publisher"
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
+	"github.com/KhaiHust/email-notification-service/core/middleware"
 	"github.com/KhaiHust/email-notification-service/core/msg"
 	coreProperties "github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
@@ -16,10 +17,14 @@ import (
 	"github.com/golibs-starter/golib"
 	golibcron "github.com/golibs-starter/golib-cron"
 	golibdata "github.com/golibs-starter/golib-data"
+	"github.com/golibs-starter/golib-data/datasource"
 	golibgin "github.com/golibs-starter/golib-gin"
 	golibmsg "github.com/golibs-starter/golib-message-bus"
 	golibsec "github.com/golibs-starter/golib-security"
+	"github.com/golibs-starter/golib/log"
+	"github.com/rafaelhl/gorm-newrelic-telemetry-plugin/telemetry"
 	"go.uber.org/fx"
+	"gorm.io/gorm"
 )
 
 func All() fx.Option {
@@ -31,7 +36,7 @@ func All() fx.Option {
 		golib.BuildInfoOpt(Version, CommitHash, BuildTime),
 		golib.ActuatorEndpointOpt(),
 		golib.HttpRequestLogOpt(),
-
+		middleware.NewRelicOpt(),
 		golib.HttpClientOpt(),
 		golibsec.SecuredHttpClientOpt(),
 
@@ -45,6 +50,13 @@ func All() fx.Option {
 		// Provide datasource auto properties
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
+		fx.Invoke(func(conn *gorm.DB, properties *datasource.Properties) {
+			err := conn.Use(telemetry.NewNrTracer(properties.Database,
+				properties.Host, properties.Driver))
+			if err != nil {
+				log.Error("Failed to initialize New Relic telemetry plugin", err)
+			}
+		}),
 
 		// Provide all application properties
 		golib.ProvideProps(properties.NewGmailProviderProperties),
