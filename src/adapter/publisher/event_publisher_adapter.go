@@ -25,14 +25,13 @@ func (e2 EventPublisherAdapter) SyncPublish(ctx context.Context, e pubsub.Event)
 	}
 	txn := newrelic.FromContext(ctx)
 	log.Info(ctx, fmt.Sprintf("Txn is [%s]", txn.Name()))
-	seg := &newrelic.MessageProducerSegment{
-		StartTime:       newrelic.StartSegmentNow(txn),
-		Library:         "Kafka",
-		DestinationType: newrelic.MessageQueue,
-		DestinationName: message.Topic,
+	seg := &newrelic.Segment{
+		StartTime: txn.StartSegmentNow(),
+		Name:      "Kafka Producer Segment - topic: " + message.Topic,
 	}
-	partition, offset, err := e2.syncProducer.Send(message)
 	defer seg.End()
+	partition, offset, err := e2.syncProducer.Send(message)
+
 	if err != nil {
 		log.Error(ctx, "Error while sending kafka message", err)
 		return err

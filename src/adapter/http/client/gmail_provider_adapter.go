@@ -16,6 +16,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/response"
 	"github.com/golibs-starter/golib/log"
 	"github.com/golibs-starter/golib/web/client"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"golang.org/x/oauth2"
 	"net/url"
 )
@@ -59,8 +60,10 @@ func (g GmailProviderAdapter) GetOAuthByRefreshToken(ctx context.Context, emailP
 }
 
 func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity *entity.EmailProviderEntity, emailData *request.EmailDataDto) error {
+	txn := newrelic.FromContext(ctx)
+	// Add transaction name for better tracing
+
 	message := g.buildMessage(emailProviderEntity, emailData)
-	log.Info(ctx, "Message: %s", message)
 	token := &oauth2.Token{
 		AccessToken:  emailProviderEntity.OAuthToken,
 		TokenType:    "Bearer",
@@ -77,7 +80,12 @@ func (g GmailProviderAdapter) SendEmail(ctx context.Context, emailProviderEntity
 		log.Error(ctx, "Error marshaling email payload", err)
 		return err
 	}
-
+	seg := newrelic.ExternalSegment{
+		StartTime: txn.StartSegmentNow(),
+		URL:       url,
+		Procedure: "POST",
+	}
+	defer seg.End()
 	resp, err := ggClient.Post(url, "application/json", bytes.NewBuffer(jsonData))
 	if err != nil {
 		log.Error(ctx, "Error sending email", err)
@@ -133,12 +141,22 @@ func NewGmailProviderAdapter(httpClient client.ContextualHttpClient, props *prop
 }
 func (g *GmailProviderAdapter) getGmailUserInfo(ctx context.Context, accessToken *oauth2.Token) (*string, error) {
 	ggClient := g.googleOAuthConfig.Client(ctx, accessToken)
-	resp, err := ggClient.Get("https://www.googleapis.com/oauth2/v1/userinfo?alt=json")
+	url := "https://www.googleapis.com/oauth2/v1/userinfo?alt=json"
+
+	txn := newrelic.FromContext(ctx)
+	seg := newrelic.ExternalSegment{
+		StartTime: txn.StartSegmentNow(),
+		URL:       url,
+		Procedure: "GET",
+	}
+	defer seg.End()
+	resp, err := ggClient.Get(url)
 	if err != nil {
 		log.Error(ctx, "Error when get user info", err)
 		return nil, err
 	}
 	defer resp.Body.Close()
+	seg.Response = resp
 	if resp.StatusCode != 200 {
 		log.Error(ctx, "Error when get user info, status code: %d", resp.StatusCode)
 		if resp.StatusCode == 401 || resp.StatusCode == 403 {
