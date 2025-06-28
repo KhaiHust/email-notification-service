@@ -54,7 +54,6 @@ type EmailSendingUsecase struct {
 }
 
 func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *entity.EmailRequestEntity) error {
-
 	decryptPayload, err := e.encryptUseCase.DecryptDataEmailRequest(ctx, emailRequest.Data)
 	if err != nil {
 		log.Error(ctx, "Error when decrypt email request data", err)
@@ -121,8 +120,10 @@ func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *
 		emailRequest.SentAt = utils.ToUnixTimeToPointer(&now)
 	}
 	go func() {
-		ev := event.NewEventEmailRequestSync(ctx, emailRequest)
-		e.eventPublisher.Publish(ev)
+		err = e.SyncToDB(ctx, []*entity.EmailRequestEntity{emailRequest})
+		if err != nil {
+			log.Error(ctx, "Error when sync email request to database", err)
+		}
 	}()
 	return sendErr
 }

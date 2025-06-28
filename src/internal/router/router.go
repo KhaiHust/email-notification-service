@@ -28,7 +28,10 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	group.GET("/actuator/health", gin.WrapF(p.Actuator.Health))
 	group.GET("/actuator/info", gin.WrapF(p.Actuator.Info))
 	group.GET("/v1/email-tracking/open", p.EmailTrackingController.OpenEmailTracking)
-
+	v1Task := group.Group("/v1/tasks")
+	{
+		v1Task.POST("/email-request/schedule", p.EmailSendingController.SendEmailByTask)
+	}
 	group.Use(p.APIKeyMiddleware.AuthenticationMiddlewareHandle())
 	group.POST("/v1/email-request/send", p.EmailSendingController.SendEmailRequest)
 }

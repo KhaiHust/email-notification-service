@@ -50,6 +50,28 @@ func (esc *EmailSendingController) SendEmailRequest(c *gin.Context) {
 	}
 	apihelper.SuccessfulHandle(c, resp)
 }
+
+// SendEmailByTask handles the request to send an email by task ID
+func (esc *EmailSendingController) SendEmailByTask(ctx *gin.Context) {
+	var req request.EmailSendTaskRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Error(ctx, "Error when binding request", err)
+		apihelper.AbortErrorHandle(ctx, err)
+		return
+	}
+	if err := esc.base.validator.Struct(&req); err != nil {
+		log.Error(ctx, "Error when validating request", err)
+		apihelper.AbortErrorHandle(ctx, common.ErrBadRequest)
+		return
+	}
+	err := esc.emailSendingService.SendEmailByTask(ctx, req.EmailRequestID)
+	if err != nil {
+		log.Error(ctx, "Error when sending email by task", err)
+		apihelper.AbortErrorHandle(ctx, err)
+		return
+	}
+	apihelper.SuccessfulHandle(ctx, nil)
+}
 func NewEmailSendingController(
 	base *BaseController,
 	emailSendingService services.IEmailSendingService,
