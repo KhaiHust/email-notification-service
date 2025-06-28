@@ -16,9 +16,6 @@ type EmailSendingController struct {
 }
 
 func (esc *EmailSendingController) SendEmailRequest(c *gin.Context) {
-	//txn := nrgin.Transaction(c)
-	//segment := middleware.NewSegment("YourCustomSegment", txn)
-	//defer middleware.EndSegment(segment)
 	workspaceID := esc.base.GetWorkspaceIDFromContext(c)
 	if workspaceID == 0 {
 		log.Error(c, "Workspace ID is not provided in context")

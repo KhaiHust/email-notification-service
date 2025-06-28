@@ -94,15 +94,18 @@ func All() fx.Option {
 		fx.Provide(usecase.NewGetApiKeyUseCase),
 		fx.Provide(usecase.NewValidateApiKeyUsecase),
 		fx.Provide(usecase.NewUpdateEmailRequestUsecase),
+		fx.Provide(usecase.NewEmailTrackingUsecase),
 
 		fx.Provide(usecase.NewEmailSendingUsecase),
 		//provider services
 		fx.Provide(services.NewEmailSendingService),
+		fx.Provide(services.NewEmailTrackingService),
 
 		//provider controllers
 		fx.Provide(helper.NewCustomValidate),
 		fx.Provide(controllers.NewBaseController),
 		fx.Provide(controllers.NewEmailSendingController),
+		fx.Provide(controllers.NewEmailTrackingController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewAPIKeyMiddleware),

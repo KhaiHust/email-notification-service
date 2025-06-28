@@ -13,12 +13,13 @@ import (
 
 type RegisterRoutersIn struct {
 	fx.In
-	App                    *golib.App
-	Engine                 *gin.Engine
-	Actuator               *actuator.Endpoint
-	APIKeyMiddleware       *middleware.APIKeyMiddleware
-	EmailSendingController *controllers.EmailSendingController
-	NewRelic               *newrelic.Application
+	App                     *golib.App
+	Engine                  *gin.Engine
+	Actuator                *actuator.Endpoint
+	APIKeyMiddleware        *middleware.APIKeyMiddleware
+	EmailSendingController  *controllers.EmailSendingController
+	EmailTrackingController *controllers.EmailTrackingController
+	NewRelic                *newrelic.Application
 }
 
 func RegisterGinRouters(p RegisterRoutersIn) {
@@ -26,6 +27,7 @@ func RegisterGinRouters(p RegisterRoutersIn) {
 	group := p.Engine.Group(p.App.Path())
 	group.GET("/actuator/health", gin.WrapF(p.Actuator.Health))
 	group.GET("/actuator/info", gin.WrapF(p.Actuator.Info))
+	group.GET("/v1/email-tracking/open", p.EmailTrackingController.OpenEmailTracking)
 
 	group.Use(p.APIKeyMiddleware.AuthenticationMiddlewareHandle())
 	group.POST("/v1/email-request/send", p.EmailSendingController.SendEmailRequest)
