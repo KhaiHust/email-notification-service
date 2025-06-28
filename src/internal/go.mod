@@ -10,13 +10,18 @@ replace (
 require (
 	github.com/KhaiHust/email-notification-service/adapter v0.0.0-00010101000000-000000000000
 	github.com/KhaiHust/email-notification-service/core v0.0.0-00010101000000-000000000000
+	github.com/Shopify/sarama v1.38.1
 	github.com/gin-gonic/gin v1.10.1
 	github.com/golibs-starter/golib v1.0.1
 	github.com/golibs-starter/golib-data v1.0.0
 	github.com/golibs-starter/golib-gin v1.0.0
-	github.com/golibs-starter/golib-message-bus v1.0.0
 	github.com/golibs-starter/golib-security v1.0.0
+	github.com/newrelic/go-agent/v3 v3.39.0
+	github.com/newrelic/go-agent/v3/integrations/nrgin v1.4.0
+	github.com/newrelic/go-agent/v3/integrations/nrsarama v1.0.0
+	github.com/rafaelhl/gorm-newrelic-telemetry-plugin v1.0.0
 	go.uber.org/fx v1.24.0
+	gorm.io/gorm v1.25.12
 )
 
 require (
@@ -26,7 +31,6 @@ require (
 	cloud.google.com/go/compute/metadata v0.6.0 // indirect
 	cloud.google.com/go/iam v1.5.0 // indirect
 	github.com/Masterminds/squirrel v1.5.4 // indirect
-	github.com/Shopify/sarama v1.37.2 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
@@ -53,6 +57,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.2.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
+	github.com/golibs-starter/golib-message-bus v1.0.0 // indirect
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
@@ -84,6 +89,7 @@ require (
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/newrelic/go-agent/v3/integrations/nrredis-v9 v1.1.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
@@ -128,5 +134,4 @@ require (
 	gorm.io/driver/mysql v1.5.0 // indirect
 	gorm.io/driver/postgres v1.5.0 // indirect
 	gorm.io/driver/sqlite v1.4.4 // indirect
-	gorm.io/gorm v1.25.12 // indirect
 )

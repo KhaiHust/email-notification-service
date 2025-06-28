@@ -16,13 +16,8 @@ app:
     http:
       jwt.publicKey: ${JWT_PUBLIC_KEY}
   kafka:
-    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
-    clientId: ccloud-go-client-ea58e09f-4481-471f-81e1-9464c8954ac2
-    securityProtocol: SASL_SSL
-    sasl:
-        mechanism: PLAIN
-        username: ${KAFKA_USERNAME}
-        password: ${KAFKA_PASSWORD}
+    bootstrapServers: localhost:9092
+    clientId: email-notification-public-client
     admin:
       topics:
         - name: c1.email.email-sending-request
@@ -69,4 +64,8 @@ app:
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
-
+      EncryptTokenProviderKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-public"
+      Enabled: true

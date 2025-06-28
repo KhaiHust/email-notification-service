@@ -19,6 +19,7 @@ type CreateEmailProviderUseCase struct {
 	getWorkspaceUseCase         IGetWorkspaceUseCase
 	databaseTransactionUseCase  IDatabaseTransactionUseCase
 	emailProviderPort           port.IEmailProviderPort
+	encryptUseCase              IEncryptUseCase
 }
 
 func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, userId int64, workspaceCode, provider string, req *request.CreateEmailProviderDto) (*entity.EmailProviderEntity, error) {
@@ -34,6 +35,17 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 	oauthResponse, err := c.emailProviderPort.GetOAuthInfo(ctx, provider, req.Code)
 	if err != nil {
 		log.Error(ctx, "GetOAuthInfoByCode error: %v", err)
+		return nil, err
+	}
+	//encrypt token before save
+	oauthResponse.AccessToken, err = c.encryptUseCase.EncryptProviderToken(ctx, oauthResponse.AccessToken)
+	if err != nil {
+		log.Error(ctx, "EncryptProviderToken error: %v", err)
+		return nil, err
+	}
+	oauthResponse.RefreshToken, err = c.encryptUseCase.EncryptProviderToken(ctx, oauthResponse.RefreshToken)
+	if err != nil {
+		log.Error(ctx, "EncryptProviderToken error: %v", err)
 		return nil, err
 	}
 	active := true
@@ -56,10 +68,12 @@ func (c CreateEmailProviderUseCase) CreateEmailProvider(ctx context.Context, use
 		if r := recover(); r != nil {
 			err = exception.InternalServerException
 		}
-		if errRollback := tx.Rollback(); errRollback != nil {
-			log.Error(ctx, "Rollback error: %v", errRollback)
-		} else {
-			log.Info(ctx, "Rollback successfully")
+		if err != nil {
+			if errRollback := tx.Rollback(); errRollback != nil {
+				log.Error(ctx, "Rollback error: %v", errRollback)
+			} else {
+				log.Info(ctx, "Rollback successfully")
+			}
 		}
 	}()
 	emailProvider, err := c.emailProviderRepositoryPort.SaveEmailProvider(ctx, tx, &providerEntity)
@@ -79,11 +93,13 @@ func NewCreateEmailProviderUseCase(
 	getWorkspaceUseCase IGetWorkspaceUseCase,
 	databaseTransactionUseCase IDatabaseTransactionUseCase,
 	emailProviderPort port.IEmailProviderPort,
+	encryptUseCase IEncryptUseCase,
 ) ICreateEmailProviderUseCase {
 	return &CreateEmailProviderUseCase{
 		emailProviderRepositoryPort: emailProviderRepositoryPort,
 		getWorkspaceUseCase:         getWorkspaceUseCase,
 		databaseTransactionUseCase:  databaseTransactionUseCase,
 		emailProviderPort:           emailProviderPort,
+		encryptUseCase:              encryptUseCase,
 	}
 }

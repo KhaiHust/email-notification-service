@@ -30,7 +30,7 @@ type EmailSendRetryUsecase struct {
 func (e EmailSendRetryUsecase) ProcessBatches(ctx context.Context) error {
 	now := time.Now().Unix()
 	filter := &request.EmailRequestFilter{
-		Statuses: []string{constant.EmailSendingStatusFailed},
+		Statuses: []string{constant.EmailSendingStatusFailed, constant.EmailSendingStatusQueued},
 		BaseFilter: &request.BaseFilter{
 			Limit:       utils.ToInt64Pointer(BatchSize),
 			SortOrder:   constant.ASC,

@@ -54,7 +54,6 @@ type EmailSendingUsecase struct {
 }
 
 func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *entity.EmailRequestEntity) error {
-
 	decryptPayload, err := e.encryptUseCase.DecryptDataEmailRequest(ctx, emailRequest.Data)
 	if err != nil {
 		log.Error(ctx, "Error when decrypt email request data", err)
@@ -121,19 +120,26 @@ func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *
 		emailRequest.SentAt = utils.ToUnixTimeToPointer(&now)
 	}
 	go func() {
-		ev := event.NewEventEmailRequestSync(ctx, emailRequest)
-		e.eventPublisher.Publish(ev)
+		err = e.SyncToDB(ctx, []*entity.EmailRequestEntity{emailRequest})
+		if err != nil {
+			log.Error(ctx, "Error when sync email request to database", err)
+		}
 	}()
 	return sendErr
 }
 
 func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspaceID int64, req *request.EmailSendingRequestDto) (string, error) {
-	emailProvider, err := e.getEmailProviderUseCase.GetEmailProviderByIDAndWorkspaceID(ctx, req.ProviderID, workspaceID)
-	if err != nil {
-		log.Error(ctx, "Error when get email provider by id", err)
-		return "", err
+	var emailProvider *entity.EmailProviderEntity
+	if req.Provider != nil {
+		emailProvider = req.Provider
+	} else {
+		emailProviderEntity, err := e.getEmailProviderUseCase.GetEmailProviderByIDAndWorkspaceID(ctx, req.ProviderID, workspaceID)
+		if err != nil {
+			log.Error(ctx, "Error when get email provider by id", err)
+			return "", err
+		}
+		emailProvider = emailProviderEntity
 	}
-
 	template, err := e.getEmailTemplateUseCase.GetTemplateByID(ctx, req.TemplateID)
 	if err != nil {
 		log.Error(ctx, "Error when get email template by id", err)
@@ -177,6 +183,10 @@ func (e EmailSendingUsecase) ProcessSendingEmails(ctx context.Context, workspace
 			}
 		}
 	}()
+	if len(emailRequestEntities) == 0 {
+		log.Warn(ctx, "No email requests to process")
+		return requestID, fmt.Errorf("request ID: %s, No email requests to process", requestID)
+	}
 	emailRequestEntities, err = e.createEmailRequestUsecase.CreateEmailRequestsWithTx(ctx, tx, emailRequestEntities)
 	if err != nil {
 		log.Error(ctx, "Error when save email request", err)
@@ -464,7 +474,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 
 	numWorkers := e.BatchConfig.NumOfWorkers
 	jobs := make(chan *request.EmailDataDto, numWorkers*2)
-	results := make(chan *entity.EmailRequestEntity, len(dataSendings))
+
 	var wg sync.WaitGroup
 
 	// Per-provider refreshOnce and refreshErr storage
@@ -535,10 +545,7 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 				emailRequest.ErrorMessage = errMessage
 				emailRequest.SentAt = sentAt
 
-				// 4. Collect results via channel (thread safe)
-				results <- emailRequest
-
-				// 5. Release the lease
+				// 4. Release the lease
 				if err := e.redisPort.DeleteKey(ctx, leaseKey); err != nil {
 					log.Error(ctx, fmt.Sprintf("Failed to release lock for email request %d: %v", data.EmailRequestID, err))
 				} else {
@@ -553,15 +560,8 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 	}
 	close(jobs)
 	wg.Wait()
-	close(results)
 
-	// Collect results
-	emailRequestsNoSkip := make([]*entity.EmailRequestEntity, 0, len(dataSendings))
-	for r := range results {
-		emailRequestsNoSkip = append(emailRequestsNoSkip, r)
-	}
-
-	return e.SyncToDB(ctx, emailRequestsNoSkip)
+	return e.SyncToDB(ctx, emailRequests)
 }
 
 func (e EmailSendingUsecase) buildTemplateAndProviderMap(ctx context.Context, emailRequests []*entity.EmailRequestEntity) (map[int64]*entity.EmailProviderEntity, map[int64]*entity.EmailTemplateEntity, error) {

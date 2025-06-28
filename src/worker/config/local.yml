@@ -12,7 +12,7 @@ app:
   redis:
     host: localhost
     port: 6379
-  config:
+  properties:
     GoogleCloudProject: "email-noti-platform"
 
   services:
@@ -32,18 +32,18 @@ app:
       EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
       EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptTokenProviderKey: "dGVzdF9lbmNyeXB0X2tleQ=="
     task:
       BaseUrl: https://studio-low-transmit-noble.trycloudflare.com/email-notification-public/
       SecretKey: "test_task_secret_key"
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-worker"
+      Enabled: true
 
   kafka:
-    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
-    clientId: ccloud-go-client-ea58e09f-4481-471f-81e1-9464c8954ac2
-    securityProtocol: SASL_SSL
-    sasl:
-      mechanism: PLAIN
-      username: ${KAFKA_USERNAME}
-      password: ${KAFKA_PASSWORD}
+    bootstrapServers: localhost:9092
+    clientId: email-notification-worker-client
     admin:
       topics:
         - name: c1.email.email-request-sync

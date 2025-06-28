@@ -10,20 +10,25 @@ import (
 	"github.com/golibs-starter/golib-message-bus/kafka/core"
 	"github.com/golibs-starter/golib-message-bus/kafka/relayer"
 	"github.com/golibs-starter/golib/log"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 type EmailSendingRequestHandler struct {
 	eventHandlerUsecase usecase.IEventHandlerUsecase
 	eventConverter      relayer.EventConverter
+	newrelicApp         *newrelic.Application
 }
 
 func (em EmailSendingRequestHandler) HandlerFunc(message *core.ConsumerMessage) {
+	txn := em.newrelicApp.StartTransaction("EmailSendingRequestHandler")
+	defer txn.End()
 	var evt event.EventRequestSendingEmail
 	if err := em.eventConverter.Restore(message, &evt); err != nil {
 		log.Error(evt.Context(), fmt.Sprintf("[EmailSendingRequestHandler] Error unmarshalling message: %v", err))
 		return
 	}
 	ctx := middleware.InitContextWorker(evt.Context())
+	ctx = newrelic.NewContext(ctx, txn)
 	if evt.AbstractEvent == nil || evt.AbstractEvent.ApplicationEvent == nil ||
 		evt.AbstractEvent.Event != constant.EmailRequestSendingEvent || evt.PayloadData == nil {
 		log.Error(ctx, fmt.Sprintf("[EmailSendingRequestHandler] Invalid event: %v", evt))
@@ -45,9 +50,11 @@ func (em EmailSendingRequestHandler) Close() {
 func NewEmailSendingRequestHandler(
 	eventHandlerUsecase usecase.IEventHandlerUsecase,
 	eventConverter relayer.EventConverter,
+	newrelicApp *newrelic.Application,
 ) core.ConsumerHandler {
 	return &EmailSendingRequestHandler{
 		eventConverter:      eventConverter,
 		eventHandlerUsecase: eventHandlerUsecase,
+		newrelicApp:         newrelicApp,
 	}
 }

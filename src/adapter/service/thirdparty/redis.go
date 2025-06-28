@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"github.com/golibs-starter/golib/log"
+	nrredis "github.com/newrelic/go-agent/v3/integrations/nrredis-v9"
 	"github.com/redis/go-redis/v9"
 	"time"
 )
@@ -96,6 +97,9 @@ func (r RedisService) GetFromRedis(ctx context.Context, key string) ([]byte, err
 }
 
 func NewRedisService(redisClient *redis.Client) port.IRedisPort {
+
+	// Add the New Relic hook
+	redisClient.AddHook(nrredis.NewHook(redisClient.Options()))
 	return &RedisService{
 		redisClient: redisClient,
 	}

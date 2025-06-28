@@ -8,6 +8,8 @@ import (
 	"github.com/KhaiHust/email-notification-service/adapter/repository/postgres"
 	"github.com/KhaiHust/email-notification-service/adapter/service/thirdparty"
 	"github.com/KhaiHust/email-notification-service/core/helper"
+	middlewareCore "github.com/KhaiHust/email-notification-service/core/middleware"
+	"github.com/KhaiHust/email-notification-service/core/msg"
 	"github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	"github.com/KhaiHust/email-notification-service/internal/controllers"
@@ -16,10 +18,15 @@ import (
 	"github.com/KhaiHust/email-notification-service/internal/services"
 	"github.com/golibs-starter/golib"
 	golibdata "github.com/golibs-starter/golib-data"
+	"github.com/golibs-starter/golib-data/datasource"
 	golibgin "github.com/golibs-starter/golib-gin"
-	golibmsg "github.com/golibs-starter/golib-message-bus"
 	golibsec "github.com/golibs-starter/golib-security"
+	"github.com/golibs-starter/golib/log"
+	"github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/rafaelhl/gorm-newrelic-telemetry-plugin/telemetry"
 	"go.uber.org/fx"
+	"gorm.io/gorm"
+	"net/http"
 )
 
 func All() fx.Option {
@@ -32,16 +39,26 @@ func All() fx.Option {
 		golib.ActuatorEndpointOpt(),
 		golib.HttpRequestLogOpt(),
 		golib.HttpClientOpt(),
+		fx.Invoke(func(httpClient *http.Client) *http.Client {
+			httpClient.Transport = newrelic.NewRoundTripper(http.DefaultTransport)
+			return httpClient
+		},
+		),
 		golibsec.SecuredHttpClientOpt(),
-		//golibsec.HttpSecurityOpt(),
-		//golibsec.JwtAuthFilterOpt(),
-
+		middlewareCore.NewRelicOpt(),
 		// Provide datasource auto properties
 		golibdata.RedisOpt(),
 		golibdata.DatasourceOpt(),
-		golibmsg.KafkaCommonOpt(),
-		golibmsg.KafkaAdminOpt(),
-		golibmsg.KafkaProducerOpt(),
+		fx.Invoke(func(conn *gorm.DB, properties *datasource.Properties) {
+			err := conn.Use(telemetry.NewNrTracer(properties.Database,
+				properties.Host, properties.Driver))
+			if err != nil {
+				log.Error("Failed to initialize New Relic telemetry plugin", err)
+			}
+		}),
+		msg.KafkaCommonOpt(),
+		msg.KafkaAdminOpt(),
+		msg.KafkaProducerOpt(),
 
 		//provide properties
 		golib.ProvideProps(properties.NewBatchProperties),
@@ -76,15 +93,19 @@ func All() fx.Option {
 		fx.Provide(usecase.NewGetWorkspaceUseCase),
 		fx.Provide(usecase.NewGetApiKeyUseCase),
 		fx.Provide(usecase.NewValidateApiKeyUsecase),
+		fx.Provide(usecase.NewUpdateEmailRequestUsecase),
+		fx.Provide(usecase.NewEmailTrackingUsecase),
 
 		fx.Provide(usecase.NewEmailSendingUsecase),
 		//provider services
 		fx.Provide(services.NewEmailSendingService),
+		fx.Provide(services.NewEmailTrackingService),
 
 		//provider controllers
 		fx.Provide(helper.NewCustomValidate),
 		fx.Provide(controllers.NewBaseController),
 		fx.Provide(controllers.NewEmailSendingController),
+		fx.Provide(controllers.NewEmailTrackingController),
 
 		golibgin.GinHttpServerOpt(),
 		fx.Provide(middleware.NewAPIKeyMiddleware),

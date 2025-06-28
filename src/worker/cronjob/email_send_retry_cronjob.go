@@ -6,6 +6,7 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/usecase"
 	golibcron "github.com/golibs-starter/golib-cron"
 	"github.com/golibs-starter/golib/log"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 const (
@@ -17,17 +18,21 @@ const (
 type EmailSendRetryCronJob struct {
 	emailSendRetryUsecase usecase.IEmailSendRetryUsecase
 	redisPort             port.IRedisPort
+	newrelicApp           *newrelic.Application
 }
 
 func (e EmailSendRetryCronJob) Run(ctx context.Context) {
+	txn := e.newrelicApp.StartTransaction("EmailSendRetryCronJob")
+	defer txn.End()
+	ctx = newrelic.NewContext(ctx, txn)
 	//check if the job is already running
 	ok, err := e.redisPort.SetLock(ctx, EmailSendRetryCronJobLockKey, "1", ExpiredTimeForEmailSendRetryCronJob)
 	if err != nil {
-		log.Error(ctx, "Error when set lock for email send retry cron job", err)
+		log.Errorc(ctx, "Error when set lock for email send retry cron job", err)
 		return
 	}
 	if !ok {
-		log.Warn(ctx, "Email send retry cron job is already running")
+		log.Warnc(ctx, "Email send retry cron job is already running")
 		return
 	}
 	defer func() {
@@ -47,9 +52,11 @@ func (e EmailSendRetryCronJob) Run(ctx context.Context) {
 func NewEmailSendRetryCronJob(
 	emailSendRetryUsecase usecase.IEmailSendRetryUsecase,
 	redisPort port.IRedisPort,
+	newrelicApp *newrelic.Application,
 ) golibcron.Job {
 	return &EmailSendRetryCronJob{
 		emailSendRetryUsecase: emailSendRetryUsecase,
 		redisPort:             redisPort,
+		newrelicApp:           newrelicApp,
 	}
 }

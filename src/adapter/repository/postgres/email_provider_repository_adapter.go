@@ -16,6 +16,20 @@ type EmailProviderRepositoryAdapter struct {
 	base
 }
 
+func (e EmailProviderRepositoryAdapter) GetProviderByProviderAndWorkspaceIDAndEnvironment(ctx context.Context, provider string, workspaceID int64, environment string) (*entity.EmailProviderEntity, error) {
+	var emailProviderModel model.EmailProviderModel
+	if err := e.db.WithContext(ctx).
+		Model(&model.EmailProviderModel{}).
+		Select("id, workspace_id, provider, email, from_name, environment").
+		Where("provider = ? AND workspace_id = ? AND environment = ? AND active IS TRUE", provider, workspaceID, environment).First(&emailProviderModel).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	return mapper.ToEmailProviderEntity(&emailProviderModel), nil
+}
+
 func (e EmailProviderRepositoryAdapter) GetEmailProviderByWorkspaceIDAndID(ctx context.Context, workspaceID, providerID int64) (*entity.EmailProviderEntity, error) {
 	var emailProviderModel model.EmailProviderModel
 	if err := e.db.WithContext(ctx).

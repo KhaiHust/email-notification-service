@@ -2,11 +2,13 @@ package publisher
 
 import (
 	"context"
+	"fmt"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"github.com/golibs-starter/golib-message-bus/kafka/core"
 	"github.com/golibs-starter/golib-message-bus/kafka/relayer"
 	"github.com/golibs-starter/golib/log"
 	"github.com/golibs-starter/golib/pubsub"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 type EventPublisherAdapter struct {
@@ -21,7 +23,15 @@ func (e2 EventPublisherAdapter) SyncPublish(ctx context.Context, e pubsub.Event)
 		log.Error(ctx, "Error while converting event to kafka message", err)
 		return err
 	}
+	txn := newrelic.FromContext(ctx)
+	log.Info(ctx, fmt.Sprintf("Txn is [%s]", txn.Name()))
+	seg := &newrelic.Segment{
+		StartTime: txn.StartSegmentNow(),
+		Name:      "Kafka Producer Segment - topic: " + message.Topic,
+	}
+	defer seg.End()
 	partition, offset, err := e2.syncProducer.Send(message)
+
 	if err != nil {
 		log.Error(ctx, "Error while sending kafka message", err)
 		return err

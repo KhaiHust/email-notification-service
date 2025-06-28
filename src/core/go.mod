@@ -5,14 +5,15 @@ go 1.23.0
 toolchain go1.23.8
 
 require (
-	github.com/IBM/sarama v1.45.2
+	github.com/Shopify/sarama v1.37.2
 	github.com/go-playground/validator/v10 v10.14.1
 	github.com/golang-jwt/jwt/v5 v5.2.2
 	github.com/golibs-starter/golib v1.0.1
 	github.com/golibs-starter/golib-message-bus v1.0.0
 	github.com/golibs-starter/golib-security v1.0.0
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.6.0
 	github.com/jinzhu/copier v0.4.0
+	github.com/newrelic/go-agent/v3 v3.39.0
 	github.com/pkg/errors v0.9.1
 	github.com/samber/lo v1.49.1
 	github.com/stretchr/testify v1.10.0
@@ -65,6 +66,9 @@ require (
 	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
+	google.golang.org/grpc v1.65.0 // indirect
+	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

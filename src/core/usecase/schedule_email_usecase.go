@@ -10,7 +10,6 @@ import (
 	"github.com/KhaiHust/email-notification-service/core/constant"
 	"github.com/KhaiHust/email-notification-service/core/entity"
 	"github.com/KhaiHust/email-notification-service/core/entity/dto/request"
-	"github.com/KhaiHust/email-notification-service/core/event"
 	"github.com/KhaiHust/email-notification-service/core/port"
 	"github.com/KhaiHust/email-notification-service/core/properties"
 	"github.com/golibs-starter/golib/log"
@@ -29,9 +28,10 @@ type IScheduleEmailUsecase interface {
 	ScheduleEmails(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error
 }
 type ScheduleEmailUsecase struct {
-	cloudTaskServicePort port.ICloudTaskServicePort
-	taskProps            *properties.TaskProperties
-	eventPublisher       port.IEventPublisher
+	cloudTaskServicePort      port.ICloudTaskServicePort
+	taskProps                 *properties.TaskProperties
+	eventPublisher            port.IEventPublisher
+	updateEmailRequestUsecase IUpdateEmailRequestUsecase
 }
 
 func (s ScheduleEmailUsecase) ScheduleEmails(ctx context.Context, emailRequests []*entity.EmailRequestEntity) error {
@@ -41,7 +41,6 @@ func (s ScheduleEmailUsecase) ScheduleEmails(ctx context.Context, emailRequests 
 	}
 
 	var wg sync.WaitGroup
-	errChan := make(chan error, len(emailRequests))
 
 	for _, emailRequest := range emailRequests {
 		wg.Add(1)
@@ -49,16 +48,18 @@ func (s ScheduleEmailUsecase) ScheduleEmails(ctx context.Context, emailRequests 
 			defer wg.Done()
 			if err := s.ScheduleEmail(ctx, req); err != nil {
 				log.Error(ctx, "Error when scheduling email", err)
-				errChan <- err
+				req.Status = constant.EmailSendingStatusFailed
+				req.ErrorMessage = fmt.Sprintf("Failed to schedule email: %v", err)
+			} else {
+				req.Status = constant.EmailSendingStatusScheduled
 			}
 		}(emailRequest)
 	}
 
 	wg.Wait()
-	close(errChan)
-
-	if len(errChan) > 0 {
-		return <-errChan
+	if _, err := s.updateEmailRequestUsecase.UpdateStatusByBatches(ctx, emailRequests); err != nil {
+		log.Error(ctx, "Error when updating email requests status", err)
+		return fmt.Errorf("failed to update email requests status: %v", err)
 	}
 
 	log.Info(ctx, "All email tasks scheduled successfully")
@@ -95,12 +96,12 @@ func (s ScheduleEmailUsecase) ScheduleEmail(ctx context.Context, emailRequest *e
 		return err
 	}
 	//todo: fire event to update email request status to scheduled
-	emailRequest.Status = constant.EmailSendingStatusScheduled
-	ev := event.NewEventEmailRequestSync(ctx, emailRequest)
-	s.eventPublisher.Publish(ev)
-	log.Info(ctx,
-		fmt.Sprintf("Schedule email task created successfully for EmailRequestID: %s",
-			emailRequest.RequestID))
+	//emailRequest.Status = constant.EmailSendingStatusScheduled
+	//ev := event.NewEventEmailRequestSync(ctx, emailRequest)
+	//s.eventPublisher.Publish(ev)
+	//log.Info(ctx,
+	//	fmt.Sprintf("Schedule email task created successfully for EmailRequestID: %s",
+	//		emailRequest.RequestID))
 	return nil
 }
 
@@ -117,10 +118,12 @@ func NewScheduleEmailUsecase(
 	cloudTaskServicePort port.ICloudTaskServicePort,
 	taskProps *properties.TaskProperties,
 	eventPublisher port.IEventPublisher,
+	updateEmailRequestUsecase IUpdateEmailRequestUsecase,
 ) IScheduleEmailUsecase {
 	return &ScheduleEmailUsecase{
-		cloudTaskServicePort: cloudTaskServicePort,
-		taskProps:            taskProps,
-		eventPublisher:       eventPublisher,
+		cloudTaskServicePort:      cloudTaskServicePort,
+		taskProps:                 taskProps,
+		eventPublisher:            eventPublisher,
+		updateEmailRequestUsecase: updateEmailRequestUsecase,
 	}
 }
