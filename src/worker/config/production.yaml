@@ -29,9 +29,14 @@ app:
       EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
       EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
       EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
+      EncryptTokenProviderKey: ${ENCRYPTION_TOKEN_PROVIDER_KEY}
     task:
       BaseUrl: ${TASK_BASE_URL}
       SecretKey: ${TASK_SECRET_KEY}
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-worker"
+      Enabled: true
 
   kafka:
     bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
