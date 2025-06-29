@@ -31,7 +31,8 @@ app:
         EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
         EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
         EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
+        EncryptTokenProviderKey: ${ENCRYPTION_TOKEN_PROVIDER_KEY}
       newrelic:
-        LicenseKey: "28d05ac76e1cf98492ad86a4119802b8FFFFNRAL"
+        LicenseKey: ${NEW_RELIC_LICENSE_KEY}
         AppName: "email-notification-service-internal"
         Enabled: true
