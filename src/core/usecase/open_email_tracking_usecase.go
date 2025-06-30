@@ -29,7 +29,9 @@ func (e EmailTrackingUsecase) OpenEmailTracking(ctx context.Context, encryptTrac
 		log.Error(ctx, "[EmailTrackingUsecase] Error when decrypt tracking id", err)
 		return common.ErrInvalidEmailTrackingID
 	}
-	go e.SyncToDb(ctx, trackingID)
+	go func() {
+		e.SyncToDb(context.Background(), trackingID)
+	}()
 	return nil
 }
 
