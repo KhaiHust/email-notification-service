@@ -9,7 +9,7 @@ app:
   redis:
     host: ${REDIS_HOST}
     port: 6379
-  config:
+  properties:
     GoogleCloudProject: ${GOOGLE_CLOUD_PROJECT}
 
   services:
