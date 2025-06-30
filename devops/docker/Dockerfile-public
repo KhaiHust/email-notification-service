@@ -12,7 +12,9 @@ RUN env GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o ./public \
 
 FROM alpine:3.19
 COPY --from=builder /go/src/public/config /app/config
+COPY --from=builder /go/src/public/resource/__files /app/resource/__files
 COPY --from=builder /go/src/public/public /app/public
+
 EXPOSE 8080
 WORKDIR /app
 RUN chmod +x ./public
