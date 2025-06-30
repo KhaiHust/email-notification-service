@@ -35,4 +35,4 @@ app:
           - { urlPattern: "/v1/workspaces/.*/webhooks.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/webhooks.*", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
           - { urlPattern: "/v1/workspaces/.*/webhooks.*", method: DELETE, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
-          - { urlPattern: "/v1/workspaces/.*/members/.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/members.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }

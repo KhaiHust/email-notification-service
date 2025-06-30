@@ -81,9 +81,11 @@ func (e EmailSendingUsecase) SendEmailByTask(ctx context.Context, emailRequest *
 			return err
 		}
 	}
+	subject := utils.FillTemplate(template.Subject, payloadMap[SubjectKey])
+	encodedSubject := mime.BEncoding.Encode("UTF-8", subject)
 	dataSending := &request.EmailDataDto{
 		EmailRequestID: emailRequest.ID,
-		Subject:        utils.FillTemplate(template.Subject, payloadMap[SubjectKey]),
+		Subject:        encodedSubject,
 		Body: fmt.Sprintf(`<html><body>%s<br><img src="%s" width="100" height="100"  /></body></html>`,
 			utils.FillTemplate(template.Body, payloadMap[BodyKey]),
 			utils.GenerateTrackingURL(e.trackingProperties.BaseUrl, trackingID),
