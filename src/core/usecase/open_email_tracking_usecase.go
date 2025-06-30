@@ -57,7 +57,7 @@ func (e EmailTrackingUsecase) SyncToDb(ctx context.Context, trackingID string) {
 	}
 	emailRequestEntity.Status = constant.EmailSendingStatusOpened
 	emailRequestEntity.OpenedAt = utils.ToInt64Pointer(time.Now().Unix())
-	emailRequestEntity, err = e.updateEmailRequestUsecase.UpdateEmailRequestByID(ctx, emailRequestEntity)
+	emailRequestEntity, err = e.emailRequestRepositoryPort.UpdateEmailRequestByID(ctx, tx, emailRequestEntity)
 	if err != nil {
 		log.Error(ctx, "[EmailTrackingUsecase] Error when update email request status to opened", err)
 		return
