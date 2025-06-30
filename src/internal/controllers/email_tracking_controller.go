@@ -36,7 +36,7 @@ func (e *EmailTrackingController) OpenEmailTracking(c *gin.Context) {
 
 	// Write 1x1 transparent PNG
 	cwd, _ := os.Getwd()
-	c.File(fmt.Sprintf("%s/resource/__files/logo.png", cwd))
+	c.File(fmt.Sprintf("%s/resources/__files/logo.png", cwd))
 }
 func NewEmailTrackingController(
 	emailTrackingService services.IEmailTrackingService,
