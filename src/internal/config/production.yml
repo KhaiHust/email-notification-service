@@ -25,14 +25,14 @@ app:
           topicName: c1.email.email-sending-request
           transactional: false
           disable: false
-    services:
-      encrypt:
-        EncryptKey: ${ENCRYPTION_KEY}
-        EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
-        EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
-        EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
-        EncryptTokenProviderKey: ${ENCRYPTION_TOKEN_PROVIDER_KEY}
-      newrelic:
-        LicenseKey: ${NEW_RELIC_LICENSE_KEY}
-        AppName: "email-notification-service-internal"
-        Enabled: true
+  services:
+    encrypt:
+      EncryptKey: ${ENCRYPTION_KEY}
+      EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
+      EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
+      EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
+      EncryptTokenProviderKey: ${ENCRYPTION_TOKEN_PROVIDER_KEY}
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-internal"
+      Enabled: true
