@@ -73,5 +73,5 @@ app:
   cron:
     jobs:
       - name: EmailSendRetryCronJob
-        spec: "@every 1m"
+        spec: "@every 2m"
         disabled: false

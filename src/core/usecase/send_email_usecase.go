@@ -479,14 +479,6 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 
 	var wg sync.WaitGroup
 
-	// Per-provider refreshOnce and refreshErr storage
-	type refreshData struct {
-		once *sync.Once
-		err  error
-		mu   sync.Mutex
-	}
-	providerRefreshMap := sync.Map{} // map[int64]*refreshData
-
 	for i := 0; i < numWorkers; i++ {
 		wg.Add(1)
 		go func() {
@@ -514,24 +506,13 @@ func (e EmailSendingUsecase) SendSyncs(ctx context.Context, emailRequests []*ent
 				// 3. Handle 401 (refresh token logic) PER PROVIDER
 				if errors.Is(sendErr, common.ErrUnauthorized) {
 					log.Warn(ctx, fmt.Sprintf("401 detected for %v. Refreshing token...", data.To))
-
-					providerID := data.Provider.ID // Adjust as per your struct
-					// Get or create refreshData for this provider
-					v, _ := providerRefreshMap.LoadOrStore(providerID, &refreshData{once: new(sync.Once)})
-					refresh := v.(*refreshData)
-					refresh.once.Do(func() {
-						refreshed, err := e.updateEmailProviderUseCase.UpdateOAuthInfoByRefreshToken(ctx, data.Provider)
-						if err != nil {
-							refresh.err = err
-							log.Error(ctx, "Token refresh failed", err)
-							return
-						}
-						refresh.mu.Lock()
-						data.Provider = refreshed
-						refresh.mu.Unlock()
-					})
-
-					if refresh.err == nil {
+					providerRefresh, err := e.updateEmailProviderUseCase.HandleTokenExpired(ctx, data.Provider)
+					if err != nil {
+						log.Error(ctx, "Error when refreshing email provider token", err)
+						sendErr = err
+					} else {
+						data.Provider = providerRefresh
+						// Retry sending the email after refreshing the token
 						sendErr = e.emailProviderPort.Send(ctx, data.Provider, data)
 					}
 				}
