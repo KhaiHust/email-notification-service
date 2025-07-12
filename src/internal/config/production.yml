@@ -1,0 +1,38 @@
+app:
+  logging:
+    level: INFO
+  datasource:
+    driver: postgres
+    host: ${DB_HOST}
+    port: 5432
+    database: ${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+  kafka:
+    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
+    clientId: ${KAFKA_CLIENT_ID}
+    securityProtocol: SASL_SSL
+    sasl:
+      mechanism: PLAIN
+      username: ${KAFKA_USERNAME}
+      password: ${KAFKA_PASSWORD}
+    producer:
+      eventMappings:
+        EmailRequestSendingEvent:
+          topicName: c1.email.email-sending-request
+          transactional: false
+          disable: false
+  services:
+    encrypt:
+      EncryptKey: ${ENCRYPTION_KEY}
+      EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
+      EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
+      EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
+      EncryptTokenProviderKey: ${ENCRYPTION_TOKEN_PROVIDER_KEY}
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-internal"
+      Enabled: true

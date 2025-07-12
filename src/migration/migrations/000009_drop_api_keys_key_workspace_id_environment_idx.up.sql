@@ -1,0 +1,2 @@
+
+DROP INDEX api_keys_workspace_id_environment_idx;

@@ -1,0 +1,2 @@
+ALTER TABLE email_templates
+ADD COLUMN version VARCHAR(255) DEFAULT NULL;

@@ -1,0 +1,79 @@
+app:
+  datasource:
+    driver: postgres
+    host: ${DB_HOST}
+    port: 5432
+    database: ${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+  properties:
+    GoogleCloudProject: ${GOOGLE_CLOUD_PROJECT}
+
+  services:
+    provider:
+      gmail:
+        BaseOAuthUrl: https://accounts.google.com/o/oauth2/auth
+        ClientId: ${GMAIL_CLIENT_ID}
+        ClientSecret: ${GMAIL_CLIENT_SECRET}
+        Scopes: "https://www.googleapis.com/auth/userinfo.email https://mail.google.com/"
+        ResponseType: code
+        RedirectUri: ${GMAIL_REDIRECT_URI}
+        AccessType: offline
+    tracking:
+      BaseUrl: ${TRACKING_BASE_URL}
+    encrypt:
+      EncryptKey: ${ENCRYPTION_KEY}
+      EncryptVersionTemplate: ${ENCRYPTION_VERSION_TEMPLATE}
+      EncryptTrackingIDKey: ${ENCRYPTION_TRACKING_ID_KEY}
+      EncryptDataEmailRequestKey: ${ENCRYPTION_DATA_EMAIL_REQUEST_KEY}
+      EncryptTokenProviderKey: ${ENCRYPTION_TOKEN_PROVIDER_KEY}
+    task:
+      BaseUrl: ${TASK_BASE_URL}
+      SecretKey: ${TASK_SECRET_KEY}
+    newrelic:
+      LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+      AppName: "email-notification-service-worker"
+      Enabled: true
+
+  kafka:
+    bootstrapServers: ${KAFKA_BOOTSTRAP_SERVERS}
+    clientId: ${KAFKA_CLIENT_ID}
+    securityProtocol: SASL_SSL
+    sasl:
+      mechanism: PLAIN
+      username: ${KAFKA_USERNAME}
+      password: ${KAFKA_PASSWORD}
+    admin:
+      topics:
+        - name: c1.email.email-request-sync
+          partitions: 1
+          replicaFactor: 1
+          retention: 72h
+    producer:
+      eventMappings:
+        EmailRequestSendingEvent:
+          topicName: c1.email.email-sending-request
+          transactional: false
+          disable: false
+        EmailRequestSyncEvent:
+          topicName: c1.email.email-request-sync
+          transactional: false
+          disable: false
+    consumer:
+      handlerMappings:
+        EmailSendingRequestHandler:
+          topic: c1.email.email-sending-request
+          groupId: c1.email.email-sending-request.EmailSendingRequestHandler.production
+          enable: true
+        EmailRequestSyncHandler:
+          topic: c1.email.email-request-sync
+          groupId: c1.email.email-request-sync.EmailRequestSyncHandler.production
+          enable: true
+  cron:
+    jobs:
+      - name: EmailSendRetryCronJob
+        spec: ${EMAIL_SEND_RETRY_CRON_SCHEDULE}
+        disabled: false

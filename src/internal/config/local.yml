@@ -1,0 +1,40 @@
+app:
+  port: 8082
+  logging:
+    level: INFO
+  datasource:
+    driver: postgres
+    host: localhost
+    port: 5432
+    database: email_notification_db_test
+    username: email_notification_db_user
+    password: secret
+    logLevel: INFO
+  redis:
+    host: localhost
+    port: 6379
+  kafka:
+    bootstrapServers: localhost:9092
+    clientId: email-notification-internal-client
+    admin:
+      topics:
+        - name: c1.email.email-sending-request
+          partitions: 1
+          replicaFactor: 1
+          retention: 72h
+    producer:
+      eventMappings:
+        EmailRequestSendingEvent:
+          topicName: c1.email.email-sending-request
+          transactional: false
+          disable: false
+  services:
+    encrypt:
+      EncryptKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptVersionTemplate: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptTrackingIDKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+      EncryptDataEmailRequestKey: "dGVzdF9lbmNyeXB0X2tleQ=="
+    newrelic:
+        LicenseKey: ${NEW_RELIC_LICENSE_KEY}
+        AppName: "email-notification-service-internal"
+        Enabled: true

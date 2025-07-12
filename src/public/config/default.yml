@@ -1,0 +1,38 @@
+app:
+  name: Email Notification Service Public
+  path: /email-notification-public
+  security.jwt.type: JWT_TOKEN_MOBILE
+  security:
+      http:
+        publicUrls:
+          - /actuator/health
+          - /actuator/info
+          - /swagger/*
+          - /v1/auth/login
+          - /v1/auth/signup
+          - /v1/auth/refresh-token
+          - /v1/integrations/*
+          - /v1/tracking/open*
+          - /v1/tracking/open.png*
+          - /v1/tasks/*
+        protectedUrls:
+          - { urlPattern: "/v1/workspaces/*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/providers/.*/oauth", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/providers/.*", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/providers/.*", method: DELETE, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/providers.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates/.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates/.*", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/templates/.*", method: DELETE, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/send", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/api-keys", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/api-keys.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/analytics/.*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/webhooks.*", method: POST, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/webhooks.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/webhooks.*", method: PATCH, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/webhooks.*", method: DELETE, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }
+          - { urlPattern: "/v1/workspaces/.*/members.*", method: GET, roles: [ "MOBILE_APP" ], unauthorizedWwwAuthenticateHeaders: [ "Bearer" ] }

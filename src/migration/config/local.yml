@@ -1,0 +1,11 @@
+app:
+  datasource:
+    driver: postgres
+    host: localhost
+    port: 5432
+    database: email_test_db_2
+    username: email_notification_db_user
+    password: secret
+    migrationSource: file://migrations
+  logging:
+    development: true

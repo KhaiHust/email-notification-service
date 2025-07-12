@@ -1,0 +1,160 @@
+package common
+
+import "net/http"
+
+var _ error = (*Errs)(nil)
+
+type Errs struct {
+	Message        string
+	Code           int
+	HttpStatusCode int
+}
+
+func New(message string, code int, httpStatusCode int) *Errs {
+	return &Errs{
+		Message:        message,
+		Code:           code,
+		HttpStatusCode: httpStatusCode,
+	}
+}
+
+const (
+	ErrEmailProviderNotFoundMessage             = "Email provider not found"
+	ErrInternalServerMessage                    = "Internal server error"
+	EmailProviderParamNotFoundMessage           = "Email provider not found"
+	ErrRecordNotFoundMessage                    = "Record not found"
+	ErrForbiddenMessage                         = "Forbidden"
+	ErrOAuthCodeNotFoundMessage                 = "OAuth code not found"
+	ErrBadRequestMessage                        = "Bad request"
+	ErrEmailIsExistMessage                      = "Email is existed"
+	ErrEmailOrPasswordInvalidMessage            = "Email or password is invalid"
+	ErrUnauthorizedMessage                      = "Unauthorized"
+	ErrInvalidTokenMessage                      = "Invalid token"
+	ErrEmailTemplateVersionInvalidFormatMessage = "Email template version invalid format"
+	ErrEmailTemplateVersionNotMatchMessage      = "Email template version not match"
+	ErrInvalidEmailTrackingIDMessage            = "Invalid email tracking id"
+	ErrProviderNotFoundOrForbiddenMessage       = "Provider not found for environment or API Keys do not have permission to access this provider"
+)
+const (
+	ErrEmailProviderNotFoundCode             = 404001
+	ErrInternalServerCode                    = 500000
+	ErrBadRequestCode                        = 400000
+	EmailProviderParamNotFoundCode           = 400001
+	ErrOAuthCodeNotFoundCode                 = 400002
+	ErrRecordNotFoundCode                    = 404002
+	ErrForbiddenCode                         = 403001
+	ErrEmailIsExistedCode                    = 400003
+	ErrEmailOrPasswordInvalidCode            = 400004
+	ErrUnauthorizedCode                      = 401000
+	ErrInvalidTokenCode                      = 401001
+	ErrEmailTemplateVersionInvalidFormatCode = 400005
+	ErrEmailTemplateVersionNotMatchCode      = 400006
+	ErrInvalidEmailTrackingIDCode            = 400007
+	ErrProviderNotFoundOrForbiddenCode       = 404003
+)
+
+var (
+	ErrEmailProviderNotFound = Errs{
+		Message:        ErrEmailProviderNotFoundMessage,
+		Code:           ErrEmailProviderNotFoundCode,
+		HttpStatusCode: http.StatusNotFound,
+	}
+	ErrInternalServer = Errs{
+		Message:        ErrInternalServerMessage,
+		Code:           ErrInternalServerCode,
+		HttpStatusCode: http.StatusInternalServerError,
+	}
+	ErrEmailProviderParamNotFound = Errs{
+		Message:        EmailProviderParamNotFoundMessage,
+		Code:           EmailProviderParamNotFoundCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrRecordNotFound = Errs{
+		Message:        ErrRecordNotFoundMessage,
+		Code:           ErrRecordNotFoundCode,
+		HttpStatusCode: http.StatusNotFound,
+	}
+	ErrForbidden = Errs{
+		Message:        ErrForbiddenMessage,
+		Code:           ErrForbiddenCode,
+		HttpStatusCode: http.StatusForbidden,
+	}
+	ErrOAuthCodeNotFound = Errs{
+		Message:        ErrOAuthCodeNotFoundMessage,
+		Code:           ErrOAuthCodeNotFoundCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrBadRequest = Errs{
+		Message:        ErrBadRequestMessage,
+		Code:           ErrBadRequestCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrEmailIsExisted = Errs{
+		Message:        ErrEmailIsExistMessage,
+		Code:           ErrEmailIsExistedCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrEmailOrPasswordInvalid = Errs{
+		Message:        ErrEmailOrPasswordInvalidMessage,
+		Code:           ErrEmailOrPasswordInvalidCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrUnauthorized = Errs{
+		Message:        ErrUnauthorizedMessage,
+		Code:           ErrUnauthorizedCode,
+		HttpStatusCode: http.StatusUnauthorized,
+	}
+	ErrInvalidToken = Errs{
+		Message:        ErrInvalidTokenMessage,
+		Code:           ErrInvalidTokenCode,
+		HttpStatusCode: http.StatusUnauthorized,
+	}
+	ErrEmailTemplateVersionInvalidFormat = Errs{
+		Message:        ErrEmailTemplateVersionInvalidFormatMessage,
+		Code:           ErrEmailTemplateVersionInvalidFormatCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrEmailTemplateVersionNotMatch = Errs{
+		Message:        ErrEmailTemplateVersionNotMatchMessage,
+		Code:           ErrEmailTemplateVersionNotMatchCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrInvalidEmailTrackingID = Errs{
+		Message:        ErrInvalidEmailTrackingIDMessage,
+		Code:           ErrInvalidEmailTrackingIDCode,
+		HttpStatusCode: http.StatusBadRequest,
+	}
+	ErrProviderNotFoundOrForbidden = Errs{
+		Message:        ErrProviderNotFoundOrForbiddenMessage,
+		Code:           ErrProviderNotFoundOrForbiddenCode,
+		HttpStatusCode: http.StatusNotFound,
+	}
+)
+var (
+	mapErrs = map[int]Errs{
+		ErrEmailProviderNotFoundCode:             ErrEmailProviderNotFound,
+		ErrInternalServerCode:                    ErrInternalServer,
+		ErrRecordNotFoundCode:                    ErrRecordNotFound,
+		ErrForbiddenCode:                         ErrForbidden,
+		ErrOAuthCodeNotFoundCode:                 ErrOAuthCodeNotFound,
+		ErrBadRequestCode:                        ErrBadRequest,
+		ErrEmailIsExistedCode:                    ErrEmailIsExisted,
+		ErrEmailOrPasswordInvalidCode:            ErrEmailOrPasswordInvalid,
+		ErrUnauthorizedCode:                      ErrUnauthorized,
+		ErrInvalidTokenCode:                      ErrInvalidToken,
+		ErrEmailTemplateVersionInvalidFormatCode: ErrEmailTemplateVersionInvalidFormat,
+		ErrEmailTemplateVersionNotMatchCode:      ErrEmailTemplateVersionNotMatch,
+		ErrInvalidEmailTrackingIDCode:            ErrInvalidEmailTrackingID,
+		ErrProviderNotFoundOrForbiddenCode:       ErrProviderNotFoundOrForbidden,
+	}
+)
+
+func (e Errs) Error() string {
+	return e.Message
+}
+func GetErrByCode(code int) Errs {
+	if err, ok := mapErrs[code]; ok {
+		return err
+	}
+	return ErrInternalServer
+}

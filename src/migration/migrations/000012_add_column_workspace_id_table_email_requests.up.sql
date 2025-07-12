@@ -1,0 +1,2 @@
+ALTER TABLE email_requests
+ADD COLUMN workspace_id BIGINT NOT NULL DEFAULT 0

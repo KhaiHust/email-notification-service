@@ -1,0 +1,2 @@
+ALTER TABLE email_templates
+DROP CONSTRAINT IF EXISTS email_templates_workspace_id_key;
